@@ -16,8 +16,11 @@ signals:
 	public slots:
 
 private:
-	QGridLayout container;
-	QTabWidget hud;
+	QGridLayout mContainer;
+	QTabWidget mHud;
+
+	void setupUi();
+	void setupStyles();
 };
   
 #endif

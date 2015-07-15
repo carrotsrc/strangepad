@@ -1,0 +1,26 @@
+QWidget#mainStrangePad {
+	background-color: #333333;
+}
+
+QTabWidget#hudContainer::pane {
+	border-width: 0px;
+}
+
+QTabBar::tab {
+	border-radius: 5px;
+	border: 1px solid #E367E5;
+	padding: 5px;
+	margin-right: 7px;
+}
+
+QTabBar::tab::selected {
+	background-color: #E367E5;
+	color: #6F1172;
+}
+
+QTabBar::tab::!selected {
+	background-color: #E367E5;
+	background-color: transparent;
+	color: #F5B2F7;
+}
+
