@@ -30,6 +30,7 @@ QWidget *libraryTest() {
 
 	local.setLoadHints(QLibrary::ResolveAllSymbolsHint);
 	local.loadHints();
+
 	auto libname = QString("SpSine");
 	auto builder = libname + QString("Build");
 	auto libPath = QString("./pads/libSpSine.so");
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-
+		std::cout << "Check: " << widget->metaObject()->className() << std::endl;
 	SWindow window;
 	SHud hud("Overview");
 	SHud dhud("Focal");

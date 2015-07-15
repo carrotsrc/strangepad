@@ -6,6 +6,7 @@ class SPad : public QWidget {
 Q_OBJECT
 public:
 	explicit SPad(QWidget *parent = 0);
+	void paintEvent(QPaintEvent *);
 signals:
 	public slots:
 };
