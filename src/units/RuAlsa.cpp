@@ -14,20 +14,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "RuAlsa.h"
+#include "framework/events/FrameworkMessages.h"
 using namespace RackoonIO;
 using namespace RackoonIO::Buffers;
+using namespace ExampleCode;
 
 
 static void pcm_trigger_callback(snd_async_handler_t *);
 /** Set the default values */
 RuAlsa::RuAlsa()
-: RackUnit(std::string("RuAlsa")) {
+: RackUnit("RuAlsa") {
 	addJack("audio", JACK_SEQ);
 	workState = IDLE;
 	sampleRate = 44100;
 	maxPeriods = 4;
 	bufSize = 2048;
 	frameBuffer = nullptr;
+	//fp = fopen("pcm.raw", "wb");
 }
 
 /** Method that is called when there is data waiting to be fed into the unit
@@ -83,7 +86,6 @@ void RuAlsa::actionFlushBuffer() {
 	snd_pcm_uframes_t nFrames;
 	unsigned int size = frameBuffer->getLoad();
 	const PcmSample *frames = frameBuffer->flush();
-
 	if((nFrames = snd_pcm_writei(handle, frames, (size>>1))) != (size>>1)) {
 		if(nFrames == -EPIPE) {
 			if(workState != PAUSED)
@@ -94,7 +96,7 @@ void RuAlsa::actionFlushBuffer() {
 		else
 			std::cerr << "Something else is screwed" << std::endl;
 	}
-	//fwrite(frames, sizeof(short), size, fp);
+	//fwrite(frames, sizeof(PcmSample), size, fp);
 	bufLock.unlock();
 	notifyProcComplete();
 	if(workState == PAUSED)
@@ -119,7 +121,7 @@ void RuAlsa::actionInitAlsa() {
 	int err, dir = 0;
 
 	if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-		std::cerr << "cannot open audio device `default` - "
+	std::cerr << "cannot open audio device `default` - "
 			<< snd_strerror(err) <<  std::endl;
 		return;
 	}
@@ -208,7 +210,7 @@ void RuAlsa::actionInitAlsa() {
 			<< snd_strerror(err) <<  std::endl;
 	}
 
-	UnitMsg("Fs: " << sampleRate);;
+	UnitMsg("Fs: " << sampleRate);
 
 	triggerLevel = snd_pcm_avail_update(handle) - (fPeriod<<1);
 
@@ -308,5 +310,4 @@ static void pcm_trigger_callback(snd_async_handler_t *cb) {
 	(*callback)();
 }
 
-// Make this unit loadable at runtime by defining a builder method
 DynamicBuilder(RuAlsa);

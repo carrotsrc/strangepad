@@ -4,9 +4,30 @@
 #include "ui/SWindow.hpp"
 #include "ui/SHud.hpp"
 #include <iostream>
+
+#include "framework/rack/Rack.h"
+#include "framework/memory/BitfieldCache.h"
+
+
+void setupRackoon(RackoonIO::Rack *rack) {
+	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
+	factory->setMessageFactory(new RackoonIO::GenericEventMessageFactory());
+	auto cache = new RackoonIO::BitfieldCache();
+	cache->init(512, 30);
+	factory->setCacheHandler(cache);
+	rack->setRackUnitFactory(std::move(factory));
+	rack->init();
+	rack->initEvents(0);
+}
+
 int main(int argc, char **argv)
 {
 	QApplication app (argc, argv);
+	std::cout << "Loading rack.." << std::endl;
+	RackoonIO::Rack rack;
+	rack.setConfigPath(".config/pad.cfg");
+	setupRackoon(&rack);
+	rack.start();
 
 	// load style sheet
 	QFile qss(".config/strange.qss");

@@ -15,9 +15,9 @@
  */
 #ifndef RUALSA_H
 #define RUALSA_H
-#include "framework/common.h"
 #include "framework/rack/RackUnit.h"
 #include "framework/buffers/DelayBuffer.h"
+namespace ExampleCode {
 /** The unit that interfaces with ALSA
  *
  * This is used by any configuration that
@@ -47,7 +47,7 @@ public:
 
 	RuAlsa();
 	RackoonIO::FeedState feed(RackoonIO::Jack*);
-	void setConfig(std::string,std::string);
+	void setConfig(std::string, std::string);
 
 	RackoonIO::RackState init();
 	RackoonIO::RackState cycle();
@@ -67,7 +67,7 @@ private:
 			  fPeriod; ///< The size of the period in frames
 
 	RackoonIO::FeedState feedJackAudio();
-	std::mutex bufLock; ///< thread ;ock on the delay buffer
+	std::mutex bufLock; ///< thread lock on the delay buffer
 
 	FILE *fp; ///< PCM dump - useful for this example code or debuggin
 
@@ -76,4 +76,5 @@ private:
 	void actionInitAlsa();
 	void actionFlushBuffer();
 };
+}
 #endif
