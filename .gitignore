@@ -1,3 +1,4 @@
 bin/pad
 bin/units/*
+bin/pads/*
 build/*
