@@ -1,8 +1,8 @@
 #include <QPushButton>
 #include "PanelOverview.hpp"
 
-SpSineOverview::SpSineOverview(const QString & label, QWidget *parent) {
-	auto button = new QButton("Foobar Strangepad");
+SpSineOverview::SpSineOverview(QWidget *parent) {
+	auto button = new QPushButton("Foobar Strangepad");
 	setLayout(&mContainer);
 	mContainer.addWidget(button);
 }

@@ -19,6 +19,27 @@ void setupRackoon(RackoonIO::Rack *rack) {
 	rack->init();
 	rack->initEvents(0);
 }
+#include <QLibrary>
+
+QWidget *libraryTest() {
+	auto libname = QString("SpSine");
+	auto builder = libname + QString("Build");
+	auto libPath = QString("./pads/libSpSine.so");
+
+	QLibrary libLoad(libPath);
+	if(!libLoad.load()) {
+		std::cout << "Failed to load lib" << std::endl;
+		return nullptr;
+	}
+	typedef QWidget*(*PadBuilder)(const QString &);
+	std::cout << builder.toStdString().c_str() << std::endl;
+	auto sym = (PadBuilder) libLoad.resolve(builder.toStdString().c_str());
+	if(!sym) {
+		std::cout << "failed to resolve builder" << std::endl;
+	}
+	return sym("overview");
+
+}
 
 int main(int argc, char **argv)
 {
@@ -28,19 +49,22 @@ int main(int argc, char **argv)
 	setupRackoon(&rack);
 	//rack.start();
 
+	auto widget = libraryTest();
+	if(!widget) {
+		std::cout << "Error loading pad" << std::endl;
+		return -1;
+	}
+
 	// load style sheet
 	QFile qss(".config/strange.qss");
 	qss.open(QFile::ReadOnly);
 	app.setStyleSheet(qss.readAll());
 
-	auto button = new QPushButton();
-	button->setText("Hello");
-
 	SWindow window;
 	SHud hud("Overview");
 	SHud dhud("Focal");
 
-	hud.addWidget(button);
+	hud.addWidget(widget);
 	window.addHeadsup(&hud);
 	window.addHeadsup(&dhud);
 	window.show();

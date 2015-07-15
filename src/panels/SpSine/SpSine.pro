@@ -15,5 +15,5 @@ QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW)
 QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
 
 # Input
-HEADERS += SpSine.hpp
-SOURCES += SpSine.cpp
+HEADERS += SpSine.hpp PanelOverview.hpp
+SOURCES += SpSine.cpp PanelOverview.cpp
