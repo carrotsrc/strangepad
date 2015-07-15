@@ -23,15 +23,13 @@ void setupRackoon(RackoonIO::Rack *rack) {
 int main(int argc, char **argv)
 {
 	QApplication app (argc, argv);
-	std::cout << "Loading rack.." << std::endl;
 	RackoonIO::Rack rack;
 	rack.setConfigPath(".config/pad.cfg");
 	setupRackoon(&rack);
-	rack.start();
+	//rack.start();
 
 	// load style sheet
 	QFile qss(".config/strange.qss");
-	std::cout << QString(qss.readAll()).toStdString() << std::endl;
 	qss.open(QFile::ReadOnly);
 	app.setStyleSheet(qss.readAll());
 
