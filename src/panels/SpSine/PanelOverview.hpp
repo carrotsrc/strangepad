@@ -2,7 +2,9 @@
 #define __PANELOVERVIEW_HPP_1436981032__
 #include <QWidget>
 #include <QGridLayout>
-class SpSineOverview : public QWidget
+#include "ui/SPad.hpp"
+
+class SpSineOverview : public SPad
 {
 public:
 	explicit SpSineOverview(QWidget *parent = 0);

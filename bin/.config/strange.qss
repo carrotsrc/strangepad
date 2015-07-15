@@ -24,3 +24,7 @@ QTabBar::tab::!selected {
 	color: #F5B2F7;
 }
 
+SPad {
+	background-color: red;
+	border: 1px solid #E367E5;
+}

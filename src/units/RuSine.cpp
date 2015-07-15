@@ -21,7 +21,6 @@ RuSine::RuSine()
 	 * in the configuration file
 	 */
 	MidiExport("freq", RuSine::midiFrequency);
-	std::cout << "Loaded Sine" << std::endl;
 }
 
 FeedState RuSine::feed(Jack *jack) {

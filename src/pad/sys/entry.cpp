@@ -22,6 +22,14 @@ void setupRackoon(RackoonIO::Rack *rack) {
 #include <QLibrary>
 
 QWidget *libraryTest() {
+	QLibrary local("./pads/libui.so");
+	if(!local.load()) {
+		std::cout << "Failed to load ui" << std::endl;
+		return nullptr;
+	}
+
+	local.setLoadHints(QLibrary::ResolveAllSymbolsHint);
+	local.loadHints();
 	auto libname = QString("SpSine");
 	auto builder = libname + QString("Build");
 	auto libPath = QString("./pads/libSpSine.so");
@@ -32,7 +40,6 @@ QWidget *libraryTest() {
 		return nullptr;
 	}
 	typedef QWidget*(*PadBuilder)(const QString &);
-	std::cout << builder.toStdString().c_str() << std::endl;
 	auto sym = (PadBuilder) libLoad.resolve(builder.toStdString().c_str());
 	if(!sym) {
 		std::cout << "failed to resolve builder" << std::endl;
@@ -49,16 +56,17 @@ int main(int argc, char **argv)
 	setupRackoon(&rack);
 	//rack.start();
 
+	// load style sheet
+	QFile qss(".config/strange.qss");
+	qss.open(QFile::ReadOnly);
+	app.setStyleSheet(qss.readAll());
+
 	auto widget = libraryTest();
 	if(!widget) {
 		std::cout << "Error loading pad" << std::endl;
 		return -1;
 	}
 
-	// load style sheet
-	QFile qss(".config/strange.qss");
-	qss.open(QFile::ReadOnly);
-	app.setStyleSheet(qss.readAll());
 
 	SWindow window;
 	SHud hud("Overview");
