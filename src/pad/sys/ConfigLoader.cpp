@@ -47,6 +47,7 @@ void ConfigLoader::switchType(const TokenType & type) {
 void ConfigLoader::switchStartElement(const QString & element) {
 
 	if(element  == "hud") {
+		std::cout << "Read hud" << std::endl;
 		readHudElement();
 	} else if(element == "pad") {
 		readPadElement();
@@ -66,21 +67,19 @@ void ConfigLoader::switchEndElement(const QString & element) {
 	// pop the state
 	if(mStateTokens[mState.last()] == element) {
 		mState.pop_back();
-		std::cout << "Popped " << qPrintable(element) << std::endl;
-	} else {
-		std::cerr << "Pad Config: Malformed XML description" << std::endl;
 	}
 }
 
 void ConfigLoader::readHudElement() {
 	auto at = mXml.attributes();
-	QString label = "noname";
 
-	if(at.hasAttribute("label")) {
-		label = at.value("label").toString();
+	if(!at.hasAttribute("label")) {
+		std::cerr << "Pad Config: hud element" 
+			<< " has malformed description" << std::endl;
+		return;
 	}
 
-	mRig->addHud(label);
+	mRig->addHud(at.value("label").toString());
 }
 
 void ConfigLoader::readPadElement() {

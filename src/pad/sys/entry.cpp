@@ -54,24 +54,32 @@ void initUi() {
 
 }
 
-void setupRig(const RigDesc & rig) {
-	auto it = rig.begin();
-	for(;it != rig.end(); it++ ) {
+QVector<SHud*> setupRig(const RigDesc & rig) {
+	QVector<SHud*> huds;
+	SHud* c = nullptr;
+
+	for(auto it = rig.begin(); it != rig.end(); it++ ) {
+		huds.push_back(new SHud((*it).label));
 		for(auto jt = (*it).pads.begin(); jt != (*it).pads.end(); jt++) {
-			std::cout << "Pad: " << qPrintable((*jt).label) << std::endl;
 		}
 	}
+
+	return huds;
 }
 
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
 
+	QApplication app (argc, argv);
+	initUi();
+	auto sym = libraryTest();
+
+
 	ConfigLoader configLoader;
 	configLoader.load("./.config/pad.xml", &rigDescription);
-	setupRig(rigDescription);
+	auto huds = setupRig(rigDescription);
 
-	QApplication app (argc, argv);
 	RackoonIO::Rack rack;
 	rack.setConfigPath(".config/pad.cfg");
 	setupRackoon(&rack);
@@ -82,23 +90,10 @@ int main(int argc, char **argv)
 	qss.open(QFile::ReadOnly);
 	app.setStyleSheet(qss.readAll());
 
-	initUi();
-	auto sym = libraryTest();
-	auto widgetA = sym("overview");
-	auto widgetB = sym("overview");
-	if(!widgetA || !widgetB) {
-		std::cout << "Error loading pad" << std::endl;
-		return -1;
-	}
-
 	SWindow window;
-	SHud hud("Overview");
-	SHud dhud("Focal");
-
-	hud.addWidget(widgetA);
-	hud.addWidget(widgetB);
-	window.addHeadsup(&hud);
-	window.addHeadsup(&dhud);
+	for(auto it = huds.begin(); it != huds.end(); ++it) {
+		window.addHeadsup((*it));
+	}
 	window.show();
 
 	return app.exec();

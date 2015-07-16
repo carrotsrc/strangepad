@@ -6,7 +6,6 @@ void RigDesc::addHud(QString label) {
 		.pads = QVector<PadDesc>()
 	});
 	mCurrentHud = &(mHuds.last());
-
 }
 
 void RigDesc::addPad(QString type, QString label, QString unit) {
