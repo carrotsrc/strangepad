@@ -1,6 +1,6 @@
 #ifndef __RIGDESC_HPP_1437073162__
 #define __RIGDESC_HPP_1437073162__
-#include <QMap>
+#include <QVector>
 #include <QString>
 
 typedef struct {
@@ -11,7 +11,8 @@ class RigDesc {
 public:
 	void addHud(QString label);
 private:
-	QMap<QString, HudDesc*> huds;
+	QVector<HudDesc*> mHuds;
+	HudDesc* mCurrentHud;
 };
 #endif
 

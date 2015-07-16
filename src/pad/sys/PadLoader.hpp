@@ -18,7 +18,7 @@ class PadLoader {
 
 public:
 	PadLoader();
-	bool loadConfig(const QString & path);
+	bool loadConfig(const QString & path, RigDesc *description);
 private:
 	QXmlStreamReader mXml;
 	

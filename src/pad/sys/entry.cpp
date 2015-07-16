@@ -56,8 +56,10 @@ void initUi() {
 
 int main(int argc, char **argv)
 {
+	RigDesc rigDescription;
+
 	PadLoader padLoader;
-	padLoader.loadConfig("./.config/pad.xml");
+	padLoader.loadConfig("./.config/pad.xml", &rigDescription);
 	return 0;
 	QApplication app (argc, argv);
 	RackoonIO::Rack rack;

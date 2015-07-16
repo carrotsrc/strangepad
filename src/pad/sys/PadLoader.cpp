@@ -13,13 +13,15 @@ void PadLoader::initStateTokens() {
 	mStateTokens.insert(State::Pad, QString("pad"));
 }
 
-bool PadLoader::loadConfig(const QString &path) {
+bool PadLoader::loadConfig(const QString &path, RigDesc *description) {
 	QFile file(path);
 
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return false;
 
 	mXml.addData(file.readAll());
+
+	mRig = description;
 
 	while(!mXml.atEnd()) {
 		auto type = mXml.readNext();
@@ -73,7 +75,11 @@ void PadLoader::switchEndElement(const QString & element) {
 
 void PadLoader::readHudElement() {
 	auto at = mXml.attributes();
+	QString label = "noname";
+
 	if(at.hasAttribute("label")) {
-		std::cout << qPrintable(at.value("label").toString()) << std::endl;
+		label = at.value("label").toString();
 	}
+
+	mRig->addHud(label);
 }
