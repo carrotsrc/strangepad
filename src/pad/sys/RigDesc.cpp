@@ -8,8 +8,9 @@ void RigDesc::addHud(QString label) {
 	mCurrentHud = &(mHuds.last());
 }
 
-void RigDesc::addPad(QString type, QString label, QString unit) {
+void RigDesc::addPad(QString collection, QString type, QString label, QString unit) {
 	mCurrentHud->pads.push_back({
+				.collection = collection,
 				.type = type,
 				.label = label,
 				.unit = unit

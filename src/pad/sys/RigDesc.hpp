@@ -4,6 +4,7 @@
 #include <QString>
 
 typedef struct {
+	QString collection;
 	QString type;
 	QString label;
 	QString unit;
@@ -17,7 +18,7 @@ typedef struct {
 class RigDesc {
 public:
 	void addHud(QString label);
-	void addPad(QString type, QString label, QString unit); 
+	void addPad(QString collection, QString type, QString label, QString unit); 
 
 	QString getLabel();
 	QVector<HudDesc>::const_iterator begin() const;

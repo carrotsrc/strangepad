@@ -47,7 +47,6 @@ void ConfigLoader::switchType(const TokenType & type) {
 void ConfigLoader::switchStartElement(const QString & element) {
 
 	if(element  == "hud") {
-		std::cout << "Read hud" << std::endl;
 		readHudElement();
 	} else if(element == "pad") {
 		readPadElement();
@@ -86,6 +85,7 @@ void ConfigLoader::readPadElement() {
 	auto at = mXml.attributes();
 
 	if(!at.hasAttribute("label")
+	|| !at.hasAttribute("collection")
 	|| !at.hasAttribute("type")
 	|| !at.hasAttribute("unit")) {
 		std::cerr << "Pad Config: pad element" 
@@ -93,7 +93,8 @@ void ConfigLoader::readPadElement() {
 		return;
 	}
 
-	mRig->addPad(at.value("type").toString(),
+	mRig->addPad(at.value("collection").toString(),
+		at.value("type").toString(),
 		at.value("label").toString(),
 		at.value("unit").toString());
 }

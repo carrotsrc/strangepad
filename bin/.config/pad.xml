@@ -2,9 +2,9 @@
 <!DOCTYPE rig>
 
 <rig>
-	<hud label="Overwatch">
-		<pad type="SpSine" label="Main" unit="sine1" />
-		<pad type="SpSine" label="Backup" unit="sine1" />
+	<hud label="Overview">
+		<pad collection="SpSine" type="overview" label="Main" unit="sine1" />
+		<pad collection="SpSine" type="overview" label="Backup" unit="sine1" />
 	</hud>
 
 	<hud label="Focus">
