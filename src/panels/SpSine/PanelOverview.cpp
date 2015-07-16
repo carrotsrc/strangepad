@@ -1,11 +1,11 @@
-#include <QPushButton>
+#include <QLabel>
 
 #include "PanelOverview.hpp"
 
 SpSineOverview::SpSineOverview(QWidget *parent) :
 SPad(parent) {
-	auto button = new QPushButton("Foobar Strangepad");
-	button->setStyleSheet("width: 100px;");
+	auto label = new QLabel("StrangePad Sine");
+	label->setStyleSheet("width: 100px;");
 	setLayout(&mContainer);
-	mContainer.addWidget(button);
+	mContainer.addWidget(label);
 }
