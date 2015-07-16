@@ -4,6 +4,8 @@
 #include <QVector>
 #include <QMap>
 
+#include "RigDesc.hpp"
+
 class PadLoader {
 
 	enum State {
@@ -12,6 +14,7 @@ class PadLoader {
 
 	QVector<State> mState;
 	QMap<State, QString> mStateTokens;
+	RigDesc *mRig;
 
 public:
 	PadLoader();
@@ -23,6 +26,8 @@ private:
 	void switchType(const QXmlStreamReader::TokenType & type);
 	void switchStartElement(const QString & element);
 	void switchEndElement(const QString & element);
+
+	void readHudElement();
 };
 #endif
 
