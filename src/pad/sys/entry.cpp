@@ -9,7 +9,7 @@
 #include "framework/rack/Rack.h"
 #include "framework/memory/BitfieldCache.h"
 
-#include "PadLoader.hpp"
+#include "ConfigLoader.hpp"
 
 void setupRackoon(RackoonIO::Rack *rack) {
 	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
@@ -54,12 +54,22 @@ void initUi() {
 
 }
 
+void setupRig(const RigDesc & rig) {
+	auto it = rig.begin();
+	for(;it != rig.end(); it++ ) {
+		for(auto jt = (*it).pads.begin(); jt != (*it).pads.end(); jt++) {
+			std::cout << "Pad: " << qPrintable((*jt).label) << std::endl;
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
 
-	PadLoader padLoader;
-	padLoader.loadConfig("./.config/pad.xml", &rigDescription);
+	ConfigLoader configLoader;
+	configLoader.load("./.config/pad.xml", &rigDescription);
+	setupRig(rigDescription);
 
 	QApplication app (argc, argv);
 	RackoonIO::Rack rack;

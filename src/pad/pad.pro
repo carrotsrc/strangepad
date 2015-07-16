@@ -16,5 +16,5 @@ QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
 
 
 # Input
-SOURCES += sys/RigDesc.cpp sys/PadLoader.cpp
+SOURCES += sys/RigDesc.cpp sys/ConfigLoader.cpp
 SOURCES += ui/SHud.cpp ui/SWindow.cpp sys/entry.cpp

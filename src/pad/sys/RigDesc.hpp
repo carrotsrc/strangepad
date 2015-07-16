@@ -20,8 +20,8 @@ public:
 	void addPad(QString type, QString label, QString unit); 
 
 	QString getLabel();
-	QVector<HudDesc>::const_iterator begin();
-	QVector<HudDesc>::const_iterator end();
+	QVector<HudDesc>::const_iterator begin() const;
+	QVector<HudDesc>::const_iterator end() const;
 private:
 	QVector<HudDesc> mHuds;
 	HudDesc* mCurrentHud;

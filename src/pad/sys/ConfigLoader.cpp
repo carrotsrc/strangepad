@@ -12,7 +12,7 @@ void ConfigLoader::initStateTokens() {
 	mStateTokens.insert(State::Hud, QString("hud"));
 }
 
-bool ConfigLoader::loadConfig(const QString &path, RigDesc *description) {
+bool ConfigLoader::load(const QString &path, RigDesc *description) {
 	QFile file(path);
 
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))

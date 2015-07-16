@@ -6,7 +6,7 @@
 
 #include "RigDesc.hpp"
 
-class PadLoader {
+class ConfigLoader {
 
 	enum State {
 		Doc, Rig, Hud, Pad
@@ -17,8 +17,8 @@ class PadLoader {
 	RigDesc *mRig;
 
 public:
-	PadLoader();
-	bool loadConfig(const QString & path, RigDesc *description);
+	ConfigLoader();
+	bool load(const QString & path, RigDesc *description);
 private:
 	QXmlStreamReader mXml;
 	
