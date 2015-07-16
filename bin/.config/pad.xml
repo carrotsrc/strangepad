@@ -2,5 +2,7 @@
 <!DOCTYPE rig>
 
 <rig>
-	<hud label="overview"></hud>
+	<hud label="overview">
+	<pad type="SpSine" label="Main" unit="sine1">
+	</hud>
 </rig>

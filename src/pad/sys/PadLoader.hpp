@@ -28,6 +28,7 @@ private:
 	void switchEndElement(const QString & element);
 
 	void readHudElement();
+	void readPadElement();
 };
 #endif
 

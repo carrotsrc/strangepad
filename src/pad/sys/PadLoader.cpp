@@ -10,7 +10,6 @@ PadLoader::PadLoader() {
 void PadLoader::initStateTokens() {
 	mStateTokens.insert(State::Rig, QString("rig"));
 	mStateTokens.insert(State::Hud, QString("hud"));
-	mStateTokens.insert(State::Pad, QString("pad"));
 }
 
 bool PadLoader::loadConfig(const QString &path, RigDesc *description) {
@@ -49,8 +48,8 @@ void PadLoader::switchStartElement(const QString & element) {
 
 	if(element  == "hud") {
 		readHudElement();
-	} else if(element == "") {
-
+	} else if(element == "pad") {
+		readPadElement();
 	}
 
 	// push the state
@@ -82,4 +81,20 @@ void PadLoader::readHudElement() {
 	}
 
 	mRig->addHud(label);
+}
+
+void PadLoader::readPadElement() {
+	auto at = mXml.attributes();
+
+	if(!at.hasAttribute("label")
+	|| !at.hasAttribute("type")
+	|| !at.hasAttribute("unit")) {
+		std::cerr << "Pad Config: pad element" 
+			<< " has malformed description" << std::endl;
+		return;
+	}
+
+	mRig->addPad(at.value("type").toString(),
+		at.value("label").toString(),
+		at.value("unit").toString());
 }

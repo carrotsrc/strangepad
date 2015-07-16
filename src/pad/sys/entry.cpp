@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 
 	PadLoader padLoader;
 	padLoader.loadConfig("./.config/pad.xml", &rigDescription);
+	std::cout << (*rigDescription.begin()).pads[0].type.toStdString() << std::endl;
 	return 0;
 	QApplication app (argc, argv);
 	RackoonIO::Rack rack;

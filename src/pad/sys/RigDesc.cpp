@@ -1,11 +1,22 @@
 #include "RigDesc.hpp"
 #include <iostream>
 void RigDesc::addHud(QString label) {
-	std::cout << "Added hud: " << qPrintable(label) << std::endl;
-	auto ptr = new HudDesc {
-		.label = label
-	};
+	mHuds.push_back({
+		.label = label,
+		.pads = QVector<PadDesc>()
+	});
+	mCurrentHud = &(mHuds.last());
 
-	mHuds.push_back(ptr);
-	mCurrentHud = ptr;
+}
+
+void RigDesc::addPad(QString type, QString label, QString unit) {
+	mCurrentHud->pads.push_back({
+				.type = type,
+				.label = label,
+				.unit = unit
+			});
+}
+
+QVector<HudDesc>::const_iterator RigDesc::begin() {
+	return mHuds.begin();
 }
