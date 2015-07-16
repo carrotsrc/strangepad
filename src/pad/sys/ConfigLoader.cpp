@@ -1,18 +1,18 @@
 #include <QFile>
-#include "PadLoader.hpp"
+#include "ConfigLoader.hpp"
 #include <iostream>
 
 using TokenType = QXmlStreamReader::TokenType;
-PadLoader::PadLoader() {
+ConfigLoader::ConfigLoader() {
 	initStateTokens();
 }
 
-void PadLoader::initStateTokens() {
+void ConfigLoader::initStateTokens() {
 	mStateTokens.insert(State::Rig, QString("rig"));
 	mStateTokens.insert(State::Hud, QString("hud"));
 }
 
-bool PadLoader::loadConfig(const QString &path, RigDesc *description) {
+bool ConfigLoader::loadConfig(const QString &path, RigDesc *description) {
 	QFile file(path);
 
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -31,7 +31,7 @@ bool PadLoader::loadConfig(const QString &path, RigDesc *description) {
 	return true;
 }
 
-void PadLoader::switchType(const TokenType & type) {
+void ConfigLoader::switchType(const TokenType & type) {
 	switch(type) {
 	case TokenType::StartElement:
 		switchStartElement(mXml.name().toString());
@@ -44,7 +44,7 @@ void PadLoader::switchType(const TokenType & type) {
 	}
 }
 
-void PadLoader::switchStartElement(const QString & element) {
+void ConfigLoader::switchStartElement(const QString & element) {
 
 	if(element  == "hud") {
 		readHudElement();
@@ -61,7 +61,7 @@ void PadLoader::switchStartElement(const QString & element) {
 	}
 }
 
-void PadLoader::switchEndElement(const QString & element) {
+void ConfigLoader::switchEndElement(const QString & element) {
 
 	// pop the state
 	if(mStateTokens[mState.last()] == element) {
@@ -72,7 +72,7 @@ void PadLoader::switchEndElement(const QString & element) {
 	}
 }
 
-void PadLoader::readHudElement() {
+void ConfigLoader::readHudElement() {
 	auto at = mXml.attributes();
 	QString label = "noname";
 
@@ -83,7 +83,7 @@ void PadLoader::readHudElement() {
 	mRig->addHud(label);
 }
 
-void PadLoader::readPadElement() {
+void ConfigLoader::readPadElement() {
 	auto at = mXml.attributes();
 
 	if(!at.hasAttribute("label")

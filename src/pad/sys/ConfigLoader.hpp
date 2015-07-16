@@ -1,5 +1,5 @@
-#ifndef __PADLOADER_HPP_1437057484__
-#define __PADLOADER_HPP_1437057484__
+#ifndef __CONFIGLOADER_HPP_1437057484__
+#define __CONFIGLOADER_HPP_1437057484__
 #include <QXmlStreamReader>
 #include <QVector>
 #include <QMap>

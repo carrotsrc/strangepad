@@ -3,6 +3,10 @@
 
 <rig>
 	<hud label="overview">
-	<pad type="SpSine" label="Main" unit="sine1">
+		<pad type="SpSine" label="Main" unit="sine1">
+		<pad type="SpSine" label="Backup" unit="sine1">
+	</hud>
+
+	<hud label="focal">
 	</hud>
 </rig>

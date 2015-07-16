@@ -20,3 +20,7 @@ void RigDesc::addPad(QString type, QString label, QString unit) {
 QVector<HudDesc>::const_iterator RigDesc::begin() {
 	return mHuds.begin();
 }
+
+QVector<HudDesc>::const_iterator RigDesc::end() {
+	return mHuds.end();
+}

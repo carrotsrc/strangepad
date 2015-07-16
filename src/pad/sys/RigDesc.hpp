@@ -21,6 +21,7 @@ public:
 
 	QString getLabel();
 	QVector<HudDesc>::const_iterator begin();
+	QVector<HudDesc>::const_iterator end();
 private:
 	QVector<HudDesc> mHuds;
 	HudDesc* mCurrentHud;
