@@ -6,7 +6,7 @@ TEMPLATE = lib
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += . ../
-LIBS += -L$(RACKOONIOFW) -L../../../bin/pads -lrackio -lui
+LIBS += -L$(RACKOONIOFW) -L../../../bin/ -lrackio -lui
 
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj

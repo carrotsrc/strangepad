@@ -10,6 +10,7 @@
 #include "framework/memory/BitfieldCache.h"
 
 #include "ConfigLoader.hpp"
+#include "../../panels/ui/SVIndicator.hpp"
 
 void setupRackoon(RackoonIO::Rack *rack) {
 	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
 	RigDesc rigDescription;
 
 	QApplication app (argc, argv);
-	initUi();
+	//initUi();
 	auto sym = libraryTest();
 
 
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
 
 	SWindow window;
 	for(auto it = huds.begin(); it != huds.end(); ++it) {
+		auto widget = sym("overview");
+		(*it)->addWidget(widget);
 		window.addHeadsup((*it));
 	}
 	window.show();

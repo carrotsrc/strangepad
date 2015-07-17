@@ -9,12 +9,12 @@ INCLUDEPATH += .
 
 LIBS += -L$(RACKOONIOFW) -lrackio
 
-DESTDIR=../../../bin/pads/
+DESTDIR=../../../bin/
 OBJECTS_DIR=../../../build/obj
 
 QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW)
 QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
 
 # Input
-HEADERS += SPad.hpp
-SOURCES += SPad.cpp
+HEADERS += SVIndicator.hpp SPad.hpp
+SOURCES += SVIndicator.cpp SPad.cpp
