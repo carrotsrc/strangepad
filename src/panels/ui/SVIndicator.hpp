@@ -7,6 +7,7 @@ class SVIndicator : public QWidget {
 Q_OBJECT
 public:
 	SVIndicator(QWidget* parent = 0);
+	~SVIndicator();
 	void paintEvent(QPaintEvent*);
 
 signals:
@@ -14,6 +15,7 @@ signals:
 
 private:
 	QVector<QRectF> mLeds;
+	QColor *high, *mid, *low;
 };
 #endif
 

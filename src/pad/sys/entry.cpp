@@ -92,9 +92,13 @@ int main(int argc, char **argv)
 	app.setStyleSheet(qss.readAll());
 
 	SWindow window;
+	bool placed = false;
 	for(auto it = huds.begin(); it != huds.end(); ++it) {
-		auto widget = sym("overview");
-		(*it)->addWidget(widget);
+		if(!placed) {
+			auto widget = sym("overview");
+			(*it)->addWidget(widget);
+			placed = true;
+		}
 		window.addHeadsup((*it));
 	}
 	window.show();
