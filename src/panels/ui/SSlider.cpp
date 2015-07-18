@@ -5,6 +5,7 @@
 SSlider::SSlider(QWidget* parent)
 : QAbstractSlider(parent) {
 	mGrabbed = false;
+	setMinimum(0); setMaximum(128);
 }
 
 
@@ -54,6 +55,12 @@ void SSlider::mouseReleaseEvent(QMouseEvent*) {
 	if(mGrabbed) { 
 		mGrabbed = false;
 		update();
+	}
+}
+
+void SSlider::mouseMoveEvent(QMouseEvent*) {
+	if(mGrabbed) {
+		
 	}
 }
 

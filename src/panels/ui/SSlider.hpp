@@ -15,6 +15,7 @@ public:
 	void paintEvent(QPaintEvent*);
 	void mousePressEvent(QMouseEvent*);
 	void mouseReleaseEvent(QMouseEvent*);
+	void mouseMoveEvent(QMouseEvent*);
 
 	void setOrientation(SSlider::Orientation orientation);
 
