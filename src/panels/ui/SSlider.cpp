@@ -6,15 +6,22 @@ SSlider::SSlider(QWidget* parent)
 : QAbstractSlider(parent) {
 	mGrabbed = false;
 	setMinimum(0); setMaximum(128);
+	setSingleStep(1);
+	setValue(0);
 }
 
 
 void SSlider::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
+
 	painter.setRenderHints(QPainter::Antialiasing);
-	cursor = new QRectF(width()/3,0,30,30);
-	QRectF pilot((width()/3),0, (width()-10)-(width()/3), 30);
-	QRectF highlight(0,0, width()/3+30, 30);
+
+	auto xpos = ((width()-15)/maximum()*value())+15;
+	cursor = new QRectF(xpos,0,30,30);
+
+
+	QRectF pilot(xpos,0, (width()-10)-xpos, 30);
+	QRectF highlight(0,0, xpos+30, 30);
 
 	painter.setPen(QPen(QColor("#161616")));
 	painter.setBrush(QBrush(QColor("#240128")));
@@ -58,11 +65,14 @@ void SSlider::mouseReleaseEvent(QMouseEvent*) {
 	}
 }
 
-void SSlider::mouseMoveEvent(QMouseEvent*) {
+void SSlider::mouseMoveEvent(QMouseEvent *mouse) {
 	if(mGrabbed) {
-		
+		auto val = (mouse->x() / ((width()-30)/maximum()));
+		setValue(val);
+		update();
 	}
 }
+
 
 void SSlider::setOrientation(SSlider::Orientation orientation) {
 	mOrientation = orientation;
