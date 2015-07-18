@@ -12,8 +12,9 @@ public:
 	};
 
 	SSlider(QWidget* parent = 0);
-	~SSlider();
 	void paintEvent(QPaintEvent*);
+	void mousePressEvent(QMouseEvent*);
+	void mouseReleaseEvent(QMouseEvent*);
 
 	void setOrientation(SSlider::Orientation orientation);
 
@@ -22,6 +23,8 @@ signals:
 
 private:
 	SSlider::Orientation mOrientation;
+	QRectF *cursor;
+	bool mGrabbed;
 };
 #endif
 

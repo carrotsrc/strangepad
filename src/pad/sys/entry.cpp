@@ -11,7 +11,7 @@
 #include "framework/memory/BitfieldCache.h"
 
 #include "ConfigLoader.hpp"
-#include "../../panels/ui/SVIndicator.hpp"
+#include "../../panels/ui/SSlider.hpp"
 
 void setupRackoon(RackoonIO::Rack *rack) {
 	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
@@ -96,12 +96,12 @@ int main(int argc, char **argv)
 
 	for(auto hud : huds) {
 		if(!placed) {
-			auto widget = sym("overview");
+			//auto widget = sym("overview");
+			auto widget = new SSlider();
+			auto widgetB = new SSlider();
 			hud->addWidget(widget);
+			hud->addWidget(widgetB);
 			placed = true;
-
-			widget = sym("overview");
-			hud->addWidget(widget);
 		}
 		window.addHeadsup(hud);
 	}
