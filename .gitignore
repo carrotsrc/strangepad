@@ -2,3 +2,4 @@ bin/pad
 bin/units/*
 bin/pads/*
 build/*
+bin/*.so*

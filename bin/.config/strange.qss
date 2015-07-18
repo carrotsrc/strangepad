@@ -35,3 +35,7 @@ SPad > QLabel {
 	color: #E367E5;
 	color: #8F98E8;
 }
+
+SVIndicator {
+	background-color: white;
+}

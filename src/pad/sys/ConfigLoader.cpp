@@ -26,7 +26,7 @@ bool ConfigLoader::load(const QString &path, RigDesc *description) {
 		auto type = mXml.readNext();
 		switchType(type);
 	}
-	mXml.clear();
+	//mXml.clear();
 	file.close();
 	return true;
 }

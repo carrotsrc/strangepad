@@ -12,7 +12,7 @@ signals:
 	public slots:
 
 private:
-	QGridLayout mContainer;
+	QVBoxLayout mContainer;
 };
 #endif
 

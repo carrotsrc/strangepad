@@ -11,8 +11,8 @@ OBJECTS_DIR=../../build/obj
 MOC_DIR=../../build
 LIBS += -L$(RACKOONIOFW) -lrackio -L../../bin/ -lui
 
-QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW)
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
+QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW) -ggdb
+QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW) -ggdb
 
 
 # Input

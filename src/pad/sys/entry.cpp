@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QPushButton>
 #include <QFile>
+#include <QStack>
 #include "ui/SWindow.hpp"
 #include "ui/SHud.hpp"
 #include <iostream>
@@ -60,7 +61,7 @@ QVector<SHud*> setupRig(const RigDesc & rig) {
 	SHud* c = nullptr;
 
 	for(auto it = rig.begin(); it != rig.end(); it++ ) {
-		huds.push_back(new SHud((*it).label));
+		huds.append(new SHud((*it).label));
 		for(auto jt = (*it).pads.begin(); jt != (*it).pads.end(); jt++) {
 		}
 	}
@@ -73,7 +74,6 @@ int main(int argc, char **argv)
 	RigDesc rigDescription;
 
 	QApplication app (argc, argv);
-	//initUi();
 	auto sym = libraryTest();
 
 
@@ -93,14 +93,19 @@ int main(int argc, char **argv)
 
 	SWindow window;
 	bool placed = false;
-	for(auto it = huds.begin(); it != huds.end(); ++it) {
+
+	for(auto hud : huds) {
 		if(!placed) {
 			auto widget = sym("overview");
-			(*it)->addWidget(widget);
+			hud->addWidget(widget);
 			placed = true;
+
+			widget = sym("overview");
+			hud->addWidget(widget);
 		}
-		window.addHeadsup((*it));
+		window.addHeadsup(hud);
 	}
+
 	window.show();
 
 	return app.exec();

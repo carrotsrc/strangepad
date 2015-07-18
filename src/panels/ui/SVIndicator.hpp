@@ -6,9 +6,15 @@
 class SVIndicator : public QWidget {
 Q_OBJECT
 public:
+	enum Orientation {
+		Right,Left
+	};
+
 	SVIndicator(QWidget* parent = 0);
 	~SVIndicator();
 	void paintEvent(QPaintEvent*);
+
+	void setOrientation(SVIndicator::Orientation orientation);
 
 signals:
 	public slots:
@@ -16,6 +22,7 @@ signals:
 private:
 	QVector<QRectF> mLeds;
 	QColor *high, *mid, *low;
+	SVIndicator::Orientation mOrientation;
 };
 #endif
 

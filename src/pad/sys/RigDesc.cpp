@@ -1,5 +1,6 @@
 #include "RigDesc.hpp"
 #include <iostream>
+
 void RigDesc::addHud(QString label) {
 	mHuds.push_back({
 		.label = label,
