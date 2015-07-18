@@ -16,7 +16,7 @@ void SSlider::paintEvent(QPaintEvent*) {
 
 	painter.setRenderHints(QPainter::Antialiasing);
 
-	auto xpos = ((width()-15)/maximum()*value())+15;
+	auto xpos = ((width()-15)/maximum()*value());
 	cursor = new QRectF(xpos,0,30,30);
 
 
@@ -50,7 +50,6 @@ void SSlider::paintEvent(QPaintEvent*) {
 
 void SSlider::mousePressEvent(QMouseEvent *mouse) {
 	auto x = mouse->x(); auto y = mouse->y();
-	std::cout << "Mouse Event" << std::endl;
 	if(x > cursor->x() && x < cursor->x() + cursor->width()
 	&& y > cursor->y() && y < cursor->y() + cursor->height()) {
 		mGrabbed = true;
@@ -67,7 +66,7 @@ void SSlider::mouseReleaseEvent(QMouseEvent*) {
 
 void SSlider::mouseMoveEvent(QMouseEvent *mouse) {
 	if(mGrabbed) {
-		auto val = (mouse->x() / ((width()-30)/maximum()));
+		auto val = ((mouse->x()-15) / ((width())/maximum()));
 		setValue(val);
 		update();
 	}
