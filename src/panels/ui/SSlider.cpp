@@ -5,7 +5,7 @@
 SSlider::SSlider(QWidget* parent)
 : QAbstractSlider(parent) {
 	mGrabbed = false;
-	setMinimum(0); setMaximum(128);
+	setMinimum(0); setMaximum(127);
 	setSingleStep(1);
 	setValue(0);
 	setBarSize(Width::Large);
@@ -13,6 +13,8 @@ SSlider::SSlider(QWidget* parent)
 
 
 void SSlider::paintEvent(QPaintEvent*) {
+
+	// This whole function is suboptimal
 	QPainter painter(this);
 
 	painter.setRenderHints(QPainter::Antialiasing);
