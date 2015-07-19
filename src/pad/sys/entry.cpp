@@ -71,13 +71,25 @@ QVector<SHud*> setupRig(const RigDesc & rig) {
 	return huds;
 }
 
+signed short *loadWave(const QString & path, long long* len) { 
+	QFile waveFile(path);
+	waveFile.open(QFile::ReadOnly);
+	auto sz = waveFile.size();
+
+	*len = sz/2;
+
+	auto wave = (signed short*)malloc(sizeof(signed short)*sz);
+	auto read = waveFile.read((char*)wave, sz);
+	std::cout << "Read " << read << " bytes" << std::endl;
+
+	return wave;
+}
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
 
 	QApplication app (argc, argv);
 	auto sym = libraryTest();
-
 
 	ConfigLoader configLoader;
 	configLoader.load("./.config/pad.xml", &rigDescription);
@@ -88,6 +100,9 @@ int main(int argc, char **argv)
 	setupRackoon(&rack);
 	//rack.start();
 
+
+	long long waveLength = 0;
+	auto wave = loadWave("/home/charlie/Spatialize.wav", &waveLength);
 	// load style sheet
 	QFile qss(".config/strange.qss");
 	qss.open(QFile::ReadOnly);
@@ -103,7 +118,7 @@ int main(int argc, char **argv)
 			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
 
-
+			widgetB->setWaveData(wave, waveLength);
 			hud->addWidget(widget);
 			hud->addWidget(widgetB);
 			hud->addWidget(widgetC);

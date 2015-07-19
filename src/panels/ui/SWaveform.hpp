@@ -7,13 +7,16 @@ Q_OBJECT
 public:
 	explicit SWaveform(QWidget *parent = 0);
 
-	void setData(const short* data);
+	void setWaveData(const short* data, long long length);
+	void generateWaveform();
 	void paintEvent(QPaintEvent *);
+
 signals:
 	public slots:
 
 private:
-	short* waveData;
+	signed short* mWaveData;
+	int mWaveLength;
 };
 #endif
 
