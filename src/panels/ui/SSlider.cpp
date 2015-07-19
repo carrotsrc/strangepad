@@ -23,7 +23,7 @@ void SSlider::paintEvent(QPaintEvent*) {
 	cursor = new QRectF(xpos,0,mWidth,mWidth);
 
 
-	QRectF pilot(xpos,0, (width()-10)-xpos, mWidth);
+	QRectF pilot(xpos,0, width()-xpos, mWidth);
 	QRectF highlight(0,0, xpos+mWidth, mWidth);
 	QRectF textBlock(0,mWidth+5, width()-10, 15);
 
@@ -34,20 +34,20 @@ void SSlider::paintEvent(QPaintEvent*) {
 	painter.setBrush(QBrush(QColor("#6E047C")));
 
 	QLinearGradient gradient;
-        gradient.setStart(highlight.width() / 2, 0);
-        gradient.setFinalStop(highlight.width() / 2, highlight.height());
+	gradient.setStart(highlight.width() / 2, 0);
+	gradient.setFinalStop(highlight.width() / 2, highlight.height());
 
-        gradient.setColorAt(0, "#B64FC4");
-        gradient.setColorAt(1, "#6E047C");
+	gradient.setColorAt(0, "#B64FC4");
+	gradient.setColorAt(1, "#6E047C");
 	painter.setBrush(QBrush(gradient));
 	painter.drawRoundedRect(highlight, mHalfWidth,mHalfWidth);
-
 
 	if(mGrabbed) {
 		painter.setBrush(QBrush(QColor("#D24CE3")));
 	} else {
 		painter.setBrush(QBrush(QColor("#8E06A0")));
 	}
+
 	painter.setPen(QPen(QColor("#52015B")));
 	painter.drawEllipse(*cursor);
 	painter.setPen(QPen(QColor("#B1B7E6")));

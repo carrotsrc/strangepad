@@ -12,6 +12,7 @@
 
 #include "ConfigLoader.hpp"
 #include "../../panels/ui/SSlider.hpp"
+#include "../../panels/ui/SKnob.hpp"
 
 void setupRackoon(RackoonIO::Rack *rack) {
 	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
@@ -99,10 +100,9 @@ int main(int argc, char **argv)
 			//auto widget = sym("overview");
 			auto widget = new SSlider;
 			auto widgetB = new SSlider();
-			auto widgetC = new SSlider();
+			auto widgetC = new SKnob();
 
 			widgetB->setBarSize(SSlider::Medium);
-			widgetC->setBarSize(SSlider::Small);
 
 			hud->addWidget(widget);
 			hud->addWidget(widgetB);
