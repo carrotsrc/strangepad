@@ -9,7 +9,10 @@ SWaveform::SWaveform(QWidget* parent)
 
 void SWaveform::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
+	painter.setRenderHints(QPainter::Antialiasing);
+
 	QPen pen(QColor("#ffffff"));
+	pen.setWidth(1);
 
 	QRectF rect(0,0, width(), height());
 
@@ -38,6 +41,10 @@ void SWaveform::paintEvent(QPaintEvent*) {
 		int blockPs = 0, blockNg = 0;
 		long long accPs = 0, accNg = 0;
 		for(int i = 0; i < step; i++) {
+			if(i%2) {
+				continue;
+				sampleIndex++;
+			}
 			if((sample = mWaveData[sampleIndex++]) >= 0) {
 				accPs += sample;
 				blockPs++;
