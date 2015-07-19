@@ -97,10 +97,16 @@ int main(int argc, char **argv)
 	for(auto hud : huds) {
 		if(!placed) {
 			//auto widget = sym("overview");
-			auto widget = new SSlider();
+			auto widget = new SSlider;
 			auto widgetB = new SSlider();
+			auto widgetC = new SSlider();
+
+			widgetB->setBarSize(SSlider::Medium);
+			widgetC->setBarSize(SSlider::Small);
+
 			hud->addWidget(widget);
 			hud->addWidget(widgetB);
+			hud->addWidget(widgetC);
 			placed = true;
 		}
 		window.addHeadsup(hud);
