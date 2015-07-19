@@ -28,19 +28,34 @@ void SWaveform::paintEvent(QPaintEvent*) {
 	auto stepHi = (height()/2.0)/max;
 	auto stepLo = (height()/2.0)/min;
 
-	auto x = 0, y = 0;
-	for(auto i = 0; i < mWaveLength;) {
 
-		if(i >= 0) {
-			y = centre - qFloor(mWaveData[i] * stepHi);
-		} else {
-			y = centre + qFloor(mWaveData[i] * stepLo);
+	auto x = 0, y = 0;
+	auto sampleIndex = 0;
+	signed short sample;
+
+	for(auto x = 0; x < width()-10; x++) {
+
+		int blockPs = 0, blockNg = 0;
+		long long accPs = 0, accNg = 0;
+		for(int i = 0; i < step; i++) {
+			if((sample = mWaveData[sampleIndex++]) >= 0) {
+				accPs += sample;
+				blockPs++;
+			} else {
+				accNg += sample;
+				blockNg++;
+			}
 		}
-		//std::cout << "Data" << mWaveData[i] << std::endl;
-		
+
+		y = centre - qFloor((accPs/blockPs) * stepHi);
+
+		std::cout << y << ",";
+		painter.drawLine(x,centre, x, y);
+
+		y = centre + qFloor((accNg/blockNg) * -stepLo);
+		std::cout << y << std::endl;;
 		painter.drawLine(x,centre, x, y);
 		x++;
-		i += step;
 	}
 
 }
