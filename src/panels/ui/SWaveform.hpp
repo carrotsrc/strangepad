@@ -11,12 +11,17 @@ public:
 	void generateWaveform();
 	void paintEvent(QPaintEvent *);
 
+	void mouseMoveEvent(QMouseEvent*);
+
 signals:
 	public slots:
 
 private:
 	signed short* mWaveData;
-	int mWaveLength;
+	int mWaveLength, mSampleStep, mHoverPosition;
+
+	QRectF mWaveRect;
+
 };
 #endif
 
