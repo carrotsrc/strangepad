@@ -3,3 +3,4 @@ bin/units/*
 bin/pads/*
 build/*
 bin/*.so*
+bin/.store

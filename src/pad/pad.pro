@@ -9,12 +9,12 @@ INCLUDEPATH += .
 DESTDIR=../../bin
 OBJECTS_DIR=../../build/obj
 MOC_DIR=../../build
-LIBS += -L$(RACKOONIOFW) -lrackio -L../../bin/ -lui -lleveldb
+LIBS += -L$(RACKOONIOFW) -lrackio -L../../bin/ -lui -lleveldb -lssl -lcrypto
 
 QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW) -ggdb
 QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW) -ggdb
 
 
 # Input
-SOURCES += sys/RigDesc.cpp sys/ConfigLoader.cpp
+SOURCES += sys/Waveform.cpp sys/RigDesc.cpp sys/ConfigLoader.cpp
 SOURCES += ui/SHud.cpp ui/SWindow.cpp sys/entry.cpp

@@ -10,7 +10,11 @@
 #include "framework/rack/Rack.h"
 #include "framework/memory/BitfieldCache.h"
 
+#include "leveldb/db.h"
+
 #include "ConfigLoader.hpp"
+#include "Waveform.hpp"
+
 #include "../../panels/ui/SSlider.hpp"
 #include "../../panels/ui/SKnob.hpp"
 #include "../../panels/ui/SWaveform.hpp"
@@ -80,13 +84,26 @@ signed short *loadWave(const QString & path, long long* len) {
 
 	auto wave = (signed short*)malloc(sizeof(signed short)*sz);
 	auto read = waveFile.read((char*)wave, sz);
-	std::cout << "Read " << read << " bytes" << std::endl;
 
 	return wave;
 }
+
+void generateWaveform() {
+	
+}
+
+
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
+	leveldb::DB *db;
+	leveldb::Options options;
+	options.create_if_missing = true;
+	leveldb::Status status = leveldb::DB::Open(options, "./.store", &db);
+	if(!status.ok()) {
+		std::cerr << "LevelDb Error: " << status.ToString() << std::endl;
+		return 1;
+	}
 
 	QApplication app (argc, argv);
 	auto sym = libraryTest();
@@ -103,6 +120,14 @@ int main(int argc, char **argv)
 
 	long long waveLength = 0;
 	auto wave = loadWave("/home/charlie/Spatialize.wav", &waveLength);
+
+	Waveform waveform;
+	waveform.setRaw(wave, waveLength);
+	auto hash = waveform.hash();
+	std::cout << "Hash: "<< hash.toStdString()<<std::endl;
+	return 0;
+
+
 	// load style sheet
 	QFile qss(".config/strange.qss");
 	qss.open(QFile::ReadOnly);
@@ -118,15 +143,15 @@ int main(int argc, char **argv)
 			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
 
-			widgetB->setWaveData(wave, waveLength);
+		//	widgetB->setWaveData(wave, waveLength);
 			hud->addWidget(widget);
-			hud->addWidget(widgetB);
+		//	hud->addWidget(widgetB);
 			hud->addWidget(widgetC);
 			placed = true;
 		}
 		window.addHeadsup(hud);
 	}
-
+	
 	window.show();
 
 	return app.exec();
