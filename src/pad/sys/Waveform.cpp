@@ -1,4 +1,5 @@
 #include <openssl/sha.h>
+#include <qmath.h>
 #include "Waveform.hpp"
 #include <iostream>
 #include <iomanip>
@@ -27,5 +28,31 @@ QString Waveform::hash() {
 }
 
 void Waveform::minCompression() {
-	auto blockSize = mLenR/Waveform::StoreSize;
+	auto blockSize = (int)(mLenR/Waveform::StoreSize);
+	long long sampleIndex = 0.0;
+	mMin = new signed short[Waveform::StoreSize];
+
+	for(auto x = 0; x < Waveform::StoreSize; x++) {
+
+		int blockPs = 0, blockNg = 0;
+		long long accPs = 0.0, accNg = 0.0;
+		signed short sample;
+
+		for(int i = 0; i < blockSize; i++) {
+
+			if(i%2) sampleIndex++;
+
+			if((sample = mRaw[sampleIndex++]) >= 0) {
+				accPs += sample;
+				blockPs++;
+			} else {
+				accNg += sample;
+				blockNg++;
+			}
+		}
+
+		auto pos = blockPs ? (short)qFloor(accPs/blockPs) : 0;
+		auto neg = blockNg ? (short)qFloor(accNg/blockNg) : 0;
+		mMin[x++] = pos; mMin[x] = neg;
+	}
 }
