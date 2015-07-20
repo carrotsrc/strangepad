@@ -2,6 +2,7 @@
 #include <QPushButton>
 #include <QFile>
 #include <QStack>
+#include <QLabel>
 #include "ui/SWindow.hpp"
 #include "ui/SHud.hpp"
 #include <iostream>
@@ -126,7 +127,8 @@ int main(int argc, char **argv)
 	auto hash = waveform.hash();
 	std::cout << "Hash: "<< hash.toStdString()<<std::endl;
 	waveform.minCompression();
-	return 0;
+	auto img = waveform.generate(700,200);
+
 
 
 	// load style sheet
@@ -139,15 +141,18 @@ int main(int argc, char **argv)
 
 	for(auto hud : huds) {
 		if(!placed) {
-			//auto widget = sym("overview");
+		//	auto widget = sym("overview");
 			auto widget = new SSlider;
 			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
+			auto label =  new QLabel();
+			label->setPixmap(QPixmap::fromImage(img));
 
-		//	widgetB->setWaveData(wave, waveLength);
+			widgetB->setWaveData(wave, waveLength);
 			hud->addWidget(widget);
-		//	hud->addWidget(widgetB);
+			hud->addWidget(widgetB);
 			hud->addWidget(widgetC);
+			hud->addWidget(label);
 			placed = true;
 		}
 		window.addHeadsup(hud);

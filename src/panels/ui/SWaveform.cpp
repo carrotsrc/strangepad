@@ -60,8 +60,11 @@ void SWaveform::paintEvent(QPaintEvent*) {
 		y = centre - qFloor((accPs/blockPs) * stepHi);
 		painter.drawLine(x,centre, x, y);
 
+		std::cout << x << ": " << y;
+
 		y = centre + qFloor((accNg/blockNg) * -stepLo);
 		painter.drawLine(x,centre, x, y);
+		std::cout << y << std::endl;
 
 
 	}

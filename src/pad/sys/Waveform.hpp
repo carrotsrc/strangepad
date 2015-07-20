@@ -6,12 +6,15 @@ class Waveform {
 public:
 	enum Stat { StoreSize = 1572864 };
 	void setRaw(signed short *raw, long long samples);
+
 	QString hash();
 
 	void minCompression();
+	void recompress();
+	QImage generate(int width, int height);
 
 private:
-	signed short *mRaw, *mMin;
+	signed short *mRaw, *mCompressed;
 	unsigned long long mLenR;
 };
 #endif
