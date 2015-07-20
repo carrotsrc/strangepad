@@ -125,6 +125,7 @@ int main(int argc, char **argv)
 	waveform.setRaw(wave, waveLength);
 	auto hash = waveform.hash();
 	std::cout << "Hash: "<< hash.toStdString()<<std::endl;
+	waveform.minCompression();
 	return 0;
 
 
