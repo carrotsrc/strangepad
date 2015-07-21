@@ -73,7 +73,7 @@ QImage Waveform::generate(int width, int height) {
 	auto pScale = height/32768.0;
 	auto nScale = height/32767.0;
 
-	auto blockSize = qFloor(Waveform::MaxSize/width);
+	auto blockSize = qFloor((Waveform::MaxSize)/width);
 	long long sampleIndex = 0;
 	signed short sample;
 
@@ -84,17 +84,16 @@ QImage Waveform::generate(int width, int height) {
 
 		for(int i = 0; i < blockSize; i++) {
 
-			if((sample = mCompressed[sampleIndex]) >= 0) {
+			if((sample = mCompressed[sampleIndex]) > 0) {
 				accPs += sample;
 				blockPs++;
-			} else {
+			} else if(sample < 0) {
 				accNg += sample;
 				blockNg++;
 			}
 
 			sampleIndex++;
 		}
-
 		auto yp = blockPs ? (qFloor((accPs/blockPs) * pScale)) : 0;
 		auto yn = blockNg ? (qFloor((accNg/blockNg) * nScale)) : 0;
 		painter.drawLine(x,mid-yp, x,mid-yn);
