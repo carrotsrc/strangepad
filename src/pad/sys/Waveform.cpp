@@ -32,8 +32,8 @@ QString Waveform::hash() {
 
 void Waveform::minCompression() {
 	auto waveUnits = Waveform::MaxSize/2;
-	auto blockSize = mLenR / waveUnits;
-	long long sampleIndex = 0;
+	auto blockSize = qFloor(mLenR / waveUnits);
+	auto sampleIndex = 0ull;
 	signed short sample;
 
 	mCompressed = new short[Waveform::MaxSize];
@@ -42,7 +42,7 @@ void Waveform::minCompression() {
 
 		int blockPs = 0, blockNg = 0;
 		long long accPs = 0.0, accNg = 0.0;
-		for(int i = 0; i < blockSize; i++) {
+		for(auto i = 0; i < blockSize; i++) {
 			if((sample = mRaw[sampleIndex]) >= 0) {
 				accPs += sample;
 				blockPs++;
@@ -69,12 +69,12 @@ QImage Waveform::generate(int width, int height) {
 	pen.setWidth(1);
 	painter.setPen(pen);
 
-	auto mid = (int) height/2;
-	auto pScale = height/32768.0;
-	auto nScale = height/32767.0;
+	auto mid = height/2;
+	auto pScale = height/32768.0f;
+	auto nScale = height/32767.0f;
 
-	auto blockSize = qFloor((Waveform::MaxSize)/width);
-	long long sampleIndex = 0;
+	auto blockSize = (int) qFloor((Waveform::MaxSize)/width);
+	auto sampleIndex = 0ull;
 	signed short sample;
 
 	for(int x = 0; x < width; x++) {
@@ -82,7 +82,7 @@ QImage Waveform::generate(int width, int height) {
 		int blockPs = 0, blockNg = 0;
 		long long accPs = 0.0, accNg = 0.0;
 
-		for(int i = 0; i < blockSize; i++) {
+		for(auto i = 0; i < blockSize; i++) {
 
 			if((sample = mCompressed[sampleIndex]) > 0) {
 				accPs += sample;
