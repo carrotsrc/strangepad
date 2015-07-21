@@ -81,7 +81,7 @@ signed short *loadWave(const QString & path, long long* len) {
 	waveFile.open(QFile::ReadOnly);
 	auto sz = waveFile.size();
 
-	*len = sz/2;
+	*len = sz/4;
 
 	auto wave = (signed short*)malloc(sizeof(signed short)*sz);
 	auto read = waveFile.read((char*)wave, sz);
@@ -124,10 +124,9 @@ int main(int argc, char **argv)
 
 	Waveform waveform;
 	waveform.setRaw(wave, waveLength);
-	auto hash = waveform.hash();
-	std::cout << "Hash: "<< hash.toStdString()<<std::endl;
+	//auto hash = waveform.hash();
 	waveform.minCompression();
-	auto img = waveform.generate(700,200);
+	auto img = waveform.generate(860,200);
 
 
 

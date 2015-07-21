@@ -4,7 +4,7 @@
 #include <QString>
 class Waveform {
 public:
-	enum Stat { StoreSize = 1572864 };
+	enum Stat { MaxSize = 1572864 };
 	void setRaw(signed short *raw, long long samples);
 
 	QString hash();
