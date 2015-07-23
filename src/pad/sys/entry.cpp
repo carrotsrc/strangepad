@@ -14,7 +14,7 @@
 #include "leveldb/db.h"
 
 #include "ConfigLoader.hpp"
-#include "Waveform.hpp"
+#include "WaveformManager.hpp"
 
 #include "../../panels/ui/SSlider.hpp"
 #include "../../panels/ui/SKnob.hpp"
@@ -122,11 +122,11 @@ int main(int argc, char **argv)
 	long long waveLength = 0;
 	auto wave = loadWave("/home/charlie/Spatialize.wav", &waveLength);
 
-	Waveform waveform;
-	waveform.setRaw(wave, waveLength);
+	WaveformManager wfManager;
+//	wfManager.setRaw(wave, waveLength);
 	//auto hash = waveform.hash();
-	waveform.minCompression();
-	auto img = waveform.generate(860,200);
+//	wfManager.minCompression();
+//	auto img = wfManager.generate(860,200);
 
 
 
@@ -145,7 +145,8 @@ int main(int argc, char **argv)
 			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
 			auto label =  new QLabel();
-			label->setPixmap(QPixmap::fromImage(img));
+			//label->setPixmap(QPixmap::fromImage(img));
+			//label->setAttribute(Qt::WA_TranslucentBackground);
 
 			widgetB->setWaveData(wave, waveLength);
 			hud->addWidget(widget);

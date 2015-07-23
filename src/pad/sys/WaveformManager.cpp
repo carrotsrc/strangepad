@@ -1,0 +1,112 @@
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+
+#include <openssl/sha.h>
+#include <qmath.h>
+#include <QPainter>
+#include <QPixmap>
+
+#include "WaveformManager.hpp"
+
+
+QString WaveformManager::hash(const signed short *raw, unsigned long long spc) {
+	unsigned char hash[SHA256_DIGEST_LENGTH];
+	SHA256_CTX c;
+
+	SHA256_Init(&c);
+	SHA256_Update(&c, raw, spc/2);
+	SHA256_Final(hash, &c);
+
+	std::stringstream ss;
+	for(auto i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+		ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+	}
+
+	return QString(ss.str().c_str());
+}
+
+signed short *WaveformManager::storeCompress(const signed short *raw, unsigned long long spc) {
+	auto waveUnits = WaveformManager::MaxSize/2;
+	auto blockSize = qFloor(spc / waveUnits);
+	auto sampleIndex = 0ull;
+	signed short sample;
+
+	signed short *compressed = new signed short[WaveformManager::MaxSize];
+
+	for(int block = 0; block < WaveformManager::MaxSize;) {
+
+		int blockPs = 0, blockNg = 0;
+		long long accPs = 0.0, accNg = 0.0;
+		for(auto i = 0; i < blockSize; i++) {
+			if((sample = raw[sampleIndex]) >= 0) {
+				accPs += sample;
+				blockPs++;
+			} else {
+				accNg += sample;
+				blockNg++;
+			}
+
+			sampleIndex += 2;
+		}
+
+		compressed[block++] = blockPs ? qFloor((accPs/blockPs)) : 0;
+		compressed[block++] = blockNg ? qFloor((accNg/blockNg)) : 0;
+	}
+
+	return compressed;
+
+}
+
+QPixmap WaveformManager::compress(int width, int height, const signed short *compressed) {
+
+	QPixmap graph(width, height);
+	graph.fill(Qt::transparent);
+
+	QPen pen(QColor("#ffffff"));
+	pen.setWidth(1);
+
+	QPainter painter(&graph);
+	painter.setRenderHints(QPainter::Antialiasing);
+	painter.setPen(pen);
+
+	auto mid = height/2;
+	auto pScale = height/32768.0f;
+	auto nScale = height/32767.0f;
+
+	auto blockSize = (int) qFloor((WaveformManager::MaxSize)/width);
+	auto sampleIndex = 0ull;
+	signed short sample;
+
+	for(int x = 0; x < width; x++) {
+
+		int blockPs = 0, blockNg = 0;
+		long long accPs = 0.0, accNg = 0.0;
+
+		for(auto i = 0; i < blockSize; i++) {
+
+			if((sample = compressed[sampleIndex]) > 0) {
+				accPs += sample;
+				blockPs++;
+			} else if(sample < 0) {
+				accNg += sample;
+				blockNg++;
+			}
+
+			sampleIndex++;
+		}
+		auto yp = blockPs ? (qFloor((accPs/blockPs) * pScale)) : 0;
+		auto yn = blockNg ? (qFloor((accNg/blockNg) * nScale)) : 0;
+		painter.drawLine(x,mid-yp, x,mid-yn);
+
+	}
+
+	return graph;
+}
+
+std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const signed short *raw, unsigned long long spc) {
+	
+	auto h = hash(raw, spc);
+	return nullptr;
+}

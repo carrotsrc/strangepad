@@ -1,21 +1,19 @@
-#ifndef __WAVEFORM_HPP_1437388311__
-#define __WAVEFORM_HPP_1437388311__
-#include <QImage>
+#ifndef __WAVEFORM_HPP_1437591484__
+#define __WAVEFORM_HPP_1437591484__
+
+#include <QPixmap>
 #include <QString>
+
 class Waveform {
 public:
-	enum Stat { MaxSize = 1572864 };
-	void setRaw(signed short *raw, long long samples);
-
+	Waveform(unsigned int blockSize, QPixmap graph, QString hash);
 	QString hash();
-
-	void minCompression();
-	void recompress();
-	QImage generate(int width, int height);
-
+	QPixmap waveform();
+	unsigned int blocksize();
 private:
-	signed short *mRaw, *mCompressed;
-	unsigned long long mLenR;
+	unsigned int mBlockSize;
+	QPixmap mGraph;
+	QString mHash;
+
 };
 #endif
-
