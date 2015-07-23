@@ -114,14 +114,6 @@ int main(int argc, char **argv)
 	long long waveLength = 0;
 	auto wave = loadWave("/home/charlie/Spatialize.wav", &waveLength);
 
-	WaveformManager wfManager;
-	wfManager.generate(640,160, wave, waveLength);
-//	wfManager.setRaw(wave, waveLength);
-	//auto hash = waveform.hash();
-//	wfManager.minCompression();
-//	auto img = wfManager.generate(860,200);
-
-
 
 	// load style sheet
 	QFile qss(".config/strange.qss");
@@ -138,14 +130,11 @@ int main(int argc, char **argv)
 			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
 			auto label =  new QLabel();
-			//label->setPixmap(QPixmap::fromImage(img));
-			//label->setAttribute(Qt::WA_TranslucentBackground);
 
 			widgetB->setWaveData(wave, waveLength);
 			hud->addWidget(widget);
 			hud->addWidget(widgetB);
 			hud->addWidget(widgetC);
-			hud->addWidget(label);
 			placed = true;
 		}
 		window.addHeadsup(hud);

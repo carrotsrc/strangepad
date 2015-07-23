@@ -5,7 +5,6 @@
 #include <QImage>
 #include <QString>
 
-#include "leveldb/db.h"
 #include "Waveform.hpp"
 using pcm_sample = signed short;
 
@@ -17,7 +16,6 @@ public:
 	std::unique_ptr<Waveform> generate(int width, int height, const pcm_sample *raw, unsigned long long spc);
 
 private:
-	std::shared_ptr<leveldb::DB> mDb;
 	pcm_sample* storeCompress(const pcm_sample *raw, unsigned long long spc, unsigned int *blockSize);
 	QPixmap compress(int width, int height, const pcm_sample *compressed, unsigned int *blockSize);
 	QString hash(const pcm_sample *raw, unsigned long long spc);

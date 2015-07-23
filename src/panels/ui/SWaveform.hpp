@@ -1,7 +1,7 @@
 #ifndef __SWAVEFORM_HPP_1437342283__
 #define __SWAVEFORM_HPP_1437342283__
 #include <QWidget>
-
+#include "../../pad/sys/WaveformManager.hpp"
 class SWaveform : public QWidget {
 Q_OBJECT
 public:
@@ -20,8 +20,9 @@ private:
 	signed short* mWaveData;
 	int mWaveLength, mSampleStep, mHoverPosition;
 
-	QRectF mWaveRect;
+	std::unique_ptr<Waveform> mWaveform;
 
+	QRectF mWaveRect;
 };
 #endif
 

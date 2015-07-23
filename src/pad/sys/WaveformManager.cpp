@@ -108,14 +108,14 @@ QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compr
 }
 
 std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const pcm_sample *raw, unsigned long long spc) {
-
+	if( (width|height) == 0) return nullptr;
 	auto hashValue = hash(raw, spc);
 	unsigned int blockSize;
 
 	WaveStore wfs;
 	Waveform *wf;
 
-	QFile store(".store/"+hashValue);
+	QFile store(".store/"+hashValue+".wfs");
 	if(!store.exists()) {
 		auto compressed = storeCompress(raw, spc, &blockSize); 
 		wfs.blockSize = blockSize,
@@ -123,13 +123,16 @@ std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const
 		store.open(QIODevice::WriteOnly);
 		store.write((char*)&wfs, sizeof(WaveStore));
 		store.close();
-		std::cout << "Stored! [" << wfs.blockSize << "]" << std::endl;
 	} else {
 		store.open(QIODevice::ReadOnly);
 		store.read((char*)&wfs, sizeof(WaveStore));
-		std::cout << "Read! [" << wfs.blockSize << "]" << std::endl;
 		store.close();
 	}
+	auto graph = compress(width, height, wfs.waveform, &blockSize);
+	blockSize = wfs.blockSize * blockSize;
 
-	return nullptr;
+	std::cout << blockSize << "\t" << wfs.blockSize << std::endl;
+	wf = new Waveform(blockSize, graph, hashValue);
+
+	return std::unique_ptr<Waveform>(wf);
 }
