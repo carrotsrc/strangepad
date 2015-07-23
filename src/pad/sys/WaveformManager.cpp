@@ -2,16 +2,18 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <cstring>
 
 #include <openssl/sha.h>
 #include <qmath.h>
 #include <QPainter>
 #include <QPixmap>
+#include <QIODevice>
+#include <QFile>
 
 #include "WaveformManager.hpp"
 
-
-QString WaveformManager::hash(const signed short *raw, unsigned long long spc) {
+QString WaveformManager::hash(const pcm_sample *raw, unsigned long long spc) {
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	SHA256_CTX c;
 
@@ -27,19 +29,19 @@ QString WaveformManager::hash(const signed short *raw, unsigned long long spc) {
 	return QString(ss.str().c_str());
 }
 
-signed short *WaveformManager::storeCompress(const signed short *raw, unsigned long long spc) {
+pcm_sample *WaveformManager::storeCompress(const pcm_sample *raw, unsigned long long spc, unsigned int *blockSize) {
 	auto waveUnits = WaveformManager::MaxSize/2;
-	auto blockSize = qFloor(spc / waveUnits);
+	*blockSize = qFloor(spc / waveUnits);
 	auto sampleIndex = 0ull;
-	signed short sample;
+	pcm_sample sample;
 
-	signed short *compressed = new signed short[WaveformManager::MaxSize];
+	pcm_sample *compressed = new pcm_sample[WaveformManager::MaxSize];
 
 	for(int block = 0; block < WaveformManager::MaxSize;) {
 
 		int blockPs = 0, blockNg = 0;
 		long long accPs = 0.0, accNg = 0.0;
-		for(auto i = 0; i < blockSize; i++) {
+		for(auto i = 0u; i < *blockSize; i++) {
 			if((sample = raw[sampleIndex]) >= 0) {
 				accPs += sample;
 				blockPs++;
@@ -59,7 +61,7 @@ signed short *WaveformManager::storeCompress(const signed short *raw, unsigned l
 
 }
 
-QPixmap WaveformManager::compress(int width, int height, const signed short *compressed) {
+QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compressed, unsigned int *blockSize) {
 
 	QPixmap graph(width, height);
 	graph.fill(Qt::transparent);
@@ -75,16 +77,16 @@ QPixmap WaveformManager::compress(int width, int height, const signed short *com
 	auto pScale = height/32768.0f;
 	auto nScale = height/32767.0f;
 
-	auto blockSize = (int) qFloor((WaveformManager::MaxSize)/width);
+	*blockSize = (unsigned int) qFloor((WaveformManager::MaxSize)/width);
 	auto sampleIndex = 0ull;
-	signed short sample;
+	pcm_sample sample;
 
 	for(int x = 0; x < width; x++) {
 
 		int blockPs = 0, blockNg = 0;
 		long long accPs = 0.0, accNg = 0.0;
 
-		for(auto i = 0; i < blockSize; i++) {
+		for(auto i = 0u; i < *blockSize; i++) {
 
 			if((sample = compressed[sampleIndex]) > 0) {
 				accPs += sample;
@@ -105,8 +107,29 @@ QPixmap WaveformManager::compress(int width, int height, const signed short *com
 	return graph;
 }
 
-std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const signed short *raw, unsigned long long spc) {
-	
-	auto h = hash(raw, spc);
+std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const pcm_sample *raw, unsigned long long spc) {
+
+	auto hashValue = hash(raw, spc);
+	unsigned int blockSize;
+
+	WaveStore wfs;
+	Waveform *wf;
+
+	QFile store(".store/"+hashValue);
+	if(!store.exists()) {
+		auto compressed = storeCompress(raw, spc, &blockSize); 
+		wfs.blockSize = blockSize,
+		std::memcpy(&wfs.waveform, compressed, WaveformManager::MaxSize*2);
+		store.open(QIODevice::WriteOnly);
+		store.write((char*)&wfs, sizeof(WaveStore));
+		store.close();
+		std::cout << "Stored! [" << wfs.blockSize << "]" << std::endl;
+	} else {
+		store.open(QIODevice::ReadOnly);
+		store.read((char*)&wfs, sizeof(WaveStore));
+		std::cout << "Read! [" << wfs.blockSize << "]" << std::endl;
+		store.close();
+	}
+
 	return nullptr;
 }

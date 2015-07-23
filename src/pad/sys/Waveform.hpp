@@ -4,6 +4,7 @@
 #include <QPixmap>
 #include <QString>
 
+
 class Waveform {
 public:
 	Waveform(unsigned int blockSize, QPixmap graph, QString hash);

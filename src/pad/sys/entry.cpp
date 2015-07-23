@@ -97,14 +97,6 @@ void generateWaveform() {
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
-	leveldb::DB *db;
-	leveldb::Options options;
-	options.create_if_missing = true;
-	leveldb::Status status = leveldb::DB::Open(options, "./.store", &db);
-	if(!status.ok()) {
-		std::cerr << "LevelDb Error: " << status.ToString() << std::endl;
-		return 1;
-	}
 
 	QApplication app (argc, argv);
 	auto sym = libraryTest();
@@ -123,6 +115,7 @@ int main(int argc, char **argv)
 	auto wave = loadWave("/home/charlie/Spatialize.wav", &waveLength);
 
 	WaveformManager wfManager;
+	wfManager.generate(640,160, wave, waveLength);
 //	wfManager.setRaw(wave, waveLength);
 	//auto hash = waveform.hash();
 //	wfManager.minCompression();

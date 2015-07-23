@@ -7,19 +7,26 @@
 
 #include "leveldb/db.h"
 #include "Waveform.hpp"
+using pcm_sample = signed short;
 
 class WaveformManager {
 public:
 	enum Stat { MaxSize = 1572864 };
 
 	void regenerate(Waveform *waveform);
-	std::unique_ptr<Waveform> generate(int width, int height, const signed short *raw, unsigned long long spc);
+	std::unique_ptr<Waveform> generate(int width, int height, const pcm_sample *raw, unsigned long long spc);
 
 private:
-
-	signed short* storeCompress(const signed short *raw, unsigned long long spc);
-	QPixmap compress(int width, int height, const signed short *compressed);
-	QString hash(const signed short *raw, unsigned long long spc);
+	std::shared_ptr<leveldb::DB> mDb;
+	pcm_sample* storeCompress(const pcm_sample *raw, unsigned long long spc, unsigned int *blockSize);
+	QPixmap compress(int width, int height, const pcm_sample *compressed, unsigned int *blockSize);
+	QString hash(const pcm_sample *raw, unsigned long long spc);
 };
+
+struct WaveStore {
+	int blockSize;
+	pcm_sample waveform[WaveformManager::MaxSize];
+};
+
 #endif
 
