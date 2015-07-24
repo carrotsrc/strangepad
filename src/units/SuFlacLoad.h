@@ -69,6 +69,8 @@ public:
 	void setFilename(std::string);
 	std::string getFilename();
 	void cbStateChange(std::weak_ptr<std::function<void(SuFlacLoad::WorkState)>>);
+	const PcmSample* getSampleData() const;
+	int getSpc() const;
 };
 
 

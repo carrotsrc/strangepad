@@ -39,10 +39,10 @@ pcm_sample *WaveformManager::storeCompress(const pcm_sample *raw, unsigned long 
 
 	for(int block = 0; block < WaveformManager::MaxSize;) {
 
-		int blockPs = 0, blockNg = 0;
-		long long accPs = 0.0, accNg = 0.0;
+		auto blockPs = 0, blockNg = 0;
+		auto accPs = 0.0f, accNg = 0.0f;
 		for(auto i = 0u; i < *blockSize; i++) {
-			if((sample = raw[sampleIndex]) >= 0) {
+			if((sample = raw[sampleIndex]) >= 0.0f) {
 				accPs += sample;
 				blockPs++;
 			} else {
@@ -53,8 +53,8 @@ pcm_sample *WaveformManager::storeCompress(const pcm_sample *raw, unsigned long 
 			sampleIndex += 2;
 		}
 
-		compressed[block++] = blockPs ? qFloor((accPs/blockPs)) : 0;
-		compressed[block++] = blockNg ? qFloor((accNg/blockNg)) : 0;
+		compressed[block++] = blockPs ? (accPs/blockPs) : 0;
+		compressed[block++] = blockNg ? (accNg/blockNg) : 0;
 	}
 
 	return compressed;
@@ -74,8 +74,8 @@ QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compr
 	painter.setPen(pen);
 
 	auto mid = height/2;
-	auto pScale = height/32768.0f;
-	auto nScale = height/32767.0f;
+	auto pScale = height/1.0f;
+	auto nScale = height/1.0f;
 
 	*blockSize = (unsigned int) qFloor((WaveformManager::MaxSize)/width);
 	auto sampleIndex = 0ull;
@@ -83,8 +83,8 @@ QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compr
 
 	for(int x = 0; x < width; x++) {
 
-		int blockPs = 0, blockNg = 0;
-		long long accPs = 0.0, accNg = 0.0;
+		auto blockPs = 0, blockNg = 0;
+		auto accPs = 0.0f, accNg = 0.0f;
 
 		for(auto i = 0u; i < *blockSize; i++) {
 
@@ -98,8 +98,8 @@ QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compr
 
 			sampleIndex++;
 		}
-		auto yp = blockPs ? (qFloor((accPs/blockPs) * pScale)) : 0;
-		auto yn = blockNg ? (qFloor((accNg/blockNg) * nScale)) : 0;
+		auto yp = blockPs ? (accPs/blockPs) * pScale : 0;
+		auto yn = blockNg ? (accNg/blockNg) * nScale : 0;
 		painter.drawLine(x,mid-yp, x,mid-yn);
 
 	}
@@ -131,7 +131,6 @@ std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const
 	auto graph = compress(width, height, wfs.waveform, &blockSize);
 	blockSize = wfs.blockSize * blockSize;
 
-	std::cout << blockSize << "\t" << wfs.blockSize << std::endl;
 	wf = new Waveform(blockSize, graph, hashValue);
 
 	return std::unique_ptr<Waveform>(wf);

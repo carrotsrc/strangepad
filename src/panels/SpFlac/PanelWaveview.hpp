@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QGridLayout>
 #include "ui/SPad.hpp"
+#include "ui/SWaveform.hpp"
 #define SUFLACLOAD_GUARDED 1
 #include "SuFlacLoad.h"
 #undef SUFLACLOAD_GUARDED
@@ -18,7 +19,10 @@ signals:
 private:
 	QVBoxLayout mContainer;
 
+
 	std::shared_ptr<SuflCbStateChange> mfStateChangePtr;
+	SWaveform mWave;
+
 
 	void onRegisterUnit();
 	void onUnitStateChange(SuFlacLoad::WorkState state);

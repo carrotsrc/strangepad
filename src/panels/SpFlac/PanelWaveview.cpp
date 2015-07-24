@@ -8,16 +8,27 @@ SPad(parent) {
 	mfStateChangePtr.reset(new SuflCbStateChange(
 				std::bind(&SpFlacWaveview::onUnitStateChange, this, std::placeholders::_1)
 				));
-	
+
+	mContainer.addWidget(&mWave);
+	setLayout(&mContainer);
+
 }
 
 void SpFlacWaveview::onRegisterUnit() {
 	if(auto u = unit<SuFlacLoad>()) {
-		std::cout << "Name: " << u->getFilename() << std::endl;
+		u->cbStateChange(mfStateChangePtr);
 	}
 
 }
 
 void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
-	std::cout << "Workstate: " << int(state) << std::endl;
+	switch(state) {
+	case SuFlacLoad::PRESTREAM:
+		if(auto u = unit<SuFlacLoad>()) {
+			mWave.setWaveData(u->getSampleData(), u->getSpc());
+		}
+		break;
+	default:
+		break;
+	}
 }

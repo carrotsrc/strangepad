@@ -9,9 +9,11 @@ SWaveform::SWaveform(QWidget* parent)
 	mWaveform = nullptr;
 	mHoverPosition = -1;
 	setMouseTracking(true);
+	isLoaded = false;
 }
 
 void SWaveform::paintEvent(QPaintEvent*) {
+	if(!isLoaded) return;
 	if(mWaveform == nullptr) generateWaveform();
 
 	QPainter painter(this);
@@ -19,6 +21,7 @@ void SWaveform::paintEvent(QPaintEvent*) {
 
 	painter.setPen(Qt::NoPen);
 	painter.setRenderHints(QPainter::Antialiasing);
+
 	painter.setBrush(mWaveform->waveform());
 	painter.drawRect(mWaveRect);
 
@@ -28,12 +31,13 @@ void SWaveform::paintEvent(QPaintEvent*) {
 		painter.drawLine(mHoverPosition,0, mHoverPosition, mWaveRect.height());
 	}
 
-
 }
 
-void SWaveform::setWaveData(const signed short* data, long long length) {
-	mWaveData = (short*)data;
+void SWaveform::setWaveData(const float* data, long long length) {
+	mWaveData = (float*)data;
 	mWaveLength = length;
+	isLoaded = true;
+	emit update();
 }
 
 void SWaveform::mouseMoveEvent(QMouseEvent* event) {
@@ -48,7 +52,6 @@ void SWaveform::mouseMoveEvent(QMouseEvent* event) {
 
 void SWaveform::generateWaveform() {
 	mWaveRect.setSize(QSize(width(), height()));
-	std::cout << mWaveRect.width() << ", " << mWaveRect.height() << std::endl;
 	WaveformManager wfm;
 	auto geo = mWaveRect.size();
 	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength);

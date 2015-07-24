@@ -78,23 +78,6 @@ QVector<SHud*> setupRig(const RigDesc & rig) {
 	return huds;
 }
 
-signed short *loadWave(const QString & path, long long* len) { 
-	QFile waveFile(path);
-	waveFile.open(QFile::ReadOnly);
-	auto sz = waveFile.size();
-
-	*len = sz/4;
-
-	auto wave = (signed short*)malloc(sizeof(signed short)*sz);
-	auto read = waveFile.read((char*)wave, sz);
-
-	return wave;
-}
-
-void generateWaveform() {
-	
-}
-
 
 int main(int argc, char **argv)
 {
@@ -112,11 +95,6 @@ int main(int argc, char **argv)
 	setupRackoon(&rack);
 	rack.start();
 
-
-	long long waveLength = 0;
-	auto wave = loadWave("/home/charlie/shpongle.wav", &waveLength);
-
-
 	// load style sheet
 	QFile qss(".config/strange.qss");
 	qss.open(QFile::ReadOnly);
@@ -132,13 +110,10 @@ int main(int argc, char **argv)
 			auto widget = sym("waveview");
 			auto pad = static_cast<SPad*>(widget);
 			pad->registerUnit(testUnit);
-			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
 			auto label =  new QLabel();
 
-			widgetB->setWaveData(wave, waveLength);
-			//hud->addWidget(widget);
-			hud->addWidget(widgetB);
+			hud->addWidget(pad);
 			hud->addWidget(widgetC);
 			placed = true;
 		}

@@ -179,3 +179,13 @@ void SuFlacLoad::onStateChange(SuFlacLoad::WorkState state) {
 		}
 	}
 }
+
+const PcmSample* SuFlacLoad::getSampleData() const {
+	return buffer;
+}
+
+int SuFlacLoad::getSpc() const {
+	return bufSize/2;
+}
+
+

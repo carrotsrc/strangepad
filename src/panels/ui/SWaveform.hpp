@@ -7,22 +7,23 @@ Q_OBJECT
 public:
 	explicit SWaveform(QWidget *parent = 0);
 
-	void setWaveData(const short* data, long long length);
+	void setWaveData(const float* data, long long length);
 	void generateWaveform();
 	void paintEvent(QPaintEvent *);
 
 	void mouseMoveEvent(QMouseEvent*);
-
 signals:
 	public slots:
 
 private:
-	signed short* mWaveData;
+	float* mWaveData;
 	int mWaveLength, mSampleStep, mHoverPosition;
 
 	std::unique_ptr<Waveform> mWaveform;
 
 	QRectF mWaveRect;
+
+	bool isLoaded;
 };
 #endif
 
