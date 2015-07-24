@@ -96,7 +96,6 @@ void RuAlsa::actionFlushBuffer() {
 		else
 			std::cerr << "Something else is screwed" << std::endl;
 	}
-	//fwrite(frames, sizeof(PcmSample), size, fp);
 	bufLock.unlock();
 	notifyProcComplete();
 	if(workState == PAUSED)

@@ -6,6 +6,7 @@
 #include "ui/SWindow.hpp"
 #include "ui/SHud.hpp"
 #include <iostream>
+#include <string>
 
 
 #include "framework/rack/Rack.h"
@@ -16,6 +17,7 @@
 #include "ConfigLoader.hpp"
 #include "WaveformManager.hpp"
 
+#include "../../panels/ui/SPad.hpp"
 #include "../../panels/ui/SSlider.hpp"
 #include "../../panels/ui/SKnob.hpp"
 #include "../../panels/ui/SWaveform.hpp"
@@ -34,13 +36,13 @@ void setupRackoon(RackoonIO::Rack *rack) {
 typedef QWidget*(*PadBuilder)(const QString &);
 
 PadBuilder libraryTest() {
-	auto libname = QString("SpSine");
+	auto libname = QString("SpFlac");
 	auto builder = libname + QString("Build");
-	auto libPath = QString("./pads/libSpSine.so");
+	auto libPath = QString("./pads/libSpFlac.so");
 
 	QLibrary libLoad(libPath);
 	if(!libLoad.load()) {
-		std::cout << "Failed to load lib" << std::endl;
+		std::cout << "Failed to load lib " << libname.toStdString() << std::endl;
 		return nullptr;
 	}
 	auto sym = (PadBuilder) libLoad.resolve(builder.toStdString().c_str());
@@ -108,11 +110,11 @@ int main(int argc, char **argv)
 	RackoonIO::Rack rack;
 	rack.setConfigPath(".config/pad.cfg");
 	setupRackoon(&rack);
-	//rack.start();
+	rack.start();
 
 
 	long long waveLength = 0;
-	auto wave = loadWave("/home/charlie/Spatialize.wav", &waveLength);
+	auto wave = loadWave("/home/charlie/shpongle.wav", &waveLength);
 
 
 	// load style sheet
@@ -122,17 +124,20 @@ int main(int argc, char **argv)
 
 	SWindow window;
 	bool placed = false;
+	auto units = rack.getUnits();
+	auto testUnit = std::shared_ptr<RackoonIO::RackUnit>(units["flac1"]);
 
 	for(auto hud : huds) {
 		if(!placed) {
-		//	auto widget = sym("overview");
-			auto widget = new SSlider;
+			auto widget = sym("waveview");
+			auto pad = static_cast<SPad*>(widget);
+			pad->registerUnit(testUnit);
 			auto widgetB = new SWaveform();
 			auto widgetC = new SKnob();
 			auto label =  new QLabel();
 
 			widgetB->setWaveData(wave, waveLength);
-			hud->addWidget(widget);
+			//hud->addWidget(widget);
 			hud->addWidget(widgetB);
 			hud->addWidget(widgetC);
 			placed = true;
