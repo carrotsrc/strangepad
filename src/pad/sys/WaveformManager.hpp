@@ -10,7 +10,7 @@ using pcm_sample = float;
 
 class WaveformManager {
 public:
-	enum Stat { MaxSize = 786432 };
+	enum Stat { MaxSize = 1572864 };
 
 	void regenerate(Waveform *waveform);
 	std::unique_ptr<Waveform> generate(int width, int height, const pcm_sample *raw, unsigned long long spc);

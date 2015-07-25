@@ -30,8 +30,12 @@ QString WaveformManager::hash(const pcm_sample *raw, unsigned long long spc) {
 }
 
 pcm_sample *WaveformManager::storeCompress(const pcm_sample *raw, unsigned long long spc, unsigned int *blockSize) {
+
+	// Split store into positive and negative 
+	// values for the mean based compression
 	auto waveUnits = WaveformManager::MaxSize/2;
-	*blockSize = qFloor(spc / waveUnits);
+
+	*blockSize = qFloor(spc / waveUnits); // total blocks for the channel
 	auto sampleIndex = 0ull;
 	pcm_sample sample;
 
@@ -77,7 +81,7 @@ QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compr
 	auto pScale = height/1.0f;
 	auto nScale = height/1.0f;
 
-	*blockSize = (unsigned int) qFloor((WaveformManager::MaxSize)/width);
+	*blockSize = qFloor((WaveformManager::MaxSize)/width);
 	auto sampleIndex = 0ull;
 	pcm_sample sample;
 
@@ -119,7 +123,7 @@ std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const
 	if(!store.exists()) {
 		auto compressed = storeCompress(raw, spc, &blockSize); 
 		wfs.blockSize = blockSize,
-		std::memcpy(&wfs.waveform, compressed, WaveformManager::MaxSize*2);
+		std::memcpy(&wfs.waveform, compressed, WaveformManager::MaxSize*sizeof(pcm_sample));
 		store.open(QIODevice::WriteOnly);
 		store.write((char*)&wfs, sizeof(WaveStore));
 		store.close();

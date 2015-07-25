@@ -65,15 +65,17 @@ void SuFlacLoad::actionLoadFile() {
 	}
 
 
-	bufSize = file->frames()<<1;
+	// Two channels, two datapoints per frame
+	bufSize = file->frames()*2;
 	count = bufSize;
+
 	if(buffer != nullptr)
 		free(buffer);
 
 	buffer = (PcmSample*)calloc(bufSize, sizeof(PcmSample));
 	position = buffer;
 
-	while(file->read((float*)position, CHUNK_SIZE) == CHUNK_SIZE) {
+	while(file->read((PcmSample*)position, CHUNK_SIZE) == CHUNK_SIZE) {
 		position += CHUNK_SIZE;
 	}
 
@@ -185,6 +187,7 @@ const PcmSample* SuFlacLoad::getSampleData() const {
 }
 
 int SuFlacLoad::getSpc() const {
+	// Samples per channel
 	return bufSize/2;
 }
 
