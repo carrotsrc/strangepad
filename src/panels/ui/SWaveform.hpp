@@ -9,6 +9,7 @@ public:
 
 	void setWaveData(const float* data, long long length);
 	void generateWaveform();
+	void toggleBgHighlight(bool flag);
 	void paintEvent(QPaintEvent *);
 
 	void mouseMoveEvent(QMouseEvent*);
@@ -23,7 +24,7 @@ private:
 
 	QRectF mWaveRect;
 
-	bool isLoaded;
+	bool isLoaded, mBgHighlight;
 };
 #endif
 

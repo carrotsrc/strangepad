@@ -9,7 +9,7 @@ SWaveform::SWaveform(QWidget* parent)
 	mWaveform = nullptr;
 	mHoverPosition = -1;
 	setMouseTracking(true);
-	isLoaded = false;
+	mBgHighlight = isLoaded = false;
 }
 
 void SWaveform::paintEvent(QPaintEvent*) {
@@ -22,15 +22,20 @@ void SWaveform::paintEvent(QPaintEvent*) {
 	painter.setPen(Qt::NoPen);
 	painter.setRenderHints(QPainter::Antialiasing);
 
+	if(mBgHighlight) {
+		painter.setBrush(QColor("#656565"));
+		painter.drawRoundedRect(mWaveRect, 10, 10);
+	}
+
 	painter.setBrush(mWaveform->waveform());
 	painter.drawRect(mWaveRect);
-
+/*
 	if(mHoverPosition >= 0) {
 		pen.setColor("#8E06A0");
 		painter.setPen(pen);
 		painter.drawLine(mHoverPosition,0, mHoverPosition, mWaveRect.height());
 	}
-
+*/
 }
 
 void SWaveform::setWaveData(const float* data, long long length) {
@@ -38,6 +43,10 @@ void SWaveform::setWaveData(const float* data, long long length) {
 	mWaveLength = length;
 	isLoaded = true;
 	emit update();
+}
+
+void SWaveform::toggleBgHighlight(bool flag) {
+	mBgHighlight = flag;
 }
 
 void SWaveform::mouseMoveEvent(QMouseEvent* event) {
@@ -56,3 +65,4 @@ void SWaveform::generateWaveform() {
 	auto geo = mWaveRect.size();
 	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength);
 }
+

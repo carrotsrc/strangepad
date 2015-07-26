@@ -32,6 +32,8 @@ SPad(parent) {
 	mContainer.addLayout(&mToolbar);
 
 	setLayout(&mContainer);
+
+	setAcceptDrops(true);
 }
 
 void SpFlacWaveview::onRegisterUnit() {
@@ -40,6 +42,30 @@ void SpFlacWaveview::onRegisterUnit() {
 	}
 
 }
+
+void SpFlacWaveview::dragEnterEvent(QDragEnterEvent *e) {
+
+	e->acceptProposedAction();
+	mWave.toggleBgHighlight(true);
+	update();
+	//e->accept(mWave.rect());
+}
+
+void SpFlacWaveview::dragLeaveEvent(QDragLeaveEvent *e) {
+	e->accept();
+	mWave.toggleBgHighlight(false);
+	update();
+}
+void SpFlacWaveview::dragMoveEvent(QDragMoveEvent *e) {
+	e->acceptProposedAction();
+}
+
+void SpFlacWaveview::dropEvent(QDropEvent *e) {
+	e->acceptProposedAction();
+	mWave.toggleBgHighlight(false);
+	update();
+}
+
 
 void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 	switch(state) {

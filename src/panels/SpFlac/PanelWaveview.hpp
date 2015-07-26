@@ -4,6 +4,9 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QDrag>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QLabel>
 #include <QPushButton>
 #include "ui/SPad.hpp"
@@ -18,6 +21,10 @@ class SpFlacWaveview : public SPad
 {
 public:
 	explicit SpFlacWaveview(QWidget *parent = 0);
+	void dragEnterEvent(QDragEnterEvent *e);
+	void dragLeaveEvent(QDragLeaveEvent *e);
+	void dragMoveEvent(QDragMoveEvent *e);
+	void dropEvent(QDropEvent *e);
 signals:
 	public slots:
 
