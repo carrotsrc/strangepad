@@ -24,15 +24,28 @@ QTabBar::tab::!selected {
 	color: #F5B2F7;
 }
 
+SButton {
+	background: transparent;
+	color: #8E06A0;
+	border-style: outset;
+	padding: 5px 20px;
+	font-size: 25px;
+	border-radius: 10px;
+}
+
+SButton::pressed {
+	background: #D24CE3;
+	color: #52015B;
+}
+
 SPad {
-	border: 3px solid #AD32AD;
+	border: 0px solid #AD32AD;
 	border-top-right-radius: 15px;
 	border-bottom-left-radius: 15px;
 	margin: 5px;
 }
 
 SPad > QLabel {
-	color: #E367E5;
 	color: #8F98E8;
 }
 

@@ -16,5 +16,5 @@ QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW)
 QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
 
 # Input
-HEADERS += SWaveform.hpp SSlider.hpp SKnob.hpp SVIndicator.hpp SPad.hpp
-SOURCES += SWaveform.cpp SSlider.cpp SKnob.cpp SVIndicator.cpp SPad.cpp
+HEADERS += SButton.hpp SWaveform.hpp SSlider.hpp SKnob.hpp SVIndicator.hpp SPad.hpp
+SOURCES += SButton.cpp SWaveform.cpp SSlider.cpp SKnob.cpp SVIndicator.cpp SPad.cpp

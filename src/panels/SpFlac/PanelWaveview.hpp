@@ -2,9 +2,14 @@
 #define __PANELWAVEVIEW_HPP_1437740056__
  
 #include <QWidget>
-#include <QGridLayout>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include "ui/SPad.hpp"
 #include "ui/SWaveform.hpp"
+#include "ui/SButton.hpp"
+
 #define SUFLACLOAD_GUARDED 1
 #include "SuFlacLoad.h"
 #undef SUFLACLOAD_GUARDED
@@ -18,10 +23,16 @@ signals:
 
 private:
 	QVBoxLayout mContainer;
+	QHBoxLayout mToolbar, mButtonBar;
+	SWaveform mWave;
+	QFrame mTools;
+	QLabel mTitle;
+	SButton mPlay, mPause;
 
 
 	std::shared_ptr<SuflCbStateChange> mfStateChangePtr;
-	SWaveform mWave;
+
+
 
 
 	void onRegisterUnit();

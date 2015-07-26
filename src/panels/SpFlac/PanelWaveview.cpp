@@ -2,6 +2,7 @@
 
 #include "PanelWaveview.hpp"
 
+#include <QFileInfo>
 #include <iostream>
 SpFlacWaveview::SpFlacWaveview(QWidget *parent) :
 SPad(parent) {
@@ -9,9 +10,28 @@ SPad(parent) {
 				std::bind(&SpFlacWaveview::onUnitStateChange, this, std::placeholders::_1)
 				));
 
-	mContainer.addWidget(&mWave);
-	setLayout(&mContainer);
 
+	mTitle.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	mTitle.setStyleSheet("font-size: 18px;");
+	mTitle.setText(QString(QChar(0x25B4))+QString(" Idle"));
+
+	mPlay.setText(QChar(0x25B6));
+	mPlay.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+	mPause.setText(QString(QChar(0x25AE))+QString(QChar(0x25AE)));
+	mPause.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+	mButtonBar.addWidget(&mPlay);
+	mButtonBar.addWidget(&mPause);
+
+	mContainer.addWidget(&mWave);
+
+	mToolbar.addWidget(&mTitle, 0, Qt::AlignLeft|Qt::AlignHCenter);
+	mToolbar.addLayout(&mButtonBar);
+
+	mContainer.addLayout(&mToolbar);
+
+	setLayout(&mContainer);
 }
 
 void SpFlacWaveview::onRegisterUnit() {
@@ -23,9 +43,16 @@ void SpFlacWaveview::onRegisterUnit() {
 
 void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 	switch(state) {
+	case SuFlacLoad::LOADING:
+		std::cout << "Loading...." << std::endl;
+		mTitle.setText("Loading...");
+		emit update();
+		break;
 	case SuFlacLoad::PRESTREAM:
 		if(auto u = unit<SuFlacLoad>()) {
 			mWave.setWaveData(u->getSampleData(), u->getSpc());
+			auto info = QFileInfo(QString(u->getFilename().c_str()));
+			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
 		}
 		break;
 	default:
