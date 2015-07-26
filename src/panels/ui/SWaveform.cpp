@@ -9,12 +9,12 @@ SWaveform::SWaveform(QWidget* parent)
 	mWaveform = nullptr;
 	mHoverPosition = -1;
 	setMouseTracking(true);
-	mBgHighlight = isLoaded = false;
+	mReset = mBgHighlight = isLoaded = false;
 }
 
 void SWaveform::paintEvent(QPaintEvent*) {
 	if(!isLoaded) return;
-	if(mWaveform == nullptr) generateWaveform();
+	if(mReset) generateWaveform();
 
 	QPainter painter(this);
 	QPen pen;
@@ -42,6 +42,7 @@ void SWaveform::setWaveData(const float* data, long long length) {
 	mWaveData = (float*)data;
 	mWaveLength = length;
 	isLoaded = true;
+	mReset = true;
 	emit update();
 }
 
@@ -64,5 +65,6 @@ void SWaveform::generateWaveform() {
 	WaveformManager wfm;
 	auto geo = mWaveRect.size();
 	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength);
+	mReset = false;
 }
 

@@ -2,7 +2,9 @@
 
 #include "PanelWaveview.hpp"
 
+#include <QUrl>
 #include <QFileInfo>
+#include <QMimeData>
 #include <iostream>
 SpFlacWaveview::SpFlacWaveview(QWidget *parent) :
 SPad(parent) {
@@ -48,7 +50,6 @@ void SpFlacWaveview::dragEnterEvent(QDragEnterEvent *e) {
 	e->acceptProposedAction();
 	mWave.toggleBgHighlight(true);
 	update();
-	//e->accept(mWave.rect());
 }
 
 void SpFlacWaveview::dragLeaveEvent(QDragLeaveEvent *e) {
@@ -63,6 +64,22 @@ void SpFlacWaveview::dragMoveEvent(QDragMoveEvent *e) {
 void SpFlacWaveview::dropEvent(QDropEvent *e) {
 	e->acceptProposedAction();
 	mWave.toggleBgHighlight(false);
+
+	const auto mimeData = e->mimeData();
+	auto ru = unit<SuFlacLoad>();
+
+	for(auto url : mimeData->urls()) {
+		auto path = url.path();
+		QFileInfo info(path);
+		if(info.completeSuffix() != "flac") {
+			return;
+			update();
+		}
+
+		ru->setFilename(path.toStdString());
+	}
+	update();
+	ru->init();
 	update();
 }
 
@@ -79,6 +96,7 @@ void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 			mWave.setWaveData(u->getSampleData(), u->getSpc());
 			auto info = QFileInfo(QString(u->getFilename().c_str()));
 			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
+			emit update();
 		}
 		break;
 	default:

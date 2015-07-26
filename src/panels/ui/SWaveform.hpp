@@ -24,7 +24,7 @@ private:
 
 	QRectF mWaveRect;
 
-	bool isLoaded, mBgHighlight;
+	bool isLoaded, mBgHighlight, mReset;
 };
 #endif
 
