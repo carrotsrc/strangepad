@@ -3,6 +3,8 @@
 #include <QFile>
 #include <QStack>
 #include <QLabel>
+#include <QLibrary>
+
 #include "ui/SWindow.hpp"
 #include "ui/SHud.hpp"
 #include <iostream>
@@ -15,12 +17,14 @@
 #include "leveldb/db.h"
 
 #include "ConfigLoader.hpp"
+#include "PadLoader.hpp"
 #include "WaveformManager.hpp"
 
 #include "../../panels/ui/SPad.hpp"
 #include "../../panels/ui/SSlider.hpp"
 #include "../../panels/ui/SKnob.hpp"
 #include "../../panels/ui/SWaveform.hpp"
+
 
 void setupRackoon(RackoonIO::Rack *rack) {
 	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
@@ -32,38 +36,6 @@ void setupRackoon(RackoonIO::Rack *rack) {
 	rack->init();
 	rack->initEvents(0);
 }
-#include <QLibrary>
-typedef QWidget*(*PadBuilder)(const QString &);
-
-PadBuilder libraryTest() {
-	auto libname = QString("SpFlac");
-	auto builder = libname + QString("Build");
-	auto libPath = QString("./pads/libSpFlac.so");
-
-	QLibrary libLoad(libPath);
-	if(!libLoad.load()) {
-		std::cout << "Failed to load lib " << libname.toStdString() << std::endl;
-		return nullptr;
-	}
-	auto sym = (PadBuilder) libLoad.resolve(builder.toStdString().c_str());
-	if(!sym) {
-		std::cout << "failed to resolve builder" << std::endl;
-		return nullptr;
-	}
-
-	return sym;
-}
-
-void initUi() {
-	QLibrary local("./pads/libui.so");
-	if(!local.load()) {
-		std::cout << "Failed to load ui" << std::endl;
-	}
-
-	local.setLoadHints(QLibrary::ResolveAllSymbolsHint);
-	local.loadHints();
-
-}
 
 QVector<SHud*> setupRig(const RigDesc & rig) {
 	QVector<SHud*> huds;
@@ -71,7 +43,8 @@ QVector<SHud*> setupRig(const RigDesc & rig) {
 
 	for(auto it = rig.begin(); it != rig.end(); it++ ) {
 		huds.append(new SHud((*it).label));
-		for(auto jt = (*it).pads.begin(); jt != (*it).pads.end(); jt++) {
+		for(auto jt : (*it).pads) {
+			std::cout << jt.collection.toStdString() << std::endl;
 		}
 	}
 
@@ -82,9 +55,9 @@ QVector<SHud*> setupRig(const RigDesc & rig) {
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
+	PadLoader padLoader;
 
 	QApplication app (argc, argv);
-	auto sym = libraryTest();
 
 	ConfigLoader configLoader;
 	configLoader.load("./.config/pad.xml", &rigDescription);
@@ -107,13 +80,12 @@ int main(int argc, char **argv)
 
 	for(auto hud : huds) {
 		if(!placed) {
-			auto widget = sym("waveview");
-			auto pad = static_cast<SPad*>(widget);
+			auto pad = padLoader.load("SpFlac", "waveview");
 			pad->registerUnit(testUnit);
 			auto widgetC = new SKnob();
 			auto label =  new QLabel();
 
-			hud->addWidget(pad);
+			hud->addWidget(pad.release());
 			hud->addWidget(widgetC);
 			placed = true;
 		}

@@ -3,8 +3,7 @@
 
 <rig>
 	<hud label="Overview">
-		<pad collection="SpSine" type="overview" label="Main" unit="sine1" />
-		<pad collection="SpSine" type="overview" label="Backup" unit="sine1" />
+		<pad collection="SpFlac" type="waveview" label="Main" unit="flac1" />
 	</hud>
 
 	<hud label="Focus">

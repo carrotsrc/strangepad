@@ -16,8 +16,8 @@ QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW) -ggdb
 
 
 # Input
-HEADERS += sys/Waveform.hpp sys/WaveformManager.hpp sys/RigDesc.hpp sys/ConfigLoader.hpp
-SOURCES += sys/Waveform.cpp sys/WaveformManager.cpp sys/RigDesc.cpp sys/ConfigLoader.cpp
+HEADERS += sys/Waveform.hpp sys/WaveformManager.hpp sys/RigDesc.hpp sys/PadLoader.hpp sys/ConfigLoader.hpp
+SOURCES += sys/Waveform.cpp sys/WaveformManager.cpp sys/RigDesc.cpp sys/PadLoader.cpp sys/ConfigLoader.cpp
 
 SOURCES += ui/SHud.hpp ui/SWindow.hpp
 SOURCES += ui/SHud.cpp ui/SWindow.cpp sys/entry.cpp
