@@ -15,13 +15,18 @@ public:
 	void paintEvent(QPaintEvent*);
 
 	void setOrientation(SVIndicator::Orientation orientation);
+	void setValue(float value);
 
 signals:
 	public slots:
 
 private:
 	QVector<QRectF> mLeds;
-	QColor *high, *mid, *low;
+	QColor *high, *mid, *low,
+	       *highOff, *midOff, *lowOff;
+
+	int mHeightTracker;
+	float mValue;
 	SVIndicator::Orientation mOrientation;
 };
 #endif

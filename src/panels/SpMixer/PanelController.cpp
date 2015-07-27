@@ -15,6 +15,8 @@ SPad(parent) {
 	mContainer.addLayout(&mGainBar);
 	mContainer.addWidget(&mLevelsRight);
 
+	mLevelsRight.setValue(0.8);
+	mLevelsLeft.setValue(0.3);
 	mLevelsLeft.setOrientation(SVIndicator::Left);
 
 	setLayout(&mContainer);
