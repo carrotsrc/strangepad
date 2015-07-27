@@ -39,19 +39,19 @@ void setupRackoon(RackoonIO::Rack *rack) {
 
 QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, RackoonIO::Rack *rack) {
 	QVector<SHud*> huds;
-	SHud* c = nullptr;
 
 	for(auto it = rig.begin(); it != rig.end(); it++ ) {
 		auto hud = new SHud((*it).label);
-		huds.append(hud);
 		for(auto jt : (*it).pads) {
 			auto pad = padLoader->load(jt.collection, jt.type);
-			pad->registerUnit(rack->getUnit(jt.unit.toStdString()));
-			if(pad == nullptr)
+			if(pad == nullptr) {
 				continue;
+			}
+			pad->registerUnit(rack->getUnit(jt.unit.toStdString()));
 
 			hud->addWidget(pad.release());
 		}
+		huds.append(hud);
 	}
 
 	return huds;
