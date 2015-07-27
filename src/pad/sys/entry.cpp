@@ -82,17 +82,10 @@ int main(int argc, char **argv)
 	app.setStyleSheet(qss.readAll());
 
 	SWindow window;
-	bool placed = false;
 	auto units = rack.getUnits();
 	auto testUnit = std::shared_ptr<RackoonIO::RackUnit>(units["flac1"]);
 
 	for(auto hud : huds) {
-		if(!placed) {
-			//pad->registerUnit(testUnit);
-			auto widgetC = new SKnob();
-			hud->addWidget(widgetC);
-			placed = true;
-		}
 		window.addHeadsup(hud);
 	}
 	
