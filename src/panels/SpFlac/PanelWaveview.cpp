@@ -20,6 +20,8 @@ SPad(parent) {
 	mPlay.setText(QChar(0x25B6));
 	mPlay.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
+	connect(&mPlay, SIGNAL(clicked()), this, SLOT(triggerMidiPlay()));
+
 	mPause.setText(QString(QChar(0x25AE))+QString(QChar(0x25AE)));
 	mPause.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -99,7 +101,20 @@ void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 			emit update();
 		}
 		break;
+	case SuFlacLoad::STREAMING:
+		mPlay.setStyleSheet("color: #F97FFF;");
+		break;
+
+	case SuFlacLoad::PAUSED:
+		mPlay.setStyleSheet("color: #8E06A0;");
+		break;
 	default:
 		break;
+	}
+}
+
+void SpFlacWaveview::triggerMidiPlay() {
+	if(auto u = unit<SuFlacLoad>()) {
+		u->midiPause(127);
 	}
 }

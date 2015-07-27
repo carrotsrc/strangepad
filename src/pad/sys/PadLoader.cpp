@@ -15,7 +15,9 @@ std::unique_ptr<SPad> PadLoader::load(const QString & collection, const QString 
 	}
 
 	if(func == nullptr) {
-		throw "Collection `" + collection.toStdString() + "`: builder symbol is unresolved";
+		std::cout << "Collection `" + collection.toStdString() + "`: builder symbol is unresolved" << std::endl;
+		throw "Collection: `" + collection.toStdString() + "` not found";
+
 	}
 
 	auto obj = (SPad*) func(pad);
@@ -26,11 +28,14 @@ std::unique_ptr<SPad> PadLoader::load(const QString & collection, const QString 
 }
 
 PadBuilder PadLoader::loadCollection(const QString & collection) {
-	auto libPath = QString("./pads/lib"+QString(collection));
+	auto libPath = QString("./pads/lib"+QString(collection)+QString(".so"));
 	auto builder = collection + QString("Build");
 	QLibrary lib(libPath);
 	if(!lib.load()) {
-		throw "Collection: `" + collection.toStdString() + "` not found";
+
+		std::cerr << "Collection `" + collection.toStdString() + "`: Failed to load library at " + libPath.toStdString() << std::endl;
+		std::cerr << "\t" + lib.errorString().toStdString() << std::endl;
+		return nullptr;
 	}
 
 	auto symbol = (PadBuilder) lib.resolve(builder.toStdString().c_str());

@@ -19,14 +19,16 @@
 
 class SpFlacWaveview : public SPad
 {
+Q_OBJECT
 public:
 	explicit SpFlacWaveview(QWidget *parent = 0);
 	void dragEnterEvent(QDragEnterEvent *e);
 	void dragLeaveEvent(QDragLeaveEvent *e);
 	void dragMoveEvent(QDragMoveEvent *e);
 	void dropEvent(QDropEvent *e);
-signals:
+
 	public slots:
+	void triggerMidiPlay();
 
 private:
 	QVBoxLayout mContainer;
