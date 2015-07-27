@@ -1,7 +1,7 @@
 #include "SWindow.hpp"
 SWindow::SWindow(QWidget *parent) :
 QWidget(parent) {
-	setFixedSize(900, 500);
+	setFixedSize(900, 750);
 	setWindowTitle("StrangePad");
 	setObjectName("mainStrangePad");
 	setupUi();
