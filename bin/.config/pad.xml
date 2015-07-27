@@ -3,7 +3,8 @@
 
 <rig>
 	<hud label="Overview">
-		<pad collection="SpFlac" type="waveview" label="Main" unit="flac1" />
+		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
+		<pad collection="SpFlac" type="waveview" label="Beta" unit="flac2" />
 	</hud>
 
 	<hud label="Focus">
