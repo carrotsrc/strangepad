@@ -37,14 +37,20 @@ void setupRackoon(RackoonIO::Rack *rack) {
 	rack->initEvents(0);
 }
 
-QVector<SHud*> setupRig(const RigDesc & rig) {
+QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, RackoonIO::Rack *rack) {
 	QVector<SHud*> huds;
 	SHud* c = nullptr;
 
 	for(auto it = rig.begin(); it != rig.end(); it++ ) {
-		huds.append(new SHud((*it).label));
+		auto hud = new SHud((*it).label);
+		huds.append(hud);
 		for(auto jt : (*it).pads) {
-			std::cout << jt.collection.toStdString() << std::endl;
+			auto pad = padLoader->load(jt.collection, jt.type);
+			pad->registerUnit(rack->getUnit(jt.unit.toStdString()));
+			if(pad == nullptr)
+				continue;
+
+			hud->addWidget(pad.release());
 		}
 	}
 
@@ -61,11 +67,13 @@ int main(int argc, char **argv)
 
 	ConfigLoader configLoader;
 	configLoader.load("./.config/pad.xml", &rigDescription);
-	auto huds = setupRig(rigDescription);
 
 	RackoonIO::Rack rack;
 	rack.setConfigPath(".config/pad.cfg");
 	setupRackoon(&rack);
+
+	auto huds = setupRig(rigDescription, &padLoader, &rack);
+
 	rack.start();
 
 	// load style sheet
@@ -80,12 +88,8 @@ int main(int argc, char **argv)
 
 	for(auto hud : huds) {
 		if(!placed) {
-			auto pad = padLoader.load("SpFlac", "waveview");
-			pad->registerUnit(testUnit);
+			//pad->registerUnit(testUnit);
 			auto widgetC = new SKnob();
-			auto label =  new QLabel();
-
-			hud->addWidget(pad.release());
 			hud->addWidget(widgetC);
 			placed = true;
 		}
