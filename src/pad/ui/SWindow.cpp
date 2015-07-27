@@ -1,17 +1,18 @@
 #include "SWindow.hpp"
 SWindow::SWindow(QWidget *parent) :
 QWidget(parent) {
-	setFixedSize(900, 750);
+	setFixedSize(900, 700);
 	setWindowTitle("StrangePad");
 	setObjectName("mainStrangePad");
 	setupUi();
-	setupStyles();
 }
 
 void SWindow::setupUi() {
 	setLayout(&mContainer);
 	mContainer.setParent(this);
 	mContainer.addWidget(&mHud);
+	mButton.setText("Foobar");
+	mContainer.addWidget(&mButton);
 	mHud.setTabShape(QTabWidget::Triangular);
 	mHud.setObjectName("hudContainer");
 }
@@ -21,5 +22,3 @@ void SWindow::addHeadsup(SHud *widget) {
 	mHud.addTab(widget, widget->getLabel());
 }
 
-void SWindow::setupStyles() {
-}

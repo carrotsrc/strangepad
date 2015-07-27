@@ -8,6 +8,7 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QLabel>
+#include <QTimer>
 
 #include "ui/SPad.hpp"
 #include "ui/SVIndicator.hpp"
@@ -17,15 +18,18 @@
 
 class SpMixerController : public SPad
 {
+Q_OBJECT
 public:
 	explicit SpMixerController(QWidget *parent = 0);
 
 signals:
 	public slots:
+	void probeLevels();
 
 private:
 	QHBoxLayout mContainer;
 	QVBoxLayout mGainBar;
+	QTimer mProbeTrigger;
 
 	SVIndicator mLevelsLeft, mLevelsRight;
 	SKnob mGainLeft, mGainRight;

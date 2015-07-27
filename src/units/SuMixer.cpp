@@ -33,7 +33,8 @@ SuMixer::SuMixer()
 	addJack("channel_2", JACK_SEQ);
 	addPlug("audio_out");
 	mixedPeriod = periodC1 = periodC2 = nullptr;
-	gainC1 = gainC2 = 1.0;
+	gainC1 = gainC2 = 1.0f;
+	peakC1 = peakC2 = 0.0f;
 	mixerState = MIXER_C2_ACT|MIXER_C1_ACT;
 	MidiExport("channelFade", SuMixer::midiFade);
 }
@@ -42,7 +43,7 @@ SuMixer::SuMixer()
 FeedState SuMixer::feed(Jack *jack) {
 	PcmSample *period;
 
-	Jack *out = getPlug("audio_out")->jack;
+	auto out = getPlug("audio_out")->jack;
 	out->frames = jack->frames;
 
 	if(MIXER_FULL) {
@@ -58,6 +59,7 @@ FeedState SuMixer::feed(Jack *jack) {
 
 		if(mixerState&MIXER_C2_ACT) {
 			jack->flush(&period);
+			peakC1 = period[0];
 			return out->feed(period);
 		}
 
@@ -75,6 +77,7 @@ FeedState SuMixer::feed(Jack *jack) {
 
 		if(mixerState&MIXER_C1_ACT) {
 			jack->flush(&period);
+			peakC2 = period[0];
 			return out->feed(period);
 		}
 
@@ -91,6 +94,8 @@ FeedState SuMixer::feed(Jack *jack) {
 	} else {
 		mixedPeriod = cacheAlloc(1);
 		for(int i = 0; i < jack->frames; i++) {
+			peakC1 = periodC1[0]*gainC1;
+			peakC2 = periodC2[0]*gainC2;
 			mixedPeriod[i] = ((periodC1[i]) * gainC1) +
 					 ((periodC2[i]) * gainC2);
 		}
@@ -123,10 +128,13 @@ void SuMixer::setConfig(std::string config, std::string value) {
 void SuMixer::block(Jack *jack) {
 	Jack *out = getPlug("audio_out")->jack;
 	UnitMsg("Block from " << jack->name);
-	if(jack->name == "channel_1")
+	if(jack->name == "channel_1") {
+		peakC1 = 0.0f;
 		mixerState ^= MIXER_C1_ACT;
-	else
+	} else {
+		peakC2 = 0.0f;
 		mixerState ^= MIXER_C2_ACT;
+	}
 
 	if(mixerState&MIXER_C1_ACT && mixerState&MIXER_C2_ACT)
 		out->block();
@@ -150,6 +158,14 @@ void SuMixer::midiFade(int value) {
 		gainC1 = (((float)value/64)*100)/100;
 		gainC2 = 1.0;
 	}
+}
+
+PcmSample SuMixer::getChannelPeak(int channel) {
+	if(channel) {
+		return peakC2;
+	}
+
+	return peakC1;
 }
 
 // Make this unit loadable at runtime by defining a builder method

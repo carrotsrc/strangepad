@@ -89,7 +89,6 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 	switch(state) {
 	case SuFlacLoad::LOADING:
-		std::cout << "Loading...." << std::endl;
 		mTitle.setText("Loading...");
 		emit update();
 		break;
@@ -102,11 +101,11 @@ void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 		}
 		break;
 	case SuFlacLoad::STREAMING:
-		mPlay.setStyleSheet("color: #F97FFF;");
+		//mPlay.setStyleSheet("color: #F97FFF;");
 		break;
 
 	case SuFlacLoad::PAUSED:
-		mPlay.setStyleSheet("color: #8E06A0;");
+		//mPlay.setStyleSheet("color: #8E06A0;");
 		break;
 	default:
 		break;

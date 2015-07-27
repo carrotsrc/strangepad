@@ -84,6 +84,7 @@ void RuSine::writeSamples() {
 		mPeriod[i++] = y;
 		mPeriod[i] = y;
 	}
+
 }
 
 /** This method can be bound to a MIDI controller

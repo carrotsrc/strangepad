@@ -2,6 +2,7 @@
 <!DOCTYPE rig>
 
 <rig>
+	<!--
 	<hud label="Overview">
 		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
 		<pad collection="SpMixer" type="controller" label="Master" unit="mastermix" />
@@ -10,4 +11,5 @@
 
 	<hud label="Focus">
 	</hud>
+	-->
 </rig>

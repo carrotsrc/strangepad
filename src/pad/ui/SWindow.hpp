@@ -3,10 +3,12 @@
 #include <QWidget>
 #include <QTabWidget>
 #include <QGridLayout>
+#include <QPushButton>
 #include "SHud.hpp"
 
 class SWindow : public QWidget
 {
+Q_OBJECT
 public:
 	explicit SWindow(QWidget *parent = 0);
 
@@ -18,6 +20,7 @@ signals:
 private:
 	QGridLayout mContainer;
 	QTabWidget mHud;
+	QPushButton mButton;
 
 	void setupUi();
 	void setupStyles();

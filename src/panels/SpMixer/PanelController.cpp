@@ -18,6 +18,9 @@ SPad(parent) {
 	mLevelsLeft.setOrientation(SVIndicator::Left);
 
 	setLayout(&mContainer);
+	mProbeTrigger.setParent(this);
+	connect(&mProbeTrigger, SIGNAL(timeout()), this, SLOT(probeLevels()));
+	mProbeTrigger.start(250);
 }
 
 void SpMixerController::onRegisterUnit() {
@@ -25,4 +28,12 @@ void SpMixerController::onRegisterUnit() {
 //		u->cbStateChange(mfStateChangePtr);
 	}
 
+}
+
+void SpMixerController::probeLevels() {
+	auto u = unit<SuMixer>();
+	if(!u) return;
+
+	mLevelsLeft.setValue(u->getChannelPeak(0));
+	mLevelsRight.setValue(u->getChannelPeak(1));
 }

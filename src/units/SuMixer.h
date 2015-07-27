@@ -24,7 +24,7 @@ class SuMixer : public RackoonIO::RackUnit {
 		READY
 	};
 	PcmSample *periodC1, *periodC2, *mixedPeriod;
-	float gainC1, gainC2;
+	float gainC1, gainC2, peakC1, peakC2;
 	WorkState workState;
 
 	short mixerState;
@@ -37,6 +37,8 @@ public:
 	RackoonIO::RackState init();
 	RackoonIO::RackState cycle();
 	void block(RackoonIO::Jack*);
+
+	PcmSample getChannelPeak(int channel);
 
 	void midiFade(int);
 };

@@ -26,7 +26,8 @@ void SVIndicator::paintEvent(QPaintEvent*) {
 	painter.setRenderHints(QPainter::Antialiasing);
 	painter.setPen(QPen(QColor(33,33,33)));
 	auto region = 0;
-	auto mark = 10 - 10.0f*mValue;
+	auto mark = qFloor(10 - 10.0f*mValue);
+
 	auto hBrush = QBrush(*highOff);
 	auto mBrush = QBrush(*midOff);
 	auto lBrush = QBrush(*lowOff);
@@ -85,6 +86,10 @@ void SVIndicator::setOrientation(SVIndicator::Orientation orientation) {
 }
 
 void SVIndicator::setValue(float value) {
+	if(mValue < 0)
+		value = -value;
+
 	mValue = value;
+
 	emit update();
 }
