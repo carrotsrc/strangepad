@@ -29,6 +29,8 @@ class SuMixer : public RackoonIO::RackUnit {
 
 	short mixerState;
 
+	std::mutex mMut;
+
 public:
 	SuMixer();
 	RackoonIO::FeedState feed(RackoonIO::Jack*);
