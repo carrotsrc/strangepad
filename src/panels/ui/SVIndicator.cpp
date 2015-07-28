@@ -5,9 +5,10 @@
 SVIndicator::SVIndicator(QWidget* parent)
 :QWidget(parent) {
 	setMaximumWidth(120);
-	high = new QColor("#F92F2F"); highOff = new QColor("#520404");
-	mid = new QColor("#F7F72E"); midOff = new QColor("#545400");
-	low = new QColor("#70F42E"); lowOff = new QColor("#174600");
+	highOn = "#F92F2F"; highOff = "#520404";
+	midOn = "#F7F72E"; midOff = "#545400";
+	lowOn = "#70F42E"; lowOff = "#174600";
+
 	setOrientation(Orientation::Right);
 	mValue = 0.0f;
 }
@@ -26,21 +27,25 @@ void SVIndicator::paintEvent(QPaintEvent*) {
 	painter.setRenderHints(QPainter::Antialiasing);
 	painter.setPen(QPen(QColor(33,33,33)));
 	auto region = 0;
-	auto mark = qFloor(10 - 10.0f*mValue);
+	mMut.lock();
+	auto mark = mValue;
+	mMut.unlock();
 
-	auto hBrush = QBrush(*highOff);
-	auto mBrush = QBrush(*midOff);
-	auto lBrush = QBrush(*lowOff);
+	auto hBrush = QBrush(QColor(highOff));
+	auto mBrush = QBrush(QColor(midOff));
+	auto lBrush = QBrush(QColor(lowOff));
+		
 	for(auto led : mLeds) {
-
+		
 		if( mark == 0) {
-			hBrush = QBrush(*high);
-			mBrush = QBrush(*mid);
-			lBrush = QBrush(*low);
-
 			if(region == 0) painter.setBrush(hBrush);
+			hBrush.setColor(QColor(highOn));
+			mBrush.setColor(QColor(midOn));
+			lBrush.setColor(QColor(lowOn));
+
 			if(region >= 2 && region < 4) painter.setBrush(mBrush);
 			if(region >= 4) painter.setBrush(lBrush);
+
 		}
 
 		if(region == 0) painter.setBrush(hBrush);
@@ -50,7 +55,8 @@ void SVIndicator::paintEvent(QPaintEvent*) {
 
 		painter.drawRoundedRect(led, 5, 5);
 		region++;
-		mark--;
+
+		if(mark) mark--;
 	}
 
 }
@@ -86,10 +92,10 @@ void SVIndicator::setOrientation(SVIndicator::Orientation orientation) {
 }
 
 void SVIndicator::setValue(float value) {
-	if(mValue < 0)
-		value = -value;
+	if(value < 0)
+		value = value * -1.0f;
 
-	mValue = value;
-
-	emit update();
+	mMut.lock();
+	mValue = qFloor(10 - 10.0f*value);;
+	mMut.unlock();
 }

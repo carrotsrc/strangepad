@@ -2,6 +2,7 @@
 #define __SVINDICATOR_HPP_1437142126__
 #include <QWidget>
 #include <QVector>
+#include <QMutex>
 
 class SVIndicator : public QWidget {
 Q_OBJECT
@@ -22,12 +23,13 @@ signals:
 
 private:
 	QVector<QRectF> mLeds;
-	QColor *high, *mid, *low,
-	       *highOff, *midOff, *lowOff;
+	QString highOn, midOn, lowOn,
+	       highOff, midOff, lowOff;
 
 	int mHeightTracker;
 	float mValue;
 	SVIndicator::Orientation mOrientation;
+	QMutex mMut;
 };
 #endif
 
