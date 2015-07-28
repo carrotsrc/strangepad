@@ -89,15 +89,19 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 	switch(state) {
 	case SuFlacLoad::LOADING:
+		mMut.lock();
 		mTitle.setText("Loading...");
+		mMut.unlock();
 		emit update();
 		break;
 	case SuFlacLoad::PRESTREAM:
 		if(auto u = unit<SuFlacLoad>()) {
+			mMut.lock();
 			mWave.setWaveData(u->getSampleData(), u->getSpc());
 			auto info = QFileInfo(QString(u->getFilename().c_str()));
 			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
 			emit update();
+			mMut.unlock();
 		}
 		break;
 	case SuFlacLoad::STREAMING:

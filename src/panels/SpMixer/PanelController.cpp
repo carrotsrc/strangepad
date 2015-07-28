@@ -20,7 +20,7 @@ SPad(parent) {
 	setLayout(&mContainer);
 	mProbeTrigger.setParent(this);
 	connect(&mProbeTrigger, SIGNAL(timeout()), this, SLOT(probeLevels()));
-	mProbeTrigger.start(250);
+	//mProbeTrigger.start(250);
 }
 
 void SpMixerController::onRegisterUnit() {
@@ -36,4 +36,5 @@ void SpMixerController::probeLevels() {
 
 	mLevelsLeft.setValue(u->getChannelPeak(0));
 	mLevelsRight.setValue(u->getChannelPeak(1));
+	emit update();
 }

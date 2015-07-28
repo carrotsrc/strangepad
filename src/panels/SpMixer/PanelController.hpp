@@ -9,6 +9,7 @@
 #include <QDropEvent>
 #include <QLabel>
 #include <QTimer>
+#include <QMutex>
 
 #include "ui/SPad.hpp"
 #include "ui/SVIndicator.hpp"
@@ -30,6 +31,7 @@ private:
 	QHBoxLayout mContainer;
 	QVBoxLayout mGainBar;
 	QTimer mProbeTrigger;
+	QMutex mMutex;
 
 	SVIndicator mLevelsLeft, mLevelsRight;
 	SKnob mGainLeft, mGainRight;

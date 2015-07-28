@@ -9,6 +9,8 @@
 #include <QDropEvent>
 #include <QLabel>
 #include <QPushButton>
+#include <QMutex>
+
 #include "ui/SPad.hpp"
 #include "ui/SWaveform.hpp"
 #include "ui/SButton.hpp"
@@ -37,13 +39,10 @@ private:
 	QFrame mTools;
 	QLabel mTitle;
 	SButton mPlay, mPause;
+	QMutex mMut;
 
 
 	std::shared_ptr<SuflCbStateChange> mfStateChangePtr;
-
-
-
-
 	void onRegisterUnit();
 	void onUnitStateChange(SuFlacLoad::WorkState state);
 };
