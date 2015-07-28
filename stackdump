@@ -1,0 +1,240 @@
+#0  0x00007f7213eac6ab in __lll_lock_wait_private () from /lib64/libc.so.6
+
+
+#1  0x00007f7213e3493c in malloc () from /lib64/libc.so.6
+
+
+#2  0x00007f72146c6d7d in operator new(unsigned long) () from /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/libstdc++.so.6
+
+
+#3  0x00007f720f2fce30 in std::_Function_base::_Base_manager<std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)> >::_M_init_functor(std::_Any_data&, std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)>&&, std::integral_constant<bool, false>) (__functor=..., __f=<unknown type in ./units/RuAlsa.rso, CU 0x0, DIE 0xf16b>)
+    at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:1987
+
+
+#4  0x00007f720f2fcb82 in std::_Function_base::_Base_manager<std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)> >::_M_init_functor(std::_Any_data&, std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)>&&) (__functor=..., 
+    __f=<unknown type in ./units/RuAlsa.rso, CU 0x0, DIE 0xf16b>) at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:1958
+
+
+#5  0x00007f720f2fc7c1 in std::function<void ()>::function<std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)>, void>(std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)>) (this=0x7ffc6eb139d0, __f=...)
+    at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:2458
+
+
+
+#6  0x00007f720f2fc076 in ExampleCode::RuAlsa::triggerAction 1(this=0x20de2b0) at RuAlsa.cpp:304
+
+
+#7  0x00007f720f2fd1e7 in std::_Mem_fn<void (ExampleCode::RuAlsa::*)()>::operator()<, void>(ExampleCode::RuAlsa*) const (this=0x7f71f8001ee0, 
+    __object=0x20de2b0) at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:601
+
+
+#8  0x00007f720f2fd12e in std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)>::__call<void, , 0ul>(std::tuple<>&&, std::_Index_tuple<0ul>) (this=0x7f71f8001ee0, __args=<unknown type in ./units/RuAlsa.rso, CU 0x0, DIE 0xfca3>)
+    at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:1296
+
+
+#9  0x00007f720f2fcea4 in std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)>::operator()<, void>() (
+    this=0x7f71f8001ee0) at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:1355
+
+
+#10 0x00007f720f2fcba9 in std::_Function_handler<void (), std::_Bind<std::_Mem_fn<void (ExampleCode::RuAlsa::*)()> (ExampleCode::RuAlsa*)> >::_M_invoke(std::_Any_data const&) (__functor=...) at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:2071
+
+
+#11 0x00007f72165c7d88 in std::function<void ()>::operator()() const (this=0x7f71f8006170)
+    at /usr/lib/gcc/x86_64-pc-linux-gnu/4.8.4/include/g++-v4/functional:2471
+
+
+#12 0x00007f720f2fc0fa in pcm_trigger_callback (cb=0x7f71f80009d0) at RuAlsa.cpp:309
+
+#13 0x00007f7213b26cad in snd_async_handler () from /usr/lib64/libasound.so.2
+
+#14 <signal handler called>
+
+
+#15 0x00007f7213e31754 in _int_free () from /lib64/libc.so.6
+
+
+#16 0x00007f7213e33ef0 in _int_realloc () from /lib64/libc.so.6
+
+
+#17 0x00007f7213e35137 in realloc () from /lib64/libc.so.6
+
+
+#18 0x00007f7214c6f6a7 in HB_OpenTypeShape () from /usr/lib64/qt4/libQtCore.so.4
+
+#19 0x00007f7214c6fb6a in HB_BasicShape () from /usr/lib64/qt4/libQtCore.so.4
+
+#20 0x00007f7214c74723 in HB_ShapeItem () from /usr/lib64/qt4/libQtCore.so.4
+
+
+#21 0x00007f7215476760 in QTextEngine::shapeTextWithHarfbuzz (this=this@entry=0x7ffc6eb14d30, item=item@entry=0)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/text/qtextengine.cpp:1342
+
+
+
+
+#22 0x00007f72154770f2 in QTextEngine::shapeText (this=this@entry=0x7ffc6eb14d30, item=item@entry=0)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/text/qtextengine.cpp:935
+
+
+#23 0x00007f7215477415 in QTextEngine::shape (this=this@entry=0x7ffc6eb14d30, item=item@entry=0)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/text/qtextengine.cpp:1450
+
+
+#24 0x00007f721548866f in QTextLine::layout_helper (this=<optimized out>, maxGlyphs=<optimized out>)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/text/qtextlayout.cpp:1761
+
+
+
+#25 0x00007f7215373bce in qt_format_text (fnt=..., _r=..., tf=134349969, option=option@entry=0x0, str=..., brect=brect@entry=0x0, 
+    tabstops=tabstops@entry=0, ta=ta@entry=0x0, tabarraylen=tabarraylen@entry=0, painter=painter@entry=0x7ffc6eb17890)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/painting/qpainter.cpp:8210
+
+
+#26 0x00007f72153747f5 in QPainter::drawText (this=this@entry=0x7ffc6eb17890, r=..., flags=flags@entry=132241, str=..., br=br@entry=0x0)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/painting/qpainter.cpp:6199
+
+
+#27 0x00007f721558ff4f in QCleanlooksStyle::drawItemText (this=<optimized out>, painter=0x7ffc6eb17890, rect=..., alignment=132241, pal=..., 
+    enabled=<optimized out>, text=..., textRole=QPalette::WindowText)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/styles/qcleanlooksstyle.cpp:660
+
+
+#28 0x00007f7215603180 in QLabel::paintEvent (this=0x20e7830)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/widgets/qlabel.cpp:1154
+
+
+#29 0x00007f721527f8d0 in QWidget::event (this=this@entry=0x20e7830, event=event@entry=0x7ffc6eb17e00)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:8546
+
+
+
+#30 0x00007f72155fd5ae in QFrame::event (this=0x20e7830, e=0x7ffc6eb17e00)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/widgets/qframe.cpp:557
+
+
+#31 0x00007f72152306bc in QApplicationPrivate::notify_helper (this=this@entry=0x2060140, receiver=receiver@entry=0x20e7830, 
+    e=e@entry=0x7ffc6eb17e00) at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qapplication.cpp:4565
+
+
+#32 0x00007f7215236bfd in QApplication::notify (this=0x7ffc6eb199f0, receiver=0x20e7830, e=0x7ffc6eb17e00)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qapplication.cpp:4351
+
+#33 0x00007f7214d029cd in QCoreApplication::notifyInternal(QObject*, QEvent*) () from /usr/lib64/qt4/libQtCore.so.4
+
+
+#34 0x00007f7215279ff1 in sendSpontaneousEvent (event=0x7ffc6eb17e00, receiver=0x20e7830)
+    at ../../include/QtCore/../../../qt-everywhere-opensource-src-4.8.6/src/corelib/kernel/qcoreapplication.h:234
+
+
+
+#35 QWidgetPrivate::drawWidget (this=this@entry=0x20e8370, pdev=pdev@entry=0x2201fa0, rgn=..., offset=..., flags=flags@entry=68, 
+    sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5599
+
+
+#36 0x00007f721527aa20 in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20e78d0, pdev=pdev@entry=0x2201fa0, siblings=..., 
+    index=<optimized out>, index@entry=2, rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, 
+    backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5808
+
+
+#37 0x00007f721527a88f in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20e78d0, pdev=pdev@entry=0x2201fa0, siblings=..., index=2, 
+    index@entry=3, rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5795
+
+
+
+#38 0x00007f721527a88f in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20e78d0, pdev=pdev@entry=0x2201fa0, siblings=..., index=3, 
+    rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5795
+
+
+#39 0x00007f7215279bac in QWidgetPrivate::drawWidget (this=this@entry=0x20e78d0, pdev=pdev@entry=0x2201fa0, rgn=..., offset=..., 
+    flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5652
+
+
+
+#40 0x00007f721527aa20 in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20e3620, pdev=pdev@entry=0x2201fa0, siblings=..., 
+    index=<optimized out>, rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, 
+    backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5808
+
+
+#41 0x00007f7215279bac in QWidgetPrivate::drawWidget (this=this@entry=0x20e3620, pdev=pdev@entry=0x2201fa0, rgn=..., offset=..., 
+    flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5652
+
+
+#42 0x00007f721527aa20 in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20f7220, pdev=pdev@entry=0x2201fa0, siblings=..., 
+    index=<optimized out>, rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, 
+    backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5808
+
+
+
+
+#43 0x00007f7215279bac in QWidgetPrivate::drawWidget (this=this@entry=0x20f7220, pdev=pdev@entry=0x2201fa0, rgn=..., offset=..., 
+    flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5652
+
+#44 0x00007f721527aa20 in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20f6f50, pdev=pdev@entry=0x2201fa0, siblings=..., 
+    index=<optimized out>, index@entry=0, rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, 
+    backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5808
+
+
+#45 0x00007f721527a88f in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20f6f50, pdev=pdev@entry=0x2201fa0, siblings=..., index=0, 
+    rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5795
+
+
+#46 0x00007f7215279bac in QWidgetPrivate::drawWidget (this=this@entry=0x20f6f50, pdev=pdev@entry=0x2201fa0, rgn=..., offset=..., 
+    flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5652
+
+
+#47 0x00007f721527aa20 in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20eb530, pdev=pdev@entry=0x2201fa0, siblings=..., 
+    index=<optimized out>, index@entry=1, rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, 
+    backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5808
+
+
+#48 0x00007f721527a88f in QWidgetPrivate::paintSiblingsRecursive (this=this@entry=0x20eb530, pdev=pdev@entry=0x2201fa0, siblings=..., index=1, 
+---Type <return> to continue, or q <return> to quit---
+    rgn=..., offset=..., flags=flags@entry=68, sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5795
+
+#49 0x00007f7215279bac in QWidgetPrivate::drawWidget (this=this@entry=0x20eb530, pdev=0x2201fa0, rgn=..., offset=..., flags=<optimized out>, 
+    sharedPainter=sharedPainter@entry=0x0, backingStore=backingStore@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:5652
+
+#50 0x00007f72154379d2 in QWidgetBackingStore::sync (this=this@entry=0x20f8c20)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/painting/qbackingstore.cpp:1365
+
+#51 0x00007f7215437d95 in QWidgetBackingStore::sync (this=0x20f8c20, exposedWidget=0x7ffc6eb19a30, exposedRegion=...)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/painting/qbackingstore.cpp:1161
+
+#52 0x00007f721526f512 in QWidgetPrivate::syncBackingStore (this=this@entry=0x20eb530, region=...)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qwidget.cpp:1903
+
+#53 0x00007f721529a1b8 in QETWidget::translatePaintEvent (this=this@entry=0x7ffc6eb19a30, event=event@entry=0x7ffc6eb19580)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qapplication_x11.cpp:5239
+
+#54 0x00007f72152a6706 in QApplication::x11ProcessEvent (this=0x7ffc6eb199f0, event=event@entry=0x7ffc6eb19580)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qapplication_x11.cpp:3542
+#55 0x00007f72152ccc62 in x11EventSourceDispatch (s=0x2064400, callback=0x0, user_data=0x0)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qguieventdispatcher_glib.cpp:146
+#56 0x00007f72133e8714 in g_main_context_dispatch () from /usr/lib64/libglib-2.0.so.0
+---Type <return> to continue, or q <return> to quit---
+#57 0x00007f72133e8958 in g_main_context_iterate.isra () from /usr/lib64/libglib-2.0.so.0
+#58 0x00007f72133e89fc in g_main_context_iteration () from /usr/lib64/libglib-2.0.so.0
+#59 0x00007f7214d2f60e in QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /usr/lib64/qt4/libQtCore.so.4
+#60 0x00007f72152ccd16 in QGuiEventDispatcherGlib::processEvents (this=<optimized out>, flags=...)
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qguieventdispatcher_glib.cpp:204
+#61 0x00007f7214d0158f in QEventLoop::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /usr/lib64/qt4/libQtCore.so.4
+#62 0x00007f7214d01885 in QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>) () from /usr/lib64/qt4/libQtCore.so.4
+#63 0x00007f7214d06b29 in QCoreApplication::exec() () from /usr/lib64/qt4/libQtCore.so.4
+#64 0x00007f721522ee8c in QApplication::exec ()
+    at /var/tmp/portage/dev-qt/qtgui-4.8.6-r4/work/qt-everywhere-opensource-src-4.8.6/src/gui/kernel/qapplication.cpp:3823
+#65 0x00000000004062b6 in main (argc=1, argv=<optimized out>) at sys/entry.cpp:91
+
