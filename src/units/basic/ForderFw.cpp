@@ -2,14 +2,14 @@
 using namespace RackoonIO;
 
 ForderFw::ForderFw()
-RackUnit("ForderFw") {
-	addJack("audio", SEQ_JACK);
+: RackUnit("ForderFw") {
+	addJack("audio", JACK_SEQ);
 	addPlug("audio_out");
-	mWorkState = IDLE;
+	mState = IDLE;
 }
 
 FeedState ForderFw::feed(Jack*) {
-
+	return FEED_OK;
 }
 
 void ForderFw::setConfig(std::string,std::string) {
@@ -17,12 +17,14 @@ void ForderFw::setConfig(std::string,std::string) {
 }
 
 RackState ForderFw::init() {
+	mState = READY;
 	UnitMsg("Initialised");
-	mWorkState = READY;
+
+	return RACK_UNIT_OK;
 }
 
 RackState ForderFw::cycle() {
-
+	return RACK_UNIT_OK;
 }
 
 void ForderFw::block(RackoonIO::Jack*) {
