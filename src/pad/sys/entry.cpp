@@ -17,12 +17,19 @@ int main(int argc, char **argv)
 	PadLoader padLoader;
 
 	QApplication app (argc, argv);
+	QString configPath = ".config/pad.xml";
+	for(auto i = 0; i < argc; i++) {
+		if(strcmp(argv[i], "-c") == 0 && argc > 1) {
+			configPath = QString(argv[i+1]);
+		}
+	}
 
 	ConfigLoader configLoader;
-	configLoader.load("./.config/pad.xml", &rigDescription);
+	configLoader.load(configPath, &rigDescription);
 
 	RackoonIO::Rack rack;
-	rack.setConfigPath(".config/pad.cfg");
+	std::cout << "Loading rack: " << rigDescription.getRackConfig().toStdString() << std::endl;
+	rack.setConfigPath(rigDescription.getRackConfig().toStdString());
 	setupRackoon(&rack);
 
 	auto huds = setupRig(rigDescription, &padLoader, &rack);
