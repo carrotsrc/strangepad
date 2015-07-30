@@ -1,6 +1,9 @@
 #include "RigDesc.hpp"
 #include <iostream>
 
+RigDesc::RigDesc() {
+	mRackConfig = ".config/pad.cfg";
+}
 void RigDesc::addHud(QString label) {
 	mHuds.push_back({
 		.label = label,
@@ -24,4 +27,13 @@ QVector<HudDesc>::const_iterator RigDesc::begin() const {
 
 QVector<HudDesc>::const_iterator RigDesc::end() const {
 	return mHuds.constEnd();
+}
+
+void RigDesc::setRackConfig(QString path) {
+	mRackConfig = path;
+	std::cout << "Rack Config:" << path.toStdString() << std::endl;
+}
+
+QString RigDesc::getRackConfig() {
+	return mRackConfig;
 }
