@@ -119,6 +119,10 @@ void RuAlsa::actionInitAlsa() {
 	snd_pcm_hw_params_t *hw_params;
 	int err, dir = 0;
 
+	if(!mThreadRunning) {
+		mSigThread = new std::thread(&RuAlsa::blockWaitSignal, this);
+		mThreadRunning = true;
+	}
 	if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
 	std::cerr << "cannot open audio device `default` - "
 			<< snd_strerror(err) <<  std::endl;
@@ -257,9 +261,9 @@ RackoonIO::RackState RuAlsa::init() {
  * will be changed by parallel tasks in another thread
  */
 RackoonIO::RackState RuAlsa::cycle() {
-	snd_pcm_uframes_t currentLevel;
+
 	if(workState == STREAMING) {
-		currentLevel = snd_pcm_avail_update(handle);
+		auto currentLevel = snd_pcm_avail_update(handle);
 		// Check to see if ALSA has reached the threshold
 		if(frameBuffer->getLoad() > 0 && currentLevel > triggerLevel) {
 			// ALSA is running out of frames! Trigger a flush
@@ -301,9 +305,45 @@ void RuAlsa::block(Jack *jack) {
 }
 
 void RuAlsa::triggerAction() {
-	outsource(std::bind(&RuAlsa::actionFlushBuffer, this));
+	mSigCondition.notify_one();
 }
 
+/*
+ * Single use thread that blocks waiting
+ * for the condition variable to be switched
+ * so it can send the task for flushing the buffer.
+ *
+ * Although it could flush the buffer from in here.
+ */
+void RuAlsa::blockWaitSignal() {
+	std::unique_lock<std::mutex> ul(mSigMutex);
+
+	while(1) {
+		mSigCondition.wait(ul);
+			if(!mThreadRunning) {
+				ul.unlock();
+				break;
+			}
+			outsource(std::bind(&RuAlsa::actionFlushBuffer, this));
+
+	}
+}
+
+/* This is a signal handler. ALSA uses SIGIO to tell the unit that the
+ * output buffer is running low and needs to be refilled. This function
+ * is executed when the signal is received. The signal is async and is
+ * sent to the main process thread. It is important that there are no heap
+ * allocations that occur in the callstack from this function because
+ * if a heap allocation in the main process is interrupted by the 
+ * signal, and another heap allocation occurs somewhere from the signal 
+ * handler there will be a deadlock on __lll_lock_wait_private.
+ *
+ * No:
+ * [m/c/re]alloc()
+ * free()
+ * new
+ * delete
+ */
 static void pcm_trigger_callback(snd_async_handler_t *cb) {
 	auto callback = (std::function<void(void)>*)snd_async_handler_get_callback_private(cb);
 	(*callback)();

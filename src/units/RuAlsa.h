@@ -17,7 +17,6 @@
 #define RUALSA_H
 #include "framework/rack/RackUnit.h"
 #include "framework/buffers/DelayBuffer.h"
-namespace ExampleCode {
 /** The unit that interfaces with ALSA
  *
  * This is used by any configuration that
@@ -42,7 +41,8 @@ public:
 		PRIMING, ///< Priming the delay buffer
 		STREAMING, ///< Loading delay buffer
 		FLUSHING, ///< Flushing the delay buffer
-		PAUSED ///< Received a pause state
+		PAUSED, ///< Received a pause state
+		WAITING
 	};
 
 	RuAlsa();
@@ -67,7 +67,10 @@ private:
 			  fPeriod; ///< The size of the period in frames
 
 	RackoonIO::FeedState feedJackAudio();
-	std::mutex bufLock; ///< thread lock on the delay buffer
+	std::mutex bufLock, mSigMutex; ///< thread lock on the delay buffer
+	std::thread *mSigThread;
+	std::condition_variable mSigCondition;
+	bool mThreadRunning;
 
 	FILE *fp; ///< PCM dump - useful for this example code or debuggin
 
@@ -75,6 +78,6 @@ private:
 
 	void actionInitAlsa();
 	void actionFlushBuffer();
+	void blockWaitSignal();
 };
-}
 #endif
