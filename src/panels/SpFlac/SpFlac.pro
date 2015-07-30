@@ -11,8 +11,8 @@ LIBS += -L$(RACKOONIOFW) -L../../../bin/ -lrackio ./units/SuFlacLoad.rso
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj
 
-QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW)
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
+QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW) --ggdb
+QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW) -ggdb
 
 # Input
 HEADERS += SpFlac.hpp PanelWaveview.hpp
