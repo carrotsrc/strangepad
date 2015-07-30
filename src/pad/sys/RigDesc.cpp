@@ -31,7 +31,6 @@ QVector<HudDesc>::const_iterator RigDesc::end() const {
 
 void RigDesc::setRackConfig(QString path) {
 	mRackConfig = path;
-	std::cout << "Rack Config:" << path.toStdString() << std::endl;
 }
 
 QString RigDesc::getRackConfig() {
