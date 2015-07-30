@@ -1,7 +1,7 @@
-#ifndef __FORDERFW_HPP_1438254060__
+#ifndef __BFFORDERFW_HPP_1438254060__
 #define __FORDERFW_HPP_1438254060__
 #include "framework/rack/RackUnit.h"
-class ForderFw : public RackoonIO::RackUnit
+class BfForderFw : public RackoonIO::RackUnit
 {
 public:
 	enum WorkState {
@@ -11,7 +11,7 @@ public:
 		WAITING,
 	};
 
-	ForderFw();
+	BfForderFw();
 	RackoonIO::FeedState feed(RackoonIO::Jack*);
 	void setConfig(std::string,std::string);
 
