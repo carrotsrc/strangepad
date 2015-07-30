@@ -31,6 +31,7 @@ PadBuilder PadLoader::loadCollection(const QString & collection) {
 	auto libPath = QString("./pads/lib"+QString(collection)+QString(".so"));
 	auto builder = collection + QString("Build");
 	QLibrary lib(libPath);
+	lib.setLoadHints(QLibrary::ResolveAllSymbolsHint);
 	if(!lib.load()) {
 
 		std::cerr << "Collection `" + collection.toStdString() + "`: Failed to load library at " + libPath.toStdString() << std::endl;
