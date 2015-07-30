@@ -15,6 +15,7 @@
  */
 #ifndef SuMixer_H
 #define SuMixer_H
+#include <atomic>
 #include "framework/rack/RackUnit.h"
 
 class SuMixer : public RackoonIO::RackUnit {
@@ -27,7 +28,7 @@ class SuMixer : public RackoonIO::RackUnit {
 	float gainC1, gainC2, peakC1, peakC2;
 	WorkState workState;
 
-	short mixerState;
+	std::atomic<short> mixerState;
 
 	std::mutex mMut;
 

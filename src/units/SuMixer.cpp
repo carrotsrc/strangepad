@@ -49,14 +49,18 @@ FeedState SuMixer::feed(Jack *jack) {
 	if(MIXER_FULL) {
 		if(out->feed(mixedPeriod) == FEED_WAIT)
 			return FEED_WAIT;
+		mixedPeriod = nullptr;
 		mixerState ^= MIXER_BUFFER;
 	}
 
 	// could be stale data here
 	if(jack->name == "channel_1") {
+
+		// Activate Channel 1 if inactive
 		if(mixerState&MIXER_C1_ACT)
 			mixerState^=MIXER_C1_ACT;
 
+		// if channel 2 is off
 		if(mixerState&MIXER_C2_ACT) {
 			jack->flush(&period);
 			mMut.lock();
@@ -65,9 +69,11 @@ FeedState SuMixer::feed(Jack *jack) {
 			return out->feed(period);
 		}
 
+		// Channel 1 is full
 		if( C1_FULL ) {
 			return FEED_WAIT;
 		} else {
+			// buffer channel 1
 			jack->flush(&periodC1);
 			mixerState ^= MIXER_C1_BUF;
 		}
@@ -96,14 +102,19 @@ FeedState SuMixer::feed(Jack *jack) {
 	if(!C1_FULL || !C2_FULL) {
 		return FEED_OK;
 	} else {
-		mixedPeriod = cacheAlloc(1);
+		// mix and feed if both buffers are full
 		mMut.lock();
 		peakC1 = periodC1[0]*gainC1;
 		peakC2 = periodC2[0]*gainC2;
 		mMut.unlock();
+		
+		while(!mixedPeriod)
+			mixedPeriod = cacheAlloc(1);
+
 		for(int i = 0; i < jack->frames; i++) {
-			mixedPeriod[i] = ((periodC1[i]) * gainC1) +
-					 ((periodC2[i]) * gainC2);
+			auto c1 = periodC1[i] * gainC1;
+			auto c2 = periodC2[i] * gainC2;
+			mixedPeriod[i] = c1+c2;
 		}
 
 		cacheFree(periodC1);
@@ -112,6 +123,7 @@ FeedState SuMixer::feed(Jack *jack) {
 
 		if(out->feed(mixedPeriod) == FEED_OK) {
 			mixerState ^= MIXER_BUFFER;
+			mixedPeriod = nullptr;
 		}
 	}
 
