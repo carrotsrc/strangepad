@@ -17,15 +17,21 @@ typedef struct {
 
 class RigDesc {
 public:
+	RigDesc();
 	void addHud(QString label);
 	void addPad(QString collection, QString type, QString label, QString unit); 
 
 	QString getLabel();
+
+	void setRackConfig(QString path);
+	QString getRackConfig();
+
 	QVector<HudDesc>::const_iterator begin() const;
 	QVector<HudDesc>::const_iterator end() const;
 private:
 	QVector<HudDesc> mHuds;
 	HudDesc* mCurrentHud;
+	QString mRackConfig;
 };
 #endif
 

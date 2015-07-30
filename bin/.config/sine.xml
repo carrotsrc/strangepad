@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rig>
+
+<rig>
+	<rack config="./.config/sine.cfg" />
+	<hud label="Overview">
+	</hud>
+
+	<hud label="Focus">
+	</hud>
+
+</rig>
