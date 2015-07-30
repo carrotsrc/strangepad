@@ -50,6 +50,8 @@ void ConfigLoader::switchStartElement(const QString & element) {
 		readHudElement();
 	} else if(element == "pad") {
 		readPadElement();
+	} else if(element == "rack") {
+		readRackElement();
 	}
 
 	// push the state
@@ -79,6 +81,18 @@ void ConfigLoader::readHudElement() {
 	}
 
 	mRig->addHud(at.value("label").toString());
+}
+
+void ConfigLoader::readRackElement() {
+	auto at = mXml.attributes();
+
+	if(!at.hasAttribute("config")) {
+		std::cerr << "Pad Config: Rack element" 
+			<< " has malformed description" << std::endl;
+		return;
+	}
+
+	mRig->setRackConfig(at.value("config").toString());
 }
 
 void ConfigLoader::readPadElement() {

@@ -29,6 +29,7 @@ private:
 
 	void readHudElement();
 	void readPadElement();
+	void readRackElement();
 };
 #endif
 
