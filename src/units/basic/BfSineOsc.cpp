@@ -51,7 +51,6 @@ RackState BfSineOsc::init() {
 
 RackState BfSineOsc::cycle() {
 	if(mState == READY) writeSamples();
-
 	mState = (mOut->feed(mPeriod) == FEED_OK)
 		? READY : WAITING;
 	return RACK_UNIT_OK;
@@ -69,13 +68,13 @@ void BfSineOsc::writeSamples() {
 	case HalfNyq: stratHalfNyq(); break;
 	case QuarterNyq: stratQuarterNyq(); break;
 	}
+	mState = WAITING;
 }
 
 void BfSineOsc::stratFreq() {
 	for(auto i = 0; i < mBlockSize; i++) {
 		mPeriod[i] = sin(m2Pi*mF0*mX++/mFs);
 	}
-	mState = WAITING;
 }
 
 void BfSineOsc::stratNyq() {
@@ -86,7 +85,6 @@ void BfSineOsc::stratNyq() {
 
 		val *= -1;
 	}
-	mState = WAITING;
 }
 
 void BfSineOsc::stratHalfNyq() {
@@ -99,11 +97,11 @@ void BfSineOsc::stratHalfNyq() {
 
 		val *= -1;
 	}
-	mState = WAITING;
 }
 
 void BfSineOsc::stratQuarterNyq() {
 
+	// incorrect
 	auto val = 1;
 	for(auto i = 0; i < mBlockSize; i++) {
 		mPeriod[i++] = val;
@@ -115,6 +113,5 @@ void BfSineOsc::stratQuarterNyq() {
 
 		val *= -1;
 	}
-	mState = WAITING;
 }
 DynamicBuilder(BfSineOsc);
