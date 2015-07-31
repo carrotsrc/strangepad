@@ -21,7 +21,12 @@ public:
 
 private:
 	WorkState mState;
+	PcmSample *mPeriod;
+	RackoonIO::Jack *mOut;
 
+	PcmSample mLeftZ, mRightZ;
+	float mA1, mA2;
+	bool mEcho;
 };
 
 #endif
