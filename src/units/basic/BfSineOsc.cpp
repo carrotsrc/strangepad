@@ -101,9 +101,9 @@ void BfSineOsc::stratHalfNyq() {
 
 void BfSineOsc::stratQuarterNyq() {
 
-	// incorrect
 	auto val = 1.0f;
 	auto valq = 0.707f;
+
 	for(auto i = 0; i < mBlockSize; i++) {
 		mPeriod[i++] = 0;
 		mPeriod[i++] = 0;
