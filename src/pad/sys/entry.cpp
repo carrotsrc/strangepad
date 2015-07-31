@@ -11,16 +11,20 @@
 
 #include "setup.hpp"
 
+static int branchNoGui(RackoonIO::Rack *rack);
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
 	PadLoader padLoader;
+	bool loadGui = true;
 
-	QApplication app (argc, argv);
 	QString configPath = ".config/pad.xml";
 	for(auto i = 0; i < argc; i++) {
 		if(strcmp(argv[i], "-c") == 0 && argc > 1) {
 			configPath = QString(argv[i+1]);
+		} else if(strcmp(argv[i], "--no-gui") == 0) {
+			loadGui = false;
+			std::cout << "StrangePad: GUI Disabled" << std::endl;
 		}
 	}
 
@@ -32,7 +36,13 @@ int main(int argc, char **argv)
 	rack.setConfigPath(rigDescription.getRackConfig().toStdString());
 	setupRackoon(&rack);
 
+	QApplication app (argc, argv);
 	auto huds = setupRig(rigDescription, &padLoader, &rack);
+
+	if(!loadGui) {
+		return branchNoGui(&rack);
+	}
+
 
 	rack.start();
 
@@ -50,3 +60,18 @@ int main(int argc, char **argv)
 
 	return app.exec();
 }
+
+static int branchNoGui(RackoonIO::Rack *rack) {
+	bool running = true;
+	std::string in;
+	rack->start();
+	while(running) {
+		std::cout << "rack@strangepad $ " << std::flush;
+		std::cin >> in;
+		if(in == "quit")
+			running = false;
+	}
+
+	return 0;
+}
+

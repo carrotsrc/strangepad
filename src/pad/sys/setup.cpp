@@ -5,7 +5,7 @@ void setupRackoon(RackoonIO::Rack *rack) {
 	std::unique_ptr<RackoonIO::RackUnitGenericFactory> factory(new RackoonIO::RackUnitGenericFactory);
 	factory->setMessageFactory(new RackoonIO::GenericEventMessageFactory());
 	auto cache = new RackoonIO::BitfieldCache();
-	cache->init(512, 32);
+	cache->init(512, 64);
 	factory->setCacheHandler(cache);
 	rack->setRackUnitFactory(std::move(factory));
 	rack->init();
