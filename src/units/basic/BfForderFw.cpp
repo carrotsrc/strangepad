@@ -33,6 +33,7 @@ FeedState BfForderFw::feed(Jack *jack) {
 				<< sample << "\t"
 				<< mLeftZ << "\t" 
 				<< mPeriod[i] << std::endl;
+			mLeftZ = sample;
 			}
 		} else {
 			mPeriod[i] = (mA1*sample) + (mA2*mRightZ);
@@ -42,11 +43,11 @@ FeedState BfForderFw::feed(Jack *jack) {
 	cacheFree(fPeriod);
 	if(mOut == nullptr) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		notifyProcComplete();
 		cacheFree(mPeriod);
 	}
 	else
 		mState = WAITING;
-	notifyProcComplete();
 
 	return FEED_OK;
 }
@@ -62,7 +63,8 @@ void BfForderFw::setConfig(std::string config, std::string value) {
 }
 
 RackState BfForderFw::init() {
-	//mOut = getPlug("audio_out")->jack;
+	mOut = getPlug("audio_out")->jack;
+	if(mOut) mOut->frames = 512;
 	mLeftZ = mRightZ = 0.0f;
 
 	if(mEcho) UnitMsg("Echo enabled");
