@@ -17,7 +17,6 @@
 #include "framework/events/FrameworkMessages.h"
 using namespace RackoonIO;
 using namespace RackoonIO::Buffers;
-using namespace ExampleCode;
 
 
 static void pcm_trigger_callback(snd_async_handler_t *);
@@ -30,7 +29,6 @@ RuAlsa::RuAlsa()
 	maxPeriods = 4;
 	bufSize = 2048;
 	frameBuffer = nullptr;
-	//fp = fopen("pcm.raw", "wb");
 }
 
 /** Method that is called when there is data waiting to be fed into the unit
