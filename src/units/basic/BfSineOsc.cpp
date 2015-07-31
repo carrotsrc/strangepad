@@ -81,7 +81,7 @@ void BfSineOsc::stratNyq() {
 	auto val = 1;
 	for(auto i = 0; i < mBlockSize; i++) {
 		mPeriod[i++] = val;
-		mPeriod[i++] = val;
+		mPeriod[i] = val;
 
 		val *= -1;
 	}
@@ -93,7 +93,7 @@ void BfSineOsc::stratHalfNyq() {
 		mPeriod[i++] = val;
 		mPeriod[i++] = val;
 		mPeriod[i++] = 0;
-		mPeriod[i++] = 0;
+		mPeriod[i] = 0;
 
 		val *= -1;
 	}
@@ -102,16 +102,24 @@ void BfSineOsc::stratHalfNyq() {
 void BfSineOsc::stratQuarterNyq() {
 
 	// incorrect
-	auto val = 1;
+	auto val = 1.0f;
+	auto valq = 0.707f;
 	for(auto i = 0; i < mBlockSize; i++) {
-		mPeriod[i++] = val;
-		mPeriod[i++] = val;
-		mPeriod[i++] = 0;
-		mPeriod[i++] = 0;
 		mPeriod[i++] = 0;
 		mPeriod[i++] = 0;
 
+		mPeriod[i++] = valq;
+		mPeriod[i++] = valq;
+
+		mPeriod[i++] = val;
+		mPeriod[i++] = val;
+
+		mPeriod[i++] = valq;
+		mPeriod[i] = valq;
+		
+
 		val *= -1;
+		valq *= -1;
 	}
 }
 DynamicBuilder(BfSineOsc);
