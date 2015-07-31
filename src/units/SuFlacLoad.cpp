@@ -19,8 +19,8 @@ using namespace RackoonIO;
 
 SuFlacLoad::SuFlacLoad()
 : RackUnit(std::string("SuFlacLoad")) {
-	addJack("power", JACK_AC);
-	addPlug("audio_out");
+	addJack(std::string("power"), JACK_AC, 0);
+	addPlug(std::string("audio_out"));
 
 	MidiExport("pause", SuFlacLoad::midiPause);
 

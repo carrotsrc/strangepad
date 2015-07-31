@@ -26,12 +26,17 @@
 #define C2_FULL (mixerState&MIXER_C2_BUF)
 #define MIXER_FULL (mixerState&MIXER_BUFFER)
 
+#define C1 1
+#define C2 2
 using namespace RackoonIO;
 SuMixer::SuMixer()
 : RackUnit(std::string("SuMixer")) {
-	addJack("channel_1", JACK_SEQ);
-	addJack("channel_2", JACK_SEQ);
+
+	addJack(std::string("channel_1"), JACK_SEQ, C1);
+	addJack(std::string("channel_2"), JACK_SEQ, C2);
+
 	addPlug("audio_out");
+
 	mixedPeriod = periodC1 = periodC2 = nullptr;
 	gainC1 = gainC2 = 1.0f;
 	peakC1 = peakC2 = 0.0f;
@@ -54,7 +59,7 @@ FeedState SuMixer::feed(Jack *jack) {
 	}
 
 	// could be stale data here
-	if(jack->name == "channel_1") {
+	if(jack->id == C1) {
 
 		// Activate Channel 1 if inactive
 		if(mixerState&MIXER_C1_ACT)
