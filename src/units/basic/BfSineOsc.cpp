@@ -79,23 +79,22 @@ void BfSineOsc::stratFreq() {
 
 void BfSineOsc::stratNyq() {
 	auto val = 1;
-	for(auto i = 0; i < mBlockSize; i++) {
+	for(auto i = 0; i < mBlockSize;) {
 		mPeriod[i++] = val;
-		mPeriod[i] = val;
 
 		val *= -1;
 	}
 }
 
 void BfSineOsc::stratHalfNyq() {
-	auto val = 1;
-	for(auto i = 0; i < mBlockSize; i++) {
-		mPeriod[i++] = val;
-		mPeriod[i++] = val;
-		mPeriod[i++] = 0;
-		mPeriod[i] = 0;
+	auto val = 1.0f;
 
-		val *= -1;
+	for(auto i = 0; i < mBlockSize;) {
+
+		mPeriod[i++] = val;
+		mPeriod[i++] = 0.0f;
+
+		val *= -1.0f;
 	}
 }
 
@@ -104,19 +103,11 @@ void BfSineOsc::stratQuarterNyq() {
 	auto val = 1.0f;
 	auto valq = 0.707f;
 
-	for(auto i = 0; i < mBlockSize; i++) {
+	for(auto i = 0; i < mBlockSize;) {
 		mPeriod[i++] = 0;
-		mPeriod[i++] = 0;
-
 		mPeriod[i++] = valq;
-		mPeriod[i++] = valq;
-
 		mPeriod[i++] = val;
-		mPeriod[i++] = val;
-
 		mPeriod[i++] = valq;
-		mPeriod[i] = valq;
-		
 
 		val *= -1;
 		valq *= -1;
