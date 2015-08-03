@@ -1,0 +1,17 @@
+#compdef strangemake
+# ------------------------------------------------------------------------------
+# Description
+# -----------
+#
+# Completion script for strangemake
+#
+# ------------------------------------------------------------------------------
+_strangemake() {
+local context state line
+typeset -A opt_args
+_arguments \
+"1:target:(framework strangepad strangeui pad/SpFlac pad/SpMixer pad/SpSine unit/RuAlsa \
+unit/SuFlacLoad unit/SuMixer unit/SuEncoder unit/RuSine unit/BfForderFw unit/BfSineOsc)"
+}
+_strangemake "$@"
+
