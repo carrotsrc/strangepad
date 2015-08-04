@@ -47,10 +47,7 @@ FeedState SuMixer::feed(Jack *jack) {
 	out->frames = jack->frames;
 
 	if(MIXER_FULL) {
-		if(out->feed(mixedPeriod) == FEED_WAIT)
-			return FEED_WAIT;
-		mixedPeriod = nullptr;
-		mixerState ^= MIXER_BUFFER;
+		return FEED_WAIT;
 	}
 
 	// could be stale data here
@@ -120,11 +117,6 @@ FeedState SuMixer::feed(Jack *jack) {
 		cacheFree(periodC1);
 		cacheFree(periodC2);
 		mixerState ^= (MIXER_BUFFER ^ MIXER_C1_BUF ^ MIXER_C2_BUF );
-
-		if(out->feed(mixedPeriod) == FEED_OK) {
-			mixerState ^= MIXER_BUFFER;
-			mixedPeriod = nullptr;
-		}
 	}
 
 	return FEED_OK;
@@ -136,6 +128,14 @@ RackState SuMixer::init() {
 }
 
 RackState SuMixer::cycle() {
+
+	if(MIXER_FULL) {
+		if(out->feed(mixedPeriod) == FEED_OK) {
+			mixerState ^= MIXER_BUFFER;
+			mixedPeriod = nullptr;
+		}
+	}
+
 	return RACK_UNIT_OK;
 }
 
