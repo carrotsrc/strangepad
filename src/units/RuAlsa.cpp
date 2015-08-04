@@ -15,9 +15,9 @@
  */
 #include "RuAlsa.h"
 #include "framework/events/FrameworkMessages.h"
+#include "framework/helpers/sound.h"
 using namespace RackoonIO;
 using namespace RackoonIO::Buffers;
-using namespace ExampleCode;
 
 
 static void pcm_trigger_callback(snd_async_handler_t *);
@@ -30,7 +30,6 @@ RuAlsa::RuAlsa()
 	maxPeriods = 4;
 	bufSize = 2048;
 	frameBuffer = nullptr;
-	//fp = fopen("pcm.raw", "wb");
 }
 
 /** Method that is called when there is data waiting to be fed into the unit
@@ -40,25 +39,30 @@ RuAlsa::RuAlsa()
  */
 RackoonIO::FeedState RuAlsa::feed(RackoonIO::Jack *jack) {
 	PcmSample *period;
-
+	auto periodSize = jack->numChannels*jack->numSamples;
 	// here the buffer has reached capacity
-	if(frameBuffer->hasCapacity(jack->frames) == DelayBuffer<PcmSample>::WAIT)
+	if(frameBuffer->hasCapacity(periodSize) == DelayBuffer::WAIT)
 		return FEED_WAIT; // so response with a WAIT
 
 
 	// If we're here then the buffer has room
-	if(jack->flush(&period) == FEED_OK) {
-		bufLock.lock();
-
-		if(workState == PAUSED) {
-			UnitMsg("Unpaused");
-			workState = STREAMING;
-		}
-		frameBuffer->supply(period, jack->frames);
-		bufLock.unlock();
-		cacheFree(period); // We are freeing the block of cache
-		notifyProcComplete();
+	jack->flush(&period, 1);
+	bufLock.lock();
+	if(workState == PAUSED) {
+		UnitMsg("Unpaused");
+		workState = STREAMING;
 	}
+	auto tp = cacheAlloc(1);
+	Helpers::SoundRoutines::interleave2(period, tp, jack->numSamples);
+
+	frameBuffer->supply(tp, periodSize);
+
+	bufLock.unlock();
+
+	cacheFree(tp);
+	cacheFree(period);
+
+	notifyProcComplete();
 
 	return FEED_OK; // We've accepted the period
 }
@@ -71,7 +75,7 @@ RackoonIO::FeedState RuAlsa::feed(RackoonIO::Jack *jack) {
 void RuAlsa::setConfig(std::string config, std::string value) {
 	if(config == "unit_buffer") {
 		bufSize = (snd_pcm_uframes_t)atoi(value.c_str());
-		frameBuffer = new DelayBuffer<PcmSample>(bufSize);
+		frameBuffer = new DelayBuffer(bufSize);
 	} else if(config == "max_periods") {
 		maxPeriods = atoi(value.c_str());
 	}
@@ -84,8 +88,13 @@ void RuAlsa::setConfig(std::string config, std::string value) {
 void RuAlsa::actionFlushBuffer() {
 	bufLock.lock();
 	snd_pcm_uframes_t nFrames;
-	unsigned int size = frameBuffer->getLoad();
-	const PcmSample *frames = frameBuffer->flush();
+	auto size = frameBuffer->getLoad();
+	if(size == 0) {
+		workState = STREAMING;
+		bufLock.unlock();
+		return;
+	}
+	auto frames = frameBuffer->flush();
 	if((nFrames = snd_pcm_writei(handle, frames, (size>>1))) != (size>>1)) {
 		if(nFrames == -EPIPE) {
 			if(workState != PAUSED)
@@ -107,125 +116,6 @@ void RuAlsa::actionFlushBuffer() {
 	workState = STREAMING;
 }
 
-/** Intialise ALSA
- *
- * This method is outsourced so the initialisation
- * can happen in parallel to the rest of the rack
- * cycle. This frees up the rack cycle but also
- * means we need to be more careful about what
- * state we are in
- */
-void RuAlsa::actionInitAlsa() {
-	snd_pcm_hw_params_t *hw_params;
-	int err, dir = 0;
-
-	if(!mThreadRunning) {
-		mSigThread = new std::thread(&RuAlsa::blockWaitSignal, this);
-		mThreadRunning = true;
-	}
-	if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-	std::cerr << "cannot open audio device `default` - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
-		std::cerr << "cannot allocated hardware param struct - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-
-	if ((err = snd_pcm_hw_params_any (handle, hw_params)) < 0) {
-		std::cerr << "cannot init hardware param struct - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params_set_access (handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-		std::cerr << "cannot set access type - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params_set_format (handle, hw_params, SND_PCM_FORMAT_FLOAT_LE)) < 0) {
-		std::cerr << "cannot set format - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-
-	if ((err = snd_pcm_hw_params_set_rate_near (handle, hw_params, &sampleRate, &dir)) < 0) {
-		std::cerr << "cannot set sample rate - "
-			<< snd_strerror(err) <<  std::endl;
-	}
-
-
-	if ((err = snd_pcm_hw_params_set_channels (handle, hw_params, 2)) < 0) {
-		std::cerr << "cannot set channels - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params_set_periods_max(handle, hw_params, &maxPeriods, &dir)) < 0) {
-		std::cerr << "cannot set periods - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params_set_periods(handle, hw_params, maxPeriods, dir)) < 0) {
-		std::cerr << "cannot set periods - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params (handle, hw_params)) < 0) {
-		std::cerr << "cannot set parameters - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	snd_pcm_hw_params_free (hw_params);
-
-	if ((err = snd_pcm_prepare (handle)) < 0) {
-		std::cerr << "cannot prepare audio interface - "
-			<< snd_strerror(err) <<  std::endl;
-		return;
-	}
-
-	if ((err = snd_pcm_hw_params_get_period_size (hw_params, &fPeriod, &dir)) < 0) {
-		std::cerr << "cannot get period size - "
-			<< snd_strerror(err) <<  std::endl;
-	}
-
-	UnitMsg("Period size: " << fPeriod);
-
-	snd_pcm_uframes_t bsize;
-	if ((err = snd_pcm_hw_params_get_buffer_size (hw_params, &bsize)) < 0) {
-		std::cerr << "cannot get sample rate - "
-			<< snd_strerror(err) <<  std::endl;
-	}
-
-	UnitMsg("Buffer Size: " << bsize);
-
-	if ((err = snd_pcm_hw_params_get_rate (hw_params, &sampleRate, &dir)) < 0) {
-		std::cerr << "cannot get sample rate - "
-			<< snd_strerror(err) <<  std::endl;
-	}
-
-	UnitMsg("Fs: " << sampleRate);
-
-	triggerLevel = snd_pcm_avail_update(handle) - (fPeriod<<1);
-
-	if(frameBuffer == nullptr)
-		frameBuffer = new Buffers::DelayBuffer<PcmSample>(bufSize);
-
-	auto *func = new std::function<void(void)>(std::bind(&RuAlsa::triggerAction, this));
-	snd_async_add_pcm_handler(&cb, handle, &pcm_trigger_callback, (void*)func);
-	UnitMsg("Initialised");
-	notifyProcComplete();
-	workState = READY;
-}
 
 /** Intitialise the Unit
  *
@@ -347,6 +237,126 @@ void RuAlsa::blockWaitSignal() {
 static void pcm_trigger_callback(snd_async_handler_t *cb) {
 	auto callback = (std::function<void(void)>*)snd_async_handler_get_callback_private(cb);
 	(*callback)();
+}
+
+/** Intialise ALSA
+ *
+ * This method is outsourced so the initialisation
+ * can happen in parallel to the rest of the rack
+ * cycle. This frees up the rack cycle but also
+ * means we need to be more careful about what
+ * state we are in
+ */
+void RuAlsa::actionInitAlsa() {
+	snd_pcm_hw_params_t *hw_params;
+	int err, dir = 0;
+
+	if(!mThreadRunning) {
+		mSigThread = new std::thread(&RuAlsa::blockWaitSignal, this);
+		mThreadRunning = true;
+	}
+	if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+	std::cerr << "cannot open audio device `default` - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
+		std::cerr << "cannot allocated hardware param struct - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+
+	if ((err = snd_pcm_hw_params_any (handle, hw_params)) < 0) {
+		std::cerr << "cannot init hardware param struct - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params_set_access (handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+		std::cerr << "cannot set access type - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params_set_format (handle, hw_params, SND_PCM_FORMAT_FLOAT_LE)) < 0) {
+		std::cerr << "cannot set format - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+
+	if ((err = snd_pcm_hw_params_set_rate_near (handle, hw_params, &sampleRate, &dir)) < 0) {
+		std::cerr << "cannot set sample rate - "
+			<< snd_strerror(err) <<  std::endl;
+	}
+
+
+	if ((err = snd_pcm_hw_params_set_channels (handle, hw_params, 2)) < 0) {
+		std::cerr << "cannot set channels - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params_set_periods_max(handle, hw_params, &maxPeriods, &dir)) < 0) {
+		std::cerr << "cannot set periods - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params_set_periods(handle, hw_params, maxPeriods, dir)) < 0) {
+		std::cerr << "cannot set periods - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params (handle, hw_params)) < 0) {
+		std::cerr << "cannot set parameters - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	snd_pcm_hw_params_free (hw_params);
+
+	if ((err = snd_pcm_prepare (handle)) < 0) {
+		std::cerr << "cannot prepare audio interface - "
+			<< snd_strerror(err) <<  std::endl;
+		return;
+	}
+
+	if ((err = snd_pcm_hw_params_get_period_size (hw_params, &fPeriod, &dir)) < 0) {
+		std::cerr << "cannot get period size - "
+			<< snd_strerror(err) <<  std::endl;
+	}
+
+	UnitMsg("Period size: " << fPeriod);
+
+	snd_pcm_uframes_t bsize;
+	if ((err = snd_pcm_hw_params_get_buffer_size (hw_params, &bsize)) < 0) {
+		std::cerr << "cannot get sample rate - "
+			<< snd_strerror(err) <<  std::endl;
+	}
+
+	UnitMsg("Buffer Size: " << bsize);
+
+	if ((err = snd_pcm_hw_params_get_rate (hw_params, &sampleRate, &dir)) < 0) {
+		std::cerr << "cannot get sample rate - "
+			<< snd_strerror(err) <<  std::endl;
+	}
+
+	UnitMsg("Fs: " << sampleRate);
+
+	triggerLevel = snd_pcm_avail_update(handle) - (fPeriod<<1);
+
+	if(frameBuffer == nullptr)
+		frameBuffer = new Buffers::DelayBuffer(bufSize);
+
+	auto *func = new std::function<void(void)>(std::bind(&RuAlsa::triggerAction, this));
+	snd_async_add_pcm_handler(&cb, handle, &pcm_trigger_callback, (void*)func);
+	UnitMsg("Initialised");
+	notifyProcComplete();
+	workState = READY;
 }
 
 DynamicBuilder(RuAlsa);

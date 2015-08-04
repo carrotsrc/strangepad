@@ -42,7 +42,7 @@ private:
 
 	std::string filename;
 	PcmSample *buffer, *position, *period;
-	int psize;
+	int psize, csize;
 
 	void actionLoadFile();
 	void actionNextChunk();

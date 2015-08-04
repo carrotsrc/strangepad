@@ -13,6 +13,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "framework/helpers/sound.h"
 #include "SuFlacLoad.h"
 #define CHUNK_SIZE 0x100000
 using namespace RackoonIO;
@@ -27,6 +28,7 @@ SuFlacLoad::SuFlacLoad()
 	buffer = nullptr;
 	workState = IDLE;
 	psize = 512;
+	csize = psize/2;
 
 }
 
@@ -41,13 +43,15 @@ void SuFlacLoad::setConfig(std::string config, std::string value) {
 }
 
 void SuFlacLoad::actionNextChunk() {
-	period = nullptr;
-
-	while(period == nullptr)
-		period = cacheAlloc(1);
+	period = cacheAlloc(1);
+	auto tp = cacheAlloc(1);
 
 	if(count < psize) psize = count;
-	memcpy(period, position, psize*sizeof(PcmSample));
+	std::copy(position, position+psize, tp);
+	Helpers::SoundRoutines::deinterleave2(tp, period, csize);
+
+	cacheFree(tp);
+
 	count -= psize;
 	position += psize;
 	workState = STREAMING;
@@ -114,10 +118,13 @@ RackoonIO::RackState SuFlacLoad::cycle() {
 
 	case STREAMING:
 		jack = getPlug("audio_out")->jack;
-		jack->frames = psize;
+		jack->numChannels = 2;
+		jack->numSamples = csize;
+
 		if(jack->feed(period) == FEED_OK) {
 			workState = LOADING_CHUNK;
 			ConcurrentTask(SuFlacLoad::actionNextChunk);
+		} else {
 		}
 		break;
 
