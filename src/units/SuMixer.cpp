@@ -68,7 +68,9 @@ FeedState SuMixer::feed(Jack *jack) {
 
 			jack->flush(&waitPeriod, 1);
 			mMut.lock();
-				peakC1 = waitPeriod[0]*gainC1;
+				auto peak = waitPeriod[0];
+				for(auto i = 0; i < mOut->numSamples; i++)
+					peakC1 = waitPeriod[i] > peak ? waitPeriod[i] : peakC1;
 			mMut.unlock();
 			mWaiting = true;
 			return FEED_OK;
@@ -204,7 +206,7 @@ PcmSample SuMixer::getChannelPeak(int channel) {
 		p = peakC1;
 	}
 	mMut.unlock();
-	std::cout << channel << ": " << p << std::endl;
+	//std::cout << channel << ": " << p << std::endl;
 	return p;
 }
 

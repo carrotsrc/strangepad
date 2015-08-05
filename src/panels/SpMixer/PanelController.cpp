@@ -20,12 +20,12 @@ SPad(parent) {
 	setLayout(&mContainer);
 	mProbeTrigger.setParent(this);
 	connect(&mProbeTrigger, SIGNAL(timeout()), this, SLOT(probeLevels()));
-	//mProbeTrigger.start(250);
+	mProbeTrigger.start(100);
 }
 
 void SpMixerController::onRegisterUnit() {
 	if(auto u = unit<SuMixer>()) {
-//		u->cbStateChange(mfStateChangePtr);
+		//u->cbStateChange(mfStateChangePtr);
 	}
 
 }
