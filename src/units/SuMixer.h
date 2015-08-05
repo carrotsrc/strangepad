@@ -24,11 +24,13 @@ class SuMixer : public RackoonIO::RackUnit {
 		INIT,
 		READY
 	};
-	PcmSample *periodC1, *periodC2, *mixedPeriod;
+	PcmSample *periodC1, *periodC2, *mixedPeriod, *waitPeriod;
 	float gainC1, gainC2, peakC1, peakC2;
+	RackoonIO::Jack *mOut;
 	WorkState workState;
 
 	std::atomic<short> mixerState;
+	std::atomic<bool> mWaiting;
 
 	std::mutex mMut;
 
