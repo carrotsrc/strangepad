@@ -30,6 +30,7 @@ RuAlsa::RuAlsa()
 	maxPeriods = 4;
 	bufSize = 2048;
 	frameBuffer = nullptr;
+	//fp = fopen("dumpx.raw", "wb");
 }
 
 /** Method that is called when there is data waiting to be fed into the unit
@@ -41,8 +42,9 @@ RackoonIO::FeedState RuAlsa::feed(RackoonIO::Jack *jack) {
 	PcmSample *period;
 	auto periodSize = jack->numChannels*jack->numSamples;
 	// here the buffer has reached capacity
-	if(frameBuffer->hasCapacity(periodSize) == DelayBuffer::WAIT)
+	if(frameBuffer->hasCapacity(periodSize) == DelayBuffer::WAIT) {
 		return FEED_WAIT; // so response with a WAIT
+	}
 
 
 	// If we're here then the buffer has room
@@ -99,12 +101,16 @@ void RuAlsa::actionFlushBuffer() {
 		if(nFrames == -EPIPE) {
 			if(workState != PAUSED)
 				std::cerr << "Underrun occurred" << std::endl;
+			snd_pcm_recover(handle, nFrames, 0);
 
+		} else {
+			std::cerr << "Screwed: Code[" << (signed int)nFrames << "]" << std::endl;
+			std::cerr << snd_strerror(nFrames) << std::endl;
 			snd_pcm_recover(handle, nFrames, 0);
 		}
-		else
-			std::cerr << "Something else is screwed" << std::endl;
 	}
+
+	//fwrite(frames, sizeof(PcmSample), size, fp);
 	bufLock.unlock();
 	notifyProcComplete();
 	if(workState == PAUSED)
