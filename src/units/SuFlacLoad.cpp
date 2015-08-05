@@ -60,17 +60,17 @@ void SuFlacLoad::actionNextChunk() {
 
 void SuFlacLoad::actionLoadFile() {
 	UnitMsg("Loading file " << filename);
-	file = new SndfileHandle(filename.c_str());
+	SndfileHandle file(filename.c_str());
 
-	if(file->error() > 0) {
-		UnitMsg("Error occured when loading file `" << filename << "` with error " << file->error());
+	if(file.error() > 0) {
+		UnitMsg("Error occured when loading file `" << filename << "` with error " << file.error());
 		workState = ERROR;
 		return;
 	}
 
 
 	// Two channels, two datapoints per frame
-	bufSize = file->frames()*2;
+	bufSize = file.frames()*2;
 	count = bufSize;
 
 	if(buffer != nullptr)
@@ -79,7 +79,7 @@ void SuFlacLoad::actionLoadFile() {
 	buffer = (PcmSample*)calloc(bufSize, sizeof(PcmSample));
 	position = buffer;
 
-	while(file->read((PcmSample*)position, CHUNK_SIZE) == CHUNK_SIZE) {
+	while(file.read((PcmSample*)position, CHUNK_SIZE) == CHUNK_SIZE) {
 		position += CHUNK_SIZE;
 	}
 

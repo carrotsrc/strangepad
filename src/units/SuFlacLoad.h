@@ -37,7 +37,6 @@ public:
 private:
 	WorkState workState;
 
-	SndfileHandle *file;
 	sf_count_t bufSize, count;
 
 	std::string filename;
