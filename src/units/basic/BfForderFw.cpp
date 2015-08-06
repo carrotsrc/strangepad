@@ -1,4 +1,6 @@
+#include "framework/helpers/midi.h"
 #include "BfForderFw.hpp"
+
 using namespace RackoonIO;
 
 BfForderFw::BfForderFw()
@@ -110,15 +112,11 @@ void BfForderFw::block(RackoonIO::Jack*) {
 }
 
 void BfForderFw::midiChangeA1(int value) {
-	auto fvalue = value/127.0f;
-	mA1 = fvalue;
-	std::cout << "a1\t" << mA1 << std::endl;
+	mA1 = Helpers::MidiRoutines::normaliseVelocity64(value);
 }
 
 void BfForderFw::midiChangeA2(int value) {
-	auto fvalue = value/127.0f;
-	mA2 = fvalue;
-	std::cout << "a2\t" << mA2 << std::endl;
+	mA2 = Helpers::MidiRoutines::normaliseVelocity64(value);
 }
 
 DynamicBuilder(BfForderFw);
