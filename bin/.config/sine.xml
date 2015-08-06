@@ -3,6 +3,9 @@
 
 <rig>
 	<rack config="./.config/sine.cfg" />
+	<hud label="Overview">
+		<pad collection="SpFlac" type="waveview" label="Alpha" unit="alpha" />
+	</hud>
 
 
 </rig>
