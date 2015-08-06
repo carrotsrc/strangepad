@@ -28,13 +28,12 @@
 
 #define C1 1
 #define C2 2
+
 using namespace RackoonIO;
 SuMixer::SuMixer()
 : RackUnit(std::string("SuMixer")) {
-
-	addJack(std::string("channel_1"), JACK_SEQ, C1);
-	addJack(std::string("channel_2"), JACK_SEQ, C2);
-
+	addJack("channel_1", JACK_SEQ, C1);
+	addJack("channel_2", JACK_SEQ, C2);
 	addPlug("audio_out");
 
 	mixedPeriod = periodC1 = periodC2 = nullptr;
@@ -46,10 +45,10 @@ SuMixer::SuMixer()
 
 
 FeedState SuMixer::feed(Jack *jack) {
-	PcmSample *period;
 
-	auto out = getPlug("audio_out")->jack;
-	out->frames = jack->frames;
+	mOut = getPlug("audio_out")->jack;
+	mOut->numSamples = jack->numSamples;
+	mOut->numChannels = jack->numChannels;
 
 	if(MIXER_FULL) {
 		return FEED_WAIT;
@@ -62,13 +61,20 @@ FeedState SuMixer::feed(Jack *jack) {
 		if(mixerState&MIXER_C1_ACT)
 			mixerState^=MIXER_C1_ACT;
 
+
 		// if channel 2 is off
 		if(mixerState&MIXER_C2_ACT) {
-			jack->flush(&period);
+
+			if(mWaiting) return FEED_WAIT;
+
+			jack->flush(&waitPeriod, 1);
 			mMut.lock();
-				peakC1 = period[0]*gainC1;
+				auto peak = waitPeriod[0];
+				for(auto i = 0; i < mOut->numSamples; i++)
+					peakC1 = waitPeriod[i] > peak ? waitPeriod[i] : peakC1;
 			mMut.unlock();
-			return out->feed(period);
+			mWaiting = true;
+			return FEED_OK;
 		}
 
 		// Channel 1 is full
@@ -76,7 +82,7 @@ FeedState SuMixer::feed(Jack *jack) {
 			return FEED_WAIT;
 		} else {
 			// buffer channel 1
-			jack->flush(&periodC1);
+			jack->flush(&periodC1, 1);
 			mixerState ^= MIXER_C1_BUF;
 		}
 
@@ -85,18 +91,25 @@ FeedState SuMixer::feed(Jack *jack) {
 		if(mixerState&MIXER_C2_ACT)
 			mixerState^=MIXER_C2_ACT;
 
+
 		if(mixerState&MIXER_C1_ACT) {
-			jack->flush(&period);
+
+			if(mWaiting) return FEED_WAIT;
+
+			jack->flush(&waitPeriod, 1);
 			mMut.lock();
-				peakC2 = period[0]*gainC2;
+				peakC2 = waitPeriod[0]*gainC2;
 			mMut.unlock();
-			return out->feed(period);
+			mWaiting = true;
+
+			return FEED_OK;
+
 		}
 
 		if( C2_FULL ) {
 			return FEED_WAIT;
 		} else {
-			jack->flush(&periodC2);
+			jack->flush(&periodC2, 1);
 			mixerState ^= MIXER_C2_BUF;
 		}
 	}
@@ -112,8 +125,8 @@ FeedState SuMixer::feed(Jack *jack) {
 		
 		while(!mixedPeriod)
 			mixedPeriod = cacheAlloc(1);
-
-		for(int i = 0; i < jack->frames; i++) {
+		auto totalSamples = jack->numSamples * 2;
+		for(int i = 0; i < totalSamples; i++) {
 			auto c1 = periodC1[i] * gainC1;
 			auto c2 = periodC2[i] * gainC2;
 			mixedPeriod[i] = c1+c2;
@@ -135,9 +148,13 @@ RackState SuMixer::init() {
 RackState SuMixer::cycle() {
 
 	if(MIXER_FULL) {
-		if(out->feed(mixedPeriod) == FEED_OK) {
+		if(mOut->feed(mixedPeriod) == FEED_OK) {
 			mixerState ^= MIXER_BUFFER;
 			mixedPeriod = nullptr;
+		}
+	} else if(mWaiting) {
+		if(mOut->feed(waitPeriod) == FEED_OK) {
+			mWaiting = false;
 		}
 	}
 
@@ -190,7 +207,7 @@ PcmSample SuMixer::getChannelPeak(int channel) {
 		p = peakC1;
 	}
 	mMut.unlock();
-	std::cout << channel << ": " << p << std::endl;
+	//std::cout << channel << ": " << p << std::endl;
 	return p;
 }
 
