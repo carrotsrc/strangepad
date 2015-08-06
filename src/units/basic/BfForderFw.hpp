@@ -9,6 +9,7 @@ public:
 		INIT,
 		READY,
 		WAITING,
+		PROCESSING
 	};
 
 	BfForderFw();
@@ -27,6 +28,9 @@ private:
 	PcmSample mLeftZ, mRightZ;
 	float mA1, mA2;
 	bool mEcho;
+
+	void midiChangeA1(int value);
+	void midiChangeA2(int value);
 };
 
 #endif

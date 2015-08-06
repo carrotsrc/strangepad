@@ -11,7 +11,8 @@ BfForderFw::BfForderFw()
 	mEcho = false;
 
 	mA1 = mA2 = 0.5f;
-	
+	MidiExport("a1", BfForderFw::midiChangeA1);
+	MidiExport("a2", BfForderFw::midiChangeA2);
 }
 
 FeedState BfForderFw::feed(Jack *jack) {
@@ -20,27 +21,41 @@ FeedState BfForderFw::feed(Jack *jack) {
 		return FEED_WAIT;
 
 	PcmSample *fPeriod;
-	jack->flush(&fPeriod);
 	mPeriod = cacheAlloc(1);
-	auto nSamples = jack->frames;
-	for(auto i = 0; i < nSamples; i++) {
-		auto sample = fPeriod[i];
+	auto ptrWrite = mPeriod;
+	auto nSamples = jack->numSamples;
+	auto a1 = mA1, a2 = mA2, lz = mLeftZ, rz = mRightZ;
 
-		if(i%2 == 0) {
-			mPeriod[i] = (mA1*sample) + (mA2*mLeftZ);
-			if(mEcho) {
-			std:: cout 
-				<< sample << "\t"
-				<< mLeftZ << "\t" 
-				<< mPeriod[i] << std::endl;
-			mLeftZ = sample;
+	for(auto channel = 0; channel < jack->numChannels; channel++) {
+
+		jack->flush(&fPeriod,channel+1);
+		ptrWrite = mPeriod + (channel*nSamples);
+
+		for(auto i = 0; i < nSamples; i++) {
+			auto sample = fPeriod[i];
+
+			if(channel == 1) {
+				ptrWrite[i] = (a1*sample) + (a2*lz);
+
+				if(mEcho) {
+					std:: cout 
+						<< sample << "\t"
+						<< mLeftZ << "\t" 
+						<< mPeriod[i] 
+					<< std::endl;
+				}
+
+				lz = sample;
+			} else {
+				ptrWrite[i] = (a1*sample) + (a2*rz);
+				rz = sample;
 			}
-		} else {
-			mPeriod[i] = (mA1*sample) + (mA2*mRightZ);
-			mRightZ = sample;
 		}
 	}
+	mLeftZ = lz;
+	mRightZ = rz;
 	cacheFree(fPeriod);
+
 	if(mOut == nullptr) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		notifyProcComplete();
@@ -64,20 +79,23 @@ void BfForderFw::setConfig(std::string config, std::string value) {
 
 RackState BfForderFw::init() {
 	mOut = getPlug("audio_out")->jack;
-	if(mOut) mOut->frames = 512;
+	if(mOut) {
+		mOut->numSamples = 256;
+		mOut->numChannels = 2;
+	}
+
 	mLeftZ = mRightZ = 0.0f;
 
 	if(mEcho) UnitMsg("Echo enabled");
 
 	mState = READY;
 	UnitMsg("Initialised");
-	notifyProcComplete();
 
 	return RACK_UNIT_OK;
 }
 
 RackState BfForderFw::cycle() {
-	if(mState == READY) {
+	if(mState == READY || mState == PROCESSING) {
 		return RACK_UNIT_OK;
 	}
 
@@ -89,6 +107,18 @@ RackState BfForderFw::cycle() {
 
 void BfForderFw::block(RackoonIO::Jack*) {
 
+}
+
+void BfForderFw::midiChangeA1(int value) {
+	auto fvalue = value/127.0f;
+	mA1 = fvalue;
+	std::cout << "a1\t" << mA1 << std::endl;
+}
+
+void BfForderFw::midiChangeA2(int value) {
+	auto fvalue = value/127.0f;
+	mA2 = fvalue;
+	std::cout << "a2\t" << mA2 << std::endl;
 }
 
 DynamicBuilder(BfForderFw);
