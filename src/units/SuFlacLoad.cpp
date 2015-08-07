@@ -16,7 +16,7 @@
 #include "framework/helpers/sound.h"
 #include "SuFlacLoad.h"
 #define CHUNK_SIZE 0x100000
-using namespace RackoonIO;
+using namespace StrangeIO;
 
 SuFlacLoad::SuFlacLoad()
 : RackUnit(std::string("SuFlacLoad")) {
@@ -32,7 +32,7 @@ SuFlacLoad::SuFlacLoad()
 
 }
 
-RackoonIO::FeedState SuFlacLoad::feed(RackoonIO::Jack*jack) {
+StrangeIO::FeedState SuFlacLoad::feed(StrangeIO::Jack*jack) {
 	return FEED_OK;
 }
 
@@ -92,7 +92,7 @@ void SuFlacLoad::actionLoadFile() {
 	notifyProcComplete();
 }
 
-RackoonIO::RackState SuFlacLoad::init() {
+StrangeIO::RackState SuFlacLoad::init() {
 	workState = LOADING;
 	onStateChange(workState);
 	ConcurrentTask(SuFlacLoad::actionLoadFile);
@@ -100,7 +100,7 @@ RackoonIO::RackState SuFlacLoad::init() {
 	return RACK_UNIT_OK;
 }
 
-RackoonIO::RackState SuFlacLoad::cycle() {
+StrangeIO::RackState SuFlacLoad::cycle() {
 	if(workState < READY)
 		return RACK_UNIT_OK;
 	

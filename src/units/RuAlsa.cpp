@@ -16,8 +16,8 @@
 #include "RuAlsa.h"
 #include "framework/events/FrameworkMessages.h"
 #include "framework/helpers/sound.h"
-using namespace RackoonIO;
-using namespace RackoonIO::Buffers;
+using namespace StrangeIO;
+using namespace StrangeIO::Buffers;
 
 
 static void pcm_trigger_callback(snd_async_handler_t *);
@@ -38,7 +38,7 @@ RuAlsa::RuAlsa()
  * Here we decide whether to accept the data and store it in the buffer
  * or respond with a FEED_WAIT
  */
-RackoonIO::FeedState RuAlsa::feed(RackoonIO::Jack *jack) {
+StrangeIO::FeedState RuAlsa::feed(StrangeIO::Jack *jack) {
 	PcmSample *period;
 	auto periodSize = jack->numChannels*jack->numSamples;
 	// here the buffer has reached capacity
@@ -129,7 +129,7 @@ void RuAlsa::actionFlushBuffer() {
  * We don't initialise the unit here,
  * but outsource the task
  */
-RackoonIO::RackState RuAlsa::init() {
+StrangeIO::RackState RuAlsa::init() {
 
 	/* Set to INIT because the unit
 	 * won't be ready by the end
@@ -156,7 +156,7 @@ RackoonIO::RackState RuAlsa::init() {
  * It is important to keep track of the state since it
  * will be changed by parallel tasks in another thread
  */
-RackoonIO::RackState RuAlsa::cycle() {
+StrangeIO::RackState RuAlsa::cycle() {
 
 	if(workState == STREAMING) {
 		auto currentLevel = snd_pcm_avail_update(handle);

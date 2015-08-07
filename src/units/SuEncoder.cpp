@@ -1,5 +1,5 @@
 #include "SuEncoder.h"
-using namespace RackoonIO;
+using namespace StrangeIO;
 #define PHASE 0
 
 SuEncoder::SuEncoder()
@@ -11,9 +11,9 @@ SuEncoder::SuEncoder()
 }
 
 FeedState SuEncoder::feed(Jack *jack) {
-	jack->flush(&mPeriod);
+	jack->flush(&mPeriod, 1);
 
-	fwrite(mPeriod, sizeof(PcmSample), jack->frames, mFp);
+	fwrite(mPeriod, sizeof(PcmSample), jack->numSamples*jack->numChannels, mFp);
 	cacheFree(mPeriod);
 	notifyProcComplete();
 	return FEED_OK;

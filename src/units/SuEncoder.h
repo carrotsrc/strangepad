@@ -11,7 +11,7 @@
  * For details on the different API methods,
  * see RuAlsa or RuImpulse
  */
-class SuEncoder : public RackoonIO::RackUnit
+class SuEncoder : public StrangeIO::RackUnit
 {
 public:
 	enum WorkState {
@@ -26,12 +26,12 @@ public:
 	};
 
 	SuEncoder();
-	RackoonIO::FeedState feed(RackoonIO::Jack*);
+	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string,std::string);
 
-	RackoonIO::RackState init();
-	RackoonIO::RackState cycle();
-	void block(RackoonIO::Jack*);
+	StrangeIO::RackState init();
+	StrangeIO::RackState cycle();
+	void block(StrangeIO::Jack*);
 
 private:
 	WorkState workState;

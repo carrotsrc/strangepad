@@ -8,9 +8,9 @@ INCLUDEPATH += .
 DESTDIR=../../bin
 OBJECTS_DIR=../../build/obj
 MOC_DIR=../../build
-LIBS += -L$(RACKOONIOFW) -lrackio -L../../bin/ -lui -lssl -lcrypto -pthread
-QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW) -ggdb -pthread
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW) -ggdb -pthread
+LIBS += -L$(STRANGEFW) -lstrangeio -L../../bin/ -lui -lssl -lcrypto -pthread
+QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(STRANGEFW) -ggdb -pthread
+QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW) -ggdb -pthread
 # Input
 HEADERS += sys/setup.hpp sys/Waveform.hpp sys/WaveformManager.hpp sys/RigDesc.hpp sys/PadLoader.hpp sys/ConfigLoader.hpp
 SOURCES += sys/setup.cpp sys/Waveform.cpp sys/WaveformManager.cpp sys/RigDesc.cpp sys/PadLoader.cpp sys/ConfigLoader.cpp

@@ -29,7 +29,7 @@
 #define C1 1
 #define C2 2
 
-using namespace RackoonIO;
+using namespace StrangeIO;
 SuMixer::SuMixer()
 : RackUnit(std::string("SuMixer")) {
 	addJack("channel_1", JACK_SEQ, C1);

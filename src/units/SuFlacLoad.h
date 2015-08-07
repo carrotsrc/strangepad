@@ -19,7 +19,7 @@
 #include <sndfile.hh>
 
 
-class SuFlacLoad : public RackoonIO::RackUnit
+class SuFlacLoad : public StrangeIO::RackUnit
 {
 public:
 	enum WorkState {
@@ -46,20 +46,20 @@ private:
 	void actionLoadFile();
 	void actionNextChunk();
 
-	void eventFinalBuffer(std::shared_ptr<RackoonIO::EventMessage>);
+	void eventFinalBuffer(std::shared_ptr<StrangeIO::EventMessage>);
 	std::vector<std::weak_ptr<std::function<void(SuFlacLoad::WorkState) > > > mStateChangeListeners;
 
 	void onStateChange(SuFlacLoad::WorkState state);
 
 public:
 	SuFlacLoad();
-	RackoonIO::FeedState feed(RackoonIO::Jack*);
+	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string,std::string);
 
-	RackoonIO::RackState init();
-	RackoonIO::RackState cycle();
-	void block(RackoonIO::Jack*);
-	RackoonIO::FeedState feed();
+	StrangeIO::RackState init();
+	StrangeIO::RackState cycle();
+	void block(StrangeIO::Jack*);
+	StrangeIO::FeedState feed();
 
 	void midiPause(int);
 	void midiLoad(int);

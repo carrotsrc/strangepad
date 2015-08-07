@@ -11,7 +11,7 @@
 
 #include "setup.hpp"
 
-static int branchNoGui(RackoonIO::Rack *rack);
+static int branchNoGui(StrangeIO::Rack *rack);
 int main(int argc, char **argv)
 {
 	RigDesc rigDescription;
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 	ConfigLoader configLoader;
 	configLoader.load(configPath, &rigDescription);
 
-	RackoonIO::Rack rack;
+	StrangeIO::Rack rack;
 	std::cout << "Loading rack: " << rigDescription.getRackConfig().toStdString() << std::endl;
 	rack.setConfigPath(rigDescription.getRackConfig().toStdString());
 	setupRackoon(&rack);
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 	return app.exec();
 }
 
-static int branchNoGui(RackoonIO::Rack *rack) {
+static int branchNoGui(StrangeIO::Rack *rack) {
 	bool running = true;
 	std::string in;
 	rack->start();

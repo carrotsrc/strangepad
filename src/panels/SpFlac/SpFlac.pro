@@ -6,13 +6,13 @@ TEMPLATE = lib
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += . ../ ../../units
-LIBS += -L$(RACKOONIOFW) -L../../../bin/ -lrackio ./units/SuFlacLoad.rso
+LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio ./units/SuFlacLoad.rso
 
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj
 
-QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW) --ggdb
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW) -ggdb
+QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(STRANGEFW) --ggdb
+QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW) -ggdb
 
 # Input
 HEADERS += SpFlac.hpp PanelWaveview.hpp
