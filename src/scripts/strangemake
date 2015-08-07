@@ -1,0 +1,113 @@
+#!/bin/env python
+
+import sys
+import os
+from subprocess import call
+
+
+if not os.environ.has_key('RACKOONIOFW'):
+	print "Error: environment RACKOONIOFW does not exist\n\n\tTry 'export RACKOONIOFW=path/to/framework'"
+	exit()
+if not os.environ.has_key('STRANGEPADFW'):
+	print "Error: environment STRANGEPADFW does not exist\n\n\tTry 'export STRANGEPADFW=path/to/framework'"
+	exit()
+fw = os.environ['RACKOONIOFW']
+sw = os.environ['STRANGEPADFW']
+owd = os.getcwd();
+
+
+
+targets = {
+	'framework' :{
+			'cd' : fw+"/framework/",
+			'cmd' : ['make']
+			},
+
+	'strangepad' :{
+			'cd' : sw+"/src/pad/",
+			'cmd' : ['make']
+			},
+
+	'strangeui' :{
+			'cd' : sw+"/src/panels/ui/",
+			'cmd' : ['make']
+			},
+
+
+	'pad/SpFlac' :{
+			'cd' : sw+"/src/panels/SpFlac/",
+			'cmd' : ['make']
+			},
+
+	'pad/SpMixer' :{
+			'cd' : sw+"/src/panels/SpMixer/",
+			'cmd' : ['make']
+			},
+
+	'pad/SpSine' :{
+			'cd' : sw+"/src/panels/SpSine/",
+			'cmd' : ['make']
+			},
+
+
+
+	'unit/RuAlsa' :{
+			'cd' : sw+"/src/units/",
+			'cmd' : ['unitbuild', '../../bin/units/RuAlsa', '-ggdb', '-lasound', 'RuAlsa.cpp']
+			},
+
+	'unit/SuFlacLoad' :{
+			'cd' : sw+"/src/units/",
+			'cmd' : ['unitbuild', '../../bin/units/SuFlacLoad', '-ggdb', '-lsndfile', 'SuFlacLoad.cpp']
+			},
+
+	'unit/SuMixer' :{
+			'cd' : sw+"/src/units/",
+			'cmd' : ['unitbuild', '../../bin/units/SuMixer', '-ggdb', 'SuMixer.cpp']
+			},
+
+	'unit/SuEncoder' :{
+			'cd' : sw+"/src/units/",
+			'cmd' : ['unitbuild', '../../bin/units/SuEncoder', '-ggdb', 'SuEncoder.cpp']
+			},
+
+	'unit/RuSine' :{
+			'cd' : sw+"/src/units/",
+			'cmd' : ['unitbuild', '../../bin/units/RuSine', '-ggdb', 'RuSine.cpp']
+			},
+
+	'unit/BfForderFw' :{
+			'cd' : sw+"/src/units/basic",
+			'cmd' : ['unitbuild', '../../../bin/units/BfForderFw', '-ggdb', 'BfForderFw.cpp']
+			},
+	'unit/BfSineOsc' :{
+			'cd' : sw+"/src/units/basic",
+			'cmd' : ['unitbuild', '../../../bin/units/BfSineOsc', '-ggdb', 'BfSineOsc.cpp']
+			},
+}
+
+if len(sys.argv) < 2:
+	print("Usage:\n\tstrangemake TARGET")
+	exit()
+
+if sys.argv[1] == "-v" or sys.argv[1] == "--version":
+	print("StrangeMaker build script\nv1.0")
+	exit()
+
+if not targets.has_key(sys.argv[1]):
+	print("Error - target not found")
+	exit()
+
+os.chdir(targets[sys.argv[1]]['cd'])
+
+
+print("Building target...")
+
+args = targets[sys.argv[1]]['cmd'] + sys.argv[2:]
+if os.environ.has_key("VERBOSE") and os.environ['VERBOSE'] == "1":
+    print(" ".join(args))
+
+if call(args) == 0:
+    print("OK")
+
+os.chdir(owd)

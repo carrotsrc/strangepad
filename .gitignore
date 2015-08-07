@@ -4,3 +4,4 @@ bin/pads/*
 build/*
 bin/*.so*
 bin/.store
+*.raw

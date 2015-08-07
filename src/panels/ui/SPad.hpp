@@ -9,12 +9,12 @@ public:
 	explicit SPad(QWidget *parent = 0);
 	void paintEvent(QPaintEvent *);
 
-	void registerUnit(std::weak_ptr<RackoonIO::RackUnit> unit);
+	void registerUnit(std::weak_ptr<StrangeIO::RackUnit> unit);
 signals:
 	public slots:
 
 protected:
-	std::weak_ptr<RackoonIO::RackUnit> mUnit;
+	std::weak_ptr<StrangeIO::RackUnit> mUnit;
 
 	template<typename T>
 	std::shared_ptr<T> unit() {

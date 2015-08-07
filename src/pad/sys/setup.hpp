@@ -9,6 +9,6 @@
 #include "ConfigLoader.hpp"
 #include "PadLoader.hpp"
 
-void setupRackoon(RackoonIO::Rack *rack);
-QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, RackoonIO::Rack *rack);
+void setupRackoon(StrangeIO::Rack *rack);
+QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, StrangeIO::Rack *rack);
 #endif

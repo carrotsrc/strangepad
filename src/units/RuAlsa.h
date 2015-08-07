@@ -29,7 +29,7 @@
  * load, it flushes the delay buffer into the 
  * ALSA handle.
  */
-class RuAlsa : public RackoonIO::RackUnit
+class RuAlsa : public StrangeIO::RackUnit
 {
 
 public:
@@ -46,13 +46,13 @@ public:
 	};
 
 	RuAlsa();
-	RackoonIO::FeedState feed(RackoonIO::Jack*);
+	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string, std::string);
 
-	RackoonIO::RackState init();
-	RackoonIO::RackState cycle();
+	StrangeIO::RackState init();
+	StrangeIO::RackState cycle();
 	void triggerAction();
-	void block(RackoonIO::Jack*);
+	void block(StrangeIO::Jack*);
 
 private:
 	WorkState workState; ///< Current state of the unit
@@ -61,12 +61,12 @@ private:
 	unsigned int sampleRate, ///< Sample rate of stream
 		     bufSize, ///< The size of the delay buffer in frames
 		     maxPeriods; ///< The maximum number of periods that can be stored in the Alsa buffer
-	RackoonIO::Buffers::DelayBuffer *frameBuffer; ///< The delay buffer
+	StrangeIO::Buffers::DelayBuffer *frameBuffer; ///< The delay buffer
 
 	snd_pcm_uframes_t triggerLevel, ///< threshold to flush the current buffer into ALSA
 			  fPeriod; ///< The size of the period in frames
 
-	RackoonIO::FeedState feedJackAudio();
+	StrangeIO::FeedState feedJackAudio();
 	std::mutex bufLock, mSigMutex; ///< thread lock on the delay buffer
 	std::thread *mSigThread;
 	std::condition_variable mSigCondition;

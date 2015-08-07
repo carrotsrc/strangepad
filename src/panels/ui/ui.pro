@@ -7,13 +7,13 @@ TARGET =
 DEPENDPATH += .
 INCLUDEPATH += .
 
-LIBS += -L$(RACKOONIOFW) -lrackio
+LIBS += -L$(STRANGEFW) -lstrangeio
 
 DESTDIR=../../../bin/
 OBJECTS_DIR=../../../build/obj
 
-QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(RACKOONIOFW)
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(RACKOONIOFW)
+QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(STRANGEFW)
+QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW)
 
 # Input
 HEADERS += SButton.hpp SWaveform.hpp SSlider.hpp SKnob.hpp SVIndicator.hpp SPad.hpp

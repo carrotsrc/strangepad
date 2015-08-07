@@ -12,7 +12,7 @@ void SPad::paintEvent(QPaintEvent *) {
 	style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }
 
-void SPad::registerUnit(std::weak_ptr<RackoonIO::RackUnit> unit) {
+void SPad::registerUnit(std::weak_ptr<StrangeIO::RackUnit> unit) {
 	mUnit = unit;
 	onRegisterUnit();
 }

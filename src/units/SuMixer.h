@@ -18,7 +18,7 @@
 #include <atomic>
 #include "framework/rack/RackUnit.h"
 
-class SuMixer : public RackoonIO::RackUnit {
+class SuMixer : public StrangeIO::RackUnit {
 	enum WorkState {
 		IDLE,
 		INIT,
@@ -26,7 +26,7 @@ class SuMixer : public RackoonIO::RackUnit {
 	};
 	PcmSample *periodC1, *periodC2, *mixedPeriod, *waitPeriod;
 	float gainC1, gainC2, peakC1, peakC2;
-	RackoonIO::Jack *mOut;
+	StrangeIO::Jack *mOut;
 	WorkState workState;
 
 	std::atomic<short> mixerState;
@@ -36,12 +36,12 @@ class SuMixer : public RackoonIO::RackUnit {
 
 public:
 	SuMixer();
-	RackoonIO::FeedState feed(RackoonIO::Jack*);
+	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string,std::string);
 
-	RackoonIO::RackState init();
-	RackoonIO::RackState cycle();
-	void block(RackoonIO::Jack*);
+	StrangeIO::RackState init();
+	StrangeIO::RackState cycle();
+	void block(StrangeIO::Jack*);
 
 	PcmSample getChannelPeak(int channel);
 
