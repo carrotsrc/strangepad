@@ -1,10 +1,10 @@
 #include "framework/helpers/midi.h"
-#include "BfForderFw.hpp"
+#include "BfForderBw.hpp"
 
 using namespace StrangeIO;
 
-BfForderFw::BfForderFw()
-: RackUnit("BfForderFw") {
+BfForderBw::BfForderBw()
+: RackUnit("BfForderBw") {
 	addJack("audio", JACK_SEQ);
 	addPlug("audio_out");
 	mOut = nullptr;
@@ -12,12 +12,12 @@ BfForderFw::BfForderFw()
 	mState = IDLE;
 	mEcho = false;
 
-	mA1 = mA2 = 0.5f;
-	MidiExport("a1", BfForderFw::midiChangeA1);
-	MidiExport("a2", BfForderFw::midiChangeA2);
+	mA0 = mB1 = 0.5f;
+	MidiExport("a0", BfForderBw::midiChangeA0);
+	MidiExport("b1", BfForderBw::midiChangeB1);
 }
 
-FeedState BfForderFw::feed(Jack *jack) {
+FeedState BfForderBw::feed(Jack *jack) {
 
 	if(mState == WAITING)
 		return FEED_WAIT;
@@ -26,7 +26,7 @@ FeedState BfForderFw::feed(Jack *jack) {
 	mPeriod = cacheAlloc(1);
 	auto ptrWrite = mPeriod;
 	auto nSamples = jack->numSamples;
-	auto a1 = mA1, a2 = mA2, lz = mLeftZ, rz = mRightZ;
+	auto a0 = mA0, b1 = mB1, lz = mLeftZ, rz = mRightZ;
 
 	for(auto channel = 0; channel < jack->numChannels; channel++) {
 
@@ -37,7 +37,8 @@ FeedState BfForderFw::feed(Jack *jack) {
 			auto sample = fPeriod[i];
 
 			if(channel == 1) {
-				ptrWrite[i] = (a1*sample) + (a2*lz);
+				lz = (a0*sample) - (b1*lz);
+				ptrWrite[i] = lz;
 
 				if(mEcho) {
 					std:: cout 
@@ -47,10 +48,9 @@ FeedState BfForderFw::feed(Jack *jack) {
 					<< std::endl;
 				}
 
-				lz = sample;
 			} else {
-				ptrWrite[i] = (a1*sample) + (a2*rz);
-				rz = sample;
+				rz = (a0*sample) - (b1*rz);
+				ptrWrite[i] = rz;
 			}
 		}
 	}
@@ -69,17 +69,17 @@ FeedState BfForderFw::feed(Jack *jack) {
 	return FEED_OK;
 }
 
-void BfForderFw::setConfig(std::string config, std::string value) {
-	if(config == "a1") {
-		mA1 = atof(value.c_str());
-	} else if(config == "a2") {
-		mA2 = atof(value.c_str());
+void BfForderBw::setConfig(std::string config, std::string value) {
+	if(config == "a0") {
+		mA0 = atof(value.c_str());
+	} else if(config == "b1") {
+		mB1 = atof(value.c_str());
 	} else if(config == "echo" && value == "true") {
 		mEcho = true;
 	}
 }
 
-RackState BfForderFw::init() {
+RackState BfForderBw::init() {
 	mOut = getPlug("audio_out")->jack;
 	if(mOut) {
 		mOut->numSamples = 256;
@@ -96,7 +96,7 @@ RackState BfForderFw::init() {
 	return RACK_UNIT_OK;
 }
 
-RackState BfForderFw::cycle() {
+RackState BfForderBw::cycle() {
 	if(mState == READY || mState == PROCESSING) {
 		return RACK_UNIT_OK;
 	}
@@ -107,18 +107,18 @@ RackState BfForderFw::cycle() {
 	return RACK_UNIT_OK;
 }
 
-void BfForderFw::block(StrangeIO::Jack*) {
+void BfForderBw::block(StrangeIO::Jack*) {
 
 }
 
-void BfForderFw::midiChangeA1(int value) {
-	mA1 = Helpers::MidiRoutines::normaliseVelocity64(value);
-	UnitMsg("a1: " << mA1);
+void BfForderBw::midiChangeA0(int value) {
+	mA0 = Helpers::MidiRoutines::normaliseVelocity64(value);
+	UnitMsg("a0: " << mA0);
 }
 
-void BfForderFw::midiChangeA2(int value) {
-	mA2 = Helpers::MidiRoutines::normaliseVelocity64(value);
-	UnitMsg("a2: " << mA2);
+void BfForderBw::midiChangeB1(int value) {
+	mB1 = Helpers::MidiRoutines::normaliseVelocity64(value);
+	UnitMsg("b1: " << mB1);
 }
 
-DynamicBuilder(BfForderFw);
+DynamicBuilder(BfForderBw);

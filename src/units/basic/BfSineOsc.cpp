@@ -2,7 +2,7 @@
 #include <iostream>
 #include "BfSineOsc.hpp"
 
-using namespace RackoonIO;
+using namespace StrangeIO;
 
 BfSineOsc::BfSineOsc()
 : RackUnit("BfSineOsc") {
@@ -36,7 +36,8 @@ void BfSineOsc::setConfig(std::string config, std::string value) {
 
 RackState BfSineOsc::init() {
 	mOut = getPlug("audio_out")->jack;
-	mOut->frames = mBlockSize;
+	mOut->numSamples = mBlockSize;
+
 	mState = READY;
 	switch(mWave) {
 	case Freq: UnitMsg("Freqency Strategy"); break;
@@ -56,7 +57,7 @@ RackState BfSineOsc::cycle() {
 	return RACK_UNIT_OK;
 }
 
-void BfSineOsc::block(RackoonIO::Jack*) {
+void BfSineOsc::block(StrangeIO::Jack*) {
 
 }
 

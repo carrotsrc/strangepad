@@ -2,7 +2,7 @@
 #define __BFSINEOSC_HPP_1438269457__
 #include <atomic>
 #include "framework/rack/RackUnit.h"
-class BfSineOsc : public RackoonIO::RackUnit
+class BfSineOsc : public StrangeIO::RackUnit
 {
 public:
 	enum WorkState {
@@ -20,12 +20,12 @@ public:
 	};
 
 	BfSineOsc();
-	RackoonIO::FeedState feed(RackoonIO::Jack*);
+	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string,std::string);
 
-	RackoonIO::RackState init();
-	RackoonIO::RackState cycle();
-	void block(RackoonIO::Jack*);
+	StrangeIO::RackState init();
+	StrangeIO::RackState cycle();
+	void block(StrangeIO::Jack*);
 
 private:
 	WorkState mState;
@@ -38,7 +38,7 @@ private:
 
 	float m2Pi; ///< Value of 2PI
 	unsigned long long mX;
-	RackoonIO::Jack *mOut;
+	StrangeIO::Jack *mOut;
 
 	void writeSamples();
 	void stratFreq();

@@ -1,7 +1,7 @@
-#ifndef __BFFORDERFW_HPP_1438254060__
-#define __FORDERFW_HPP_1438254060__
+#ifndef __BFFORDERBW_HPP_1438972200__
+#define __BFFORDERBW_HPP_1438972200__
 #include "framework/rack/RackUnit.h"
-class BfForderFw : public StrangeIO::RackUnit
+class BfForderBw : public StrangeIO::RackUnit
 {
 public:
 	enum WorkState {
@@ -12,7 +12,7 @@ public:
 		PROCESSING
 	};
 
-	BfForderFw();
+	BfForderBw();
 	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string,std::string);
 
@@ -26,12 +26,10 @@ private:
 	StrangeIO::Jack *mOut;
 
 	PcmSample mLeftZ, mRightZ;
-	float mA1, mA2;
+	float mA0, mB1;
 	bool mEcho;
 
-	void midiChangeA1(int value);
-	void midiChangeA2(int value);
+	void midiChangeA0(int value);
+	void midiChangeB1(int value);
 };
-
 #endif
-
