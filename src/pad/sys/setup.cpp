@@ -1,13 +1,26 @@
 #include "setup.hpp"
 #include "framework/memory/BitfieldCache.h"
+#include "framework/rack/config/RackDocument.h"
+#include "framework/rack/config/RackAssembler.h"
+using namespace StrangeIO;
 
-void setupRackoon(StrangeIO::Rack *rack) {
-	std::unique_ptr<StrangeIO::RackUnitGenericFactory> factory(new StrangeIO::RackUnitGenericFactory);
+static void setupFactory(RackUnitGenericFactory* factory) {
 	factory->setMessageFactory(new StrangeIO::GenericEventMessageFactory());
 	auto cache = new StrangeIO::BitfieldCache();
 	cache->init(512, 64);
 	factory->setCacheHandler(cache);
-	rack->setRackUnitFactory(std::move(factory));
+}
+
+void setupIo(StrangeIO::Rack *rack, QString path) {
+	Config::RackDocument doc;
+	rack->setRackQueue(std::unique_ptr<RackQueue>(new RackQueue(0)));
+
+	std::unique_ptr<StrangeIO::RackUnitGenericFactory> factory(new StrangeIO::RackUnitGenericFactory);
+	setupFactory(factory.get());
+
+	auto config = doc.load(path.toStdString());
+	Config::RackAssembler as(std::move(factory));
+	as.assemble((*config), (*rack));
 	rack->init();
 	rack->initEvents(0);
 }
