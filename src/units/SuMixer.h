@@ -25,7 +25,12 @@ class SuMixer : public StrangeIO::RackUnit {
 		READY
 	};
 	PcmSample *periodC1, *periodC2, *mixedPeriod, *waitPeriod;
-	float gainC1, gainC2, peakC1, peakC2;
+	
+	float faderC1, faderC2, 
+		  peakC1, peakC2,
+		  gainC1, gainC2,
+		  gainMaster;
+
 	StrangeIO::Jack *mOut;
 	WorkState workState;
 

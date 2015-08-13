@@ -14,6 +14,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SuMixer.h"
+#include "framework/helpers/midi.h"
 #define MIXER_C1_BUF 1
 #define MIXER_C2_BUF 2
 
@@ -37,10 +38,29 @@ SuMixer::SuMixer()
 	addPlug("audio_out");
 
 	mixedPeriod = periodC1 = periodC2 = nullptr;
-	gainC1 = gainC2 = 1.0f;
+
+	faderC1 = faderC2 = 1.0f;
 	peakC1 = peakC2 = 0.0f;
+	gainC1 = gainC2 = 0.5f;
+	gainMaster = 0.5f;
+
 	mixerState = MIXER_C2_ACT|MIXER_C1_ACT;
 	MidiExport("channelFade", SuMixer::midiFade);
+
+	midiExportMethod("channel1Gain", [this](int value) {
+				this->gainC1 = Helpers::MidiRoutines::normaliseVelocity128(value);
+				UnitMsg("Gain C1: " << gainC1);
+			});
+
+	midiExportMethod("channel2Gain", [this](int value) {
+				this->gainC2 = Helpers::MidiRoutines::normaliseVelocity128(value);
+				UnitMsg("Gain C2: " << gainC2);
+			});
+
+	midiExportMethod("masterGain", [this](int value) {
+				this->gainMaster = Helpers::MidiRoutines::normaliseVelocity128(value);
+				UnitMsg("Master: " << gainMaster);
+			});
 }
 
 
@@ -68,11 +88,20 @@ FeedState SuMixer::feed(Jack *jack) {
 			if(mWaiting) return FEED_WAIT;
 
 			jack->flush(&waitPeriod, 1);
+
+			auto peak = (waitPeriod[0]*gainC1);
+			auto gain = gainC1;
+
+			for(auto i = 0; i < mOut->numSamples*2; i++) {
+				waitPeriod[i] = waitPeriod[i] * gain;
+				peak = waitPeriod[i] > peak ? waitPeriod[i] : peak;
+				waitPeriod[i] = waitPeriod[i] * gainMaster;
+			}
+
 			mMut.lock();
-				auto peak = waitPeriod[0];
-				for(auto i = 0; i < mOut->numSamples; i++)
-					peakC1 = waitPeriod[i] > peak ? waitPeriod[i] : peakC1;
+				peakC1 = peak;
 			mMut.unlock();
+
 			mWaiting = true;
 			return FEED_OK;
 		}
@@ -97,8 +126,18 @@ FeedState SuMixer::feed(Jack *jack) {
 			if(mWaiting) return FEED_WAIT;
 
 			jack->flush(&waitPeriod, 1);
+
+			auto peak = (waitPeriod[0]*gainC2);
+			auto gain = gainC2;
+
+			for(auto i = 0; i < mOut->numSamples*2; i++) {
+				waitPeriod[i] = waitPeriod[i] * gain;
+				peak = waitPeriod[i] > peak ? waitPeriod[i] : peak;
+				waitPeriod[i] = waitPeriod[i] * gainMaster;
+			}
+
 			mMut.lock();
-				peakC2 = waitPeriod[0]*gainC2;
+				peakC2 = peak;
 			mMut.unlock();
 			mWaiting = true;
 
@@ -118,19 +157,25 @@ FeedState SuMixer::feed(Jack *jack) {
 		return FEED_OK;
 	} else {
 		// mix and feed if both buffers are full
-		mMut.lock();
-		peakC1 = periodC1[0]*gainC1;
-		peakC2 = periodC2[0]*gainC2;
-		mMut.unlock();
+		auto pc1 = periodC1[0]*gainC1*faderC1;
+		auto pc2 = periodC2[0]*gainC2*faderC2;
 		
 		while(!mixedPeriod)
 			mixedPeriod = cacheAlloc(1);
+
 		auto totalSamples = jack->numSamples * 2;
 		for(int i = 0; i < totalSamples; i++) {
-			auto c1 = periodC1[i] * gainC1;
-			auto c2 = periodC2[i] * gainC2;
-			mixedPeriod[i] = c1+c2;
+			auto c1 = periodC1[i] * gainC1 * faderC1;
+			auto c2 = periodC2[i] * gainC2 * faderC2;
+			pc1 = c1 > pc1 ? c1 : pc1;
+			pc2 = c2 > pc2 ? c2 : pc2;
+			mixedPeriod[i] = (c1+c2)*gainMaster;
 		}
+		mMut.lock();
+			peakC1 = pc1;
+			peakC2 = pc2;
+		mMut.unlock();
+
 
 		cacheFree(periodC1);
 		cacheFree(periodC2);
@@ -181,20 +226,20 @@ void SuMixer::block(Jack *jack) {
 
 void SuMixer::midiFade(int value) {
 	if(value == 64) {
-		gainC1 = gainC2 = 1.0;
+		faderC1 = faderC2 = 1.0;
 	}
 	else
 	if(value > 64) {
 		// right channel open
 		// left channel closing
-		gainC1 = 1.0;
-		gainC2 = (1-(100-((127-(float)value)/63)*100)/100);
+		faderC1 = 1.0;
+		faderC2 = (1-(100-((127-(float)value)/63)*100)/100);
 	} else
 	if(value < 64) {
 		// right channel closing
 		// left channel open
-		gainC1 = (((float)value/64)*100)/100;
-		gainC2 = 1.0;
+		faderC1 = (((float)value/64)*100)/100;
+		faderC2 = 1.0;
 	}
 }
 
@@ -207,7 +252,6 @@ PcmSample SuMixer::getChannelPeak(int channel) {
 		p = peakC1;
 	}
 	mMut.unlock();
-	//std::cout << channel << ": " << p << std::endl;
 	return p;
 }
 
