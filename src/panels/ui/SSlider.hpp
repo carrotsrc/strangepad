@@ -27,6 +27,7 @@ public:
 
 	void setOrientation(SSlider::Orientation orientation);
 	void setBarSize(SSlider::Width width);
+	QSize sizeHint() const;
 
 signals:
 	public slots:

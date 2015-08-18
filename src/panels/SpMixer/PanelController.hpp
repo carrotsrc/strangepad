@@ -8,12 +8,14 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QLabel>
+#include <QSlider>
 #include <QTimer>
 #include <QMutex>
 
 #include "ui/SPad.hpp"
 #include "ui/SVIndicator.hpp"
 #include "ui/SKnob.hpp"
+#include "ui/SSlider.hpp"
 
 #include "SuMixer.h"
 
@@ -28,14 +30,15 @@ signals:
 	void probeLevels();
 
 private:
-	QHBoxLayout mContainer;
-	QVBoxLayout mGainBar;
+	QHBoxLayout mContainer, mGainBar;
+	QVBoxLayout mSplit, mVgl, mVgr, mVgm;
 	QTimer mProbeTrigger;
 	QMutex mMutex;
 
-	SVIndicator mLevelsLeft, mLevelsRight;
-	SKnob mGainLeft, mGainRight;
 
+	SVIndicator mLevelsLeft, mLevelsRight;
+	SKnob mGainLeft, mGainRight, mGainMaster;
+	SSlider mFader;
 	void onRegisterUnit();
 };
 

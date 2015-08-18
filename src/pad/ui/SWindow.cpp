@@ -11,8 +11,6 @@ void SWindow::setupUi() {
 	setLayout(&mContainer);
 	mContainer.setParent(this);
 	mContainer.addWidget(&mHud);
-	mButton.setText("Foobar");
-	mContainer.addWidget(&mButton);
 	mHud.setTabShape(QTabWidget::Triangular);
 	mHud.setObjectName("hudContainer");
 }
