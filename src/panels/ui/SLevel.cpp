@@ -1,8 +1,8 @@
 #include <QPainter>
 #include <qmath.h>
 #include <iostream>
-#include "SVIndicator.hpp"
-SVIndicator::SVIndicator(QWidget* parent)
+#include "SLevel.hpp"
+SLevel::SLevel(QWidget* parent)
 :QWidget(parent) {
 	setMaximumWidth(120);
 	highOn = "#F92F2F"; highOff = "#520404";
@@ -13,11 +13,12 @@ SVIndicator::SVIndicator(QWidget* parent)
 	mValue = 0.0f;
 }
 
-SVIndicator::~SVIndicator() {
+SLevel::~SLevel() {
 	mLeds.clear();
 }
 
-void SVIndicator::paintEvent(QPaintEvent*) {
+void SLevel::paintEvent(QPaintEvent*) {
+	
 
 	if(height() != mHeightTracker) {
 		setOrientation(mOrientation);
@@ -25,6 +26,8 @@ void SVIndicator::paintEvent(QPaintEvent*) {
 
 	QPainter painter(this);
 	painter.setRenderHints(QPainter::Antialiasing);
+
+
 	painter.setPen(QPen(QColor(33,33,33)));
 	auto region = 0;
 	mMut.lock();
@@ -61,7 +64,9 @@ void SVIndicator::paintEvent(QPaintEvent*) {
 
 }
 
-void SVIndicator::setOrientation(SVIndicator::Orientation orientation) {
+void SLevel::setOrientation(SLevel::Orientation orientation) {
+
+
 	mOrientation = orientation;
 
 	mHeightTracker = height();
@@ -91,11 +96,16 @@ void SVIndicator::setOrientation(SVIndicator::Orientation orientation) {
 
 }
 
-void SVIndicator::setValue(float value) {
+void SLevel::setValue(float value) {
 	if(value < 0)
 		value = value * -1.0f;
 
 	mMut.lock();
 	mValue = qFloor(10 - 10.0f*value);;
 	mMut.unlock();
+}
+
+QSize SLevel::sizeHint() const {
+	std::cout << "SLevel size: " << width() << "," << height() << std::endl;
+	return QSize(width(), height());
 }

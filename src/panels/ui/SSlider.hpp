@@ -34,7 +34,7 @@ signals:
 
 private:
 	SSlider::Orientation mOrientation;
-	short mWidth, mHalfWidth;
+	short mControlSize, mHalfWidth;
 	
 	SSlider::Width mSize;
 	QRectF *cursor;

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QGridLayout>
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -13,7 +14,7 @@
 #include <QMutex>
 
 #include "ui/SPad.hpp"
-#include "ui/SVIndicator.hpp"
+#include "ui/SLevel.hpp"
 #include "ui/SKnob.hpp"
 #include "ui/SSlider.hpp"
 
@@ -32,11 +33,12 @@ signals:
 private:
 	QHBoxLayout mContainer, mGainBar;
 	QVBoxLayout mSplit, mVgl, mVgr, mVgm;
+	QGridLayout mLayout;
 	QTimer mProbeTrigger;
 	QMutex mMutex;
 
 
-	SVIndicator mLevelsLeft, mLevelsRight;
+	SLevel mLevelsLeft, mLevelsRight;
 	SKnob mGainLeft, mGainRight, mGainMaster;
 	SSlider mFader;
 	void onRegisterUnit();

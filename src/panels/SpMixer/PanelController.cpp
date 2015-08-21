@@ -8,6 +8,7 @@
 #include <iostream>
 SpMixerController::SpMixerController(QWidget *parent) :
 SPad(parent) {
+	
 	mVgl.addWidget(&mGainLeft);
 	auto l = new QLabel("Channel A");
 	l->setAlignment(Qt::AlignCenter);
@@ -27,17 +28,18 @@ SPad(parent) {
 	mGainBar.addLayout(&mVgm);
 	mGainBar.addLayout(&mVgr);
 
-	//mSplit.setSizeConstraint(QLayout::SetFixedSize);
+	mSplit.setSizeConstraint(QLayout::SetFixedSize);
 	mSplit.addLayout(&mGainBar);
 	mFader.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	mSplit.addWidget(&mFader);
 
 
+	mLevelsLeft.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	mLevelsLeft.setOrientation(SLevel::Left);
+	mLevelsRight.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	mContainer.addWidget(&mLevelsLeft);
 	mContainer.addLayout(&mSplit);
 	mContainer.addWidget(&mLevelsRight);
-
-	mLevelsLeft.setOrientation(SVIndicator::Left);
 
 	setLayout(&mContainer);
 	mProbeTrigger.setParent(this);

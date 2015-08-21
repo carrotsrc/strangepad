@@ -16,5 +16,5 @@ QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(STRANGEFW)
 QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW)
 
 # Input
-HEADERS += SButton.hpp SWaveform.hpp SSlider.hpp SKnob.hpp SVIndicator.hpp SPad.hpp
-SOURCES += SButton.cpp SWaveform.cpp SSlider.cpp SKnob.cpp SVIndicator.cpp SPad.cpp
+HEADERS += SButton.hpp SWaveform.hpp SSlider.hpp SKnob.hpp SLevel.hpp SPad.hpp
+SOURCES += SButton.cpp SWaveform.cpp SSlider.cpp SKnob.cpp SLevel.cpp SPad.cpp
