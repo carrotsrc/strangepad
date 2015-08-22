@@ -10,6 +10,7 @@ SWaveform::SWaveform(QWidget* parent)
 	mHoverPosition = -1;
 	setMouseTracking(true);
 	mReset = mBgHighlight = isLoaded = false;
+	mProgress = 0;
 }
 
 void SWaveform::paintEvent(QPaintEvent*) {
@@ -29,6 +30,15 @@ void SWaveform::paintEvent(QPaintEvent*) {
 
 	painter.setBrush(mWaveform->waveform());
 	painter.drawRect(mWaveRect);
+
+	if(mProgress == 0) return;
+
+	auto prog = mProgress/mSampleStep;///mWaveRect.size().width();
+	std::cout << mProgress << "\t" << prog << "\t+" << mSampleStep << std::endl;
+	QRectF rect(0,0,prog, mWaveRect.size().height());
+	auto wf = mWaveform->waveform().copy(0,0,prog,mWaveRect.size().height());
+	painter.setBrush(QBrush("#FF0000", wf));
+	painter.drawRect(rect);
 /*
 	if(mHoverPosition >= 0) {
 		pen.setColor("#8E06A0");
@@ -65,6 +75,7 @@ void SWaveform::generateWaveform() {
 	WaveformManager wfm;
 	auto geo = mWaveRect.size();
 	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength);
+	mSampleStep = mWaveform->blocksize();
 	mReset = false;
 }
 
@@ -76,3 +87,10 @@ QSize SWaveform::minimumSize() const {
 	return QSize(width(), 50);
 }
 
+int SWaveform::getSampleStep() {
+	return mSampleStep;
+}
+
+void SWaveform::updateProgress(int progress) {
+	mProgress += progress;
+}

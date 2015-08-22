@@ -42,6 +42,7 @@ private:
 	std::string filename;
 	PcmSample *buffer, *position, *period;
 	int psize, csize;
+	std::atomic<int> mSamplesOut;
 
 	void actionLoadFile();
 	void actionNextChunk();
@@ -70,6 +71,7 @@ public:
 	void cbStateChange(std::weak_ptr<std::function<void(SuFlacLoad::WorkState)>>);
 	const PcmSample* getSampleData() const;
 	int getSpc() const;
+	int getProgress() const;
 };
 
 

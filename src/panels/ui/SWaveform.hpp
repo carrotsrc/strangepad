@@ -12,15 +12,19 @@ public:
 	void toggleBgHighlight(bool flag);
 	void paintEvent(QPaintEvent *);
 
+	int getSampleStep();
+
 	void mouseMoveEvent(QMouseEvent*);
 	QSize sizeHint() const;
 	QSize minimumSize() const;
+
+	void updateProgress(int progress);
 signals:
 	public slots:
 
 private:
 	float* mWaveData;
-	int mWaveLength, mSampleStep, mHoverPosition;
+	int mWaveLength, mSampleStep, mHoverPosition, mProgress;
 
 	std::unique_ptr<Waveform> mWaveform;
 

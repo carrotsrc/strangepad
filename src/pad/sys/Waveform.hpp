@@ -11,6 +11,7 @@ public:
 	QString hash();
 	QPixmap waveform();
 	unsigned int blocksize();
+
 private:
 	unsigned int mBlockSize;
 	QPixmap mGraph;

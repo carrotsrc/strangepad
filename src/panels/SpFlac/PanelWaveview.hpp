@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMutex>
+#include <QTimer>
 
 #include "ui/SPad.hpp"
 #include "ui/SWaveform.hpp"
@@ -29,11 +30,12 @@ public:
 	void dragMoveEvent(QDragMoveEvent *e);
 	void dropEvent(QDropEvent *e);
 
-	public slots:
+public slots:
 	void triggerMidiPlay();
 	void onGuiUpdate();
+	void probeProgress();
 
-	signals:
+signals:
 	void guiUpdate();
 
 
@@ -46,6 +48,9 @@ private:
 	SButton mPlay, mPause;
 	QMutex mMut;
 	std::atomic<bool> mPlaying;
+	QTimer mProgressTrigger;
+	int mSampleStep;
+	std::atomic<int> mNextStep;
 
 
 	std::shared_ptr<SuflCbStateChange> mfStateChangePtr;

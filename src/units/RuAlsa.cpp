@@ -112,6 +112,9 @@ void RuAlsa::actionFlushBuffer() {
 
 	//fwrite(frames, sizeof(PcmSample), size, fp);
 	bufLock.unlock();
+	auto msg = createMessage(SndSamplesOut);
+	SndSamplesOutCast(msg)->numSamples = static_cast<int>(nFrames);
+	addEvent(std::move(msg));
 	notifyProcComplete();
 	if(workState == PAUSED)
 		return;

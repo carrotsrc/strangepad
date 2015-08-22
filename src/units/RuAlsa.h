@@ -17,6 +17,7 @@
 #define RUALSA_H
 #include "framework/rack/RackUnit.h"
 #include "framework/buffers/DelayBuffer.h"
+#include "../msg/ClientMessages.hpp"
 /** The unit that interfaces with ALSA
  *
  * This is used by any configuration that

@@ -35,6 +35,9 @@ SPad(parent) {
 
 	mContainer.addLayout(&mToolbar);
 
+	connect(&mProgressTrigger, SIGNAL(timeout()), this, SLOT(probeProgress()));
+	mProgressTrigger.start(250);
+
 	setLayout(&mContainer);
 
 	setAcceptDrops(true);
@@ -101,6 +104,7 @@ void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 		if(auto u = unit<SuFlacLoad>()) {
 			mMut.lock();
 			mWave.setWaveData(u->getSampleData(), u->getSpc());
+			mSampleStep = mWave.getSampleStep();
 			auto info = QFileInfo(QString(u->getFilename().c_str()));
 			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
 			emit update();
@@ -133,5 +137,17 @@ void SpFlacWaveview::onGuiUpdate() {
 		mPlay.setStyleSheet("color: #F97FFF;");
 	} else {
 		mPlay.setStyleSheet("color: #8E06A0;");
+	}
+}
+
+void SpFlacWaveview::probeProgress() {
+	if(auto u = unit<SuFlacLoad>()) {
+		auto prog = u->getProgress()/2;
+		mNextStep -= prog;
+		mWave.updateProgress(prog);
+		if(mNextStep <= 0) {
+			emit guiUpdate();
+			mNextStep = mSampleStep;
+		}
 	}
 }

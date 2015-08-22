@@ -2,11 +2,12 @@
 #include "framework/memory/BitfieldCache.h"
 #include "framework/rack/config/RackDocument.h"
 #include "framework/rack/config/RackAssembler.h"
+#include "MessageFactory.hpp"
 using namespace StrangeIO;
 
 static void setupFactory(RackUnitGenericFactory* factory) {
 
-	factory->setMessageFactory(new StrangeIO::GenericEventMessageFactory());
+	factory->setMessageFactory(new MessageFactory());
 	auto cache = new StrangeIO::BitfieldCache();
 	cache->init(512, 64);
 	factory->setCacheHandler(cache);
@@ -23,7 +24,7 @@ void setupIo(StrangeIO::Rack *rack, QString path) {
 	Config::RackAssembler as(std::move(factory));
 	as.assemble((*config), (*rack));
 	rack->init();
-	rack->initEvents(0);
+	rack->initEvents(1);
 }
 
 QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, StrangeIO::Rack *rack) {

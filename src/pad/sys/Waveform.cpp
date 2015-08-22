@@ -15,3 +15,4 @@ QPixmap Waveform::waveform() {
 unsigned int Waveform::blocksize() {
 	return mBlockSize;
 }
+

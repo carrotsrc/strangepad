@@ -14,6 +14,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "framework/helpers/sound.h"
+#include "../msg/ClientMessages.hpp"
 #include "SuFlacLoad.h"
 #define CHUNK_SIZE 0x100000
 using namespace StrangeIO;
@@ -96,7 +97,10 @@ StrangeIO::RackState SuFlacLoad::init() {
 	workState = LOADING;
 	onStateChange(workState);
 	ConcurrentTask(SuFlacLoad::actionLoadFile);
-	//EventListener(FramesFinalBuffer, SuFlacLoad::eventFinalBuffer);
+	mSamplesOut = 0;
+	addEventListener(SndSamplesOut, [this](std::shared_ptr<EventMessage> msg){
+		mSamplesOut += SndSamplesOutCast(msg)->numSamples;
+	});
 	return RACK_UNIT_OK;
 }
 
@@ -196,6 +200,10 @@ const PcmSample* SuFlacLoad::getSampleData() const {
 int SuFlacLoad::getSpc() const {
 	// Samples per channel
 	return bufSize/2;
+}
+
+int SuFlacLoad::getProgress() const {
+	return mSamplesOut;
 }
 
 
