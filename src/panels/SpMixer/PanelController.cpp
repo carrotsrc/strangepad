@@ -31,6 +31,7 @@ SPad(parent) {
 	mSplit.setSizeConstraint(QLayout::SetFixedSize);
 	mSplit.addLayout(&mGainBar);
 	mFader.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	mFader.setStart(64);
 	mSplit.addWidget(&mFader);
 
 
