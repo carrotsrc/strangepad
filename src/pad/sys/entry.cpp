@@ -33,8 +33,8 @@ int main(int argc, char **argv)
 
 	StrangeIO::Rack rack;
 	std::cout << "Loading rack: " << rigDescription.getRackConfig().toStdString() << std::endl;
-	rack.setConfigPath(rigDescription.getRackConfig().toStdString());
-	setupRackoon(&rack);
+	//rack.setConfigPath(rigDescription.getRackConfig().toStdString());
+	setupIo(&rack, rigDescription.getRackConfig());
 
 	QApplication app (argc, argv);
 	auto huds = setupRig(rigDescription, &padLoader, &rack);

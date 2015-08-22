@@ -4,20 +4,20 @@
 #include <QVector>
 #include <QMutex>
 
-class SVIndicator : public QWidget {
+class SLevel : public QWidget {
 Q_OBJECT
 public:
 	enum Orientation {
 		Right,Left
 	};
 
-	SVIndicator(QWidget* parent = 0);
-	~SVIndicator();
+	SLevel(QWidget* parent = 0);
+	~SLevel();
 	void paintEvent(QPaintEvent*);
 
-	void setOrientation(SVIndicator::Orientation orientation);
+	void setOrientation(SLevel::Orientation orientation);
 	void setValue(float value);
-
+	QSize sizeHint() const;
 signals:
 	public slots:
 
@@ -26,9 +26,9 @@ private:
 	QString highOn, midOn, lowOn,
 	       highOff, midOff, lowOff;
 
-	int mHeightTracker;
+	int mHeightTracker, mWidthTracker;
 	float mValue;
-	SVIndicator::Orientation mOrientation;
+	SLevel::Orientation mOrientation;
 	QMutex mMut;
 };
 #endif

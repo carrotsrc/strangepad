@@ -25,15 +25,23 @@ public:
 	void mouseReleaseEvent(QMouseEvent*);
 	void mouseMoveEvent(QMouseEvent*);
 
+
 	void setOrientation(SSlider::Orientation orientation);
 	void setBarSize(SSlider::Width width);
+
+	void setStart(int start);
+	int start();
+
+	bool grabbed();
+	QSize sizeHint() const;
 
 signals:
 	public slots:
 
 private:
 	SSlider::Orientation mOrientation;
-	short mWidth, mHalfWidth;
+	short mControlSize, mHalfWidth;
+	int mWidthActual, mXActual, mJump, mStart;
 	
 	SSlider::Width mSize;
 	QRectF *cursor;

@@ -8,14 +8,45 @@
 #include <iostream>
 SpMixerController::SpMixerController(QWidget *parent) :
 SPad(parent) {
-	mGainBar.addWidget(&mGainLeft);
-	mGainBar.addWidget(&mGainRight);
+	cbGainChange.reset( new SuMixerCbGainChange(
+				std::bind(&SpMixerController::onGainChange, this, 
+					std::placeholders::_1, 
+					std::placeholders::_2)
+			)
+	);
 
+	mVgl.addWidget(&mGainLeft);
+	auto l = new QLabel("Channel A");
+	l->setAlignment(Qt::AlignCenter);
+	mVgl.addWidget(l);
+
+	mVgm.addWidget(&mGainMaster);
+	l = new QLabel("Master");
+	l->setAlignment(Qt::AlignCenter);
+	mVgm.addWidget(l);
+
+	mVgr.addWidget(&mGainRight);
+	l = new QLabel("Channel B");
+	l->setAlignment(Qt::AlignCenter);
+	mVgr.addWidget(l);
+
+	mGainBar.addLayout(&mVgl);
+	mGainBar.addLayout(&mVgm);
+	mGainBar.addLayout(&mVgr);
+
+	mSplit.setSizeConstraint(QLayout::SetFixedSize);
+	mSplit.addLayout(&mGainBar);
+	mFader.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	mFader.setStart(64);
+	mSplit.addWidget(&mFader);
+
+
+	mLevelsLeft.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	mLevelsLeft.setOrientation(SLevel::Left);
+	mLevelsRight.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	mContainer.addWidget(&mLevelsLeft);
-	mContainer.addLayout(&mGainBar);
+	mContainer.addLayout(&mSplit);
 	mContainer.addWidget(&mLevelsRight);
-
-	mLevelsLeft.setOrientation(SVIndicator::Left);
 
 	setLayout(&mContainer);
 	mProbeTrigger.setParent(this);
@@ -25,7 +56,7 @@ SPad(parent) {
 
 void SpMixerController::onRegisterUnit() {
 	if(auto u = unit<SuMixer>()) {
-		//u->cbStateChange(mfStateChangePtr);
+		u->cbGainChange(cbGainChange);
 	}
 
 }
@@ -37,4 +68,13 @@ void SpMixerController::probeLevels() {
 	mLevelsLeft.setValue(u->getChannelPeak(0));
 	mLevelsRight.setValue(u->getChannelPeak(1));
 	emit update();
+}
+
+void SpMixerController::onGainChange(SuMixer::GainType type, int value) {
+		switch(type) {
+			case SuMixer::Channel1: mGainLeft.setValue(value); break;
+			case SuMixer::Channel2: mGainRight.setValue(value); break;
+			case SuMixer::Master: mGainMaster.setValue(value); break;
+			case SuMixer::Fader: mFader.setValue(value); mFader.update(); break;
+		}
 }

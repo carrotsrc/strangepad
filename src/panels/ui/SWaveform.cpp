@@ -68,3 +68,11 @@ void SWaveform::generateWaveform() {
 	mReset = false;
 }
 
+QSize SWaveform::sizeHint() const {
+	return QSize(width(), height());
+}
+
+QSize SWaveform::minimumSize() const {
+	return QSize(width(), 50);
+}
+

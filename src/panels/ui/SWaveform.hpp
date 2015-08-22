@@ -13,6 +13,8 @@ public:
 	void paintEvent(QPaintEvent *);
 
 	void mouseMoveEvent(QMouseEvent*);
+	QSize sizeHint() const;
+	QSize minimumSize() const;
 signals:
 	public slots:
 

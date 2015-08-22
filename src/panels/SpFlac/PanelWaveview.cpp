@@ -38,9 +38,12 @@ SPad(parent) {
 	setLayout(&mContainer);
 
 	setAcceptDrops(true);
+
+	mPlaying = false;
 }
 
 void SpFlacWaveview::onRegisterUnit() {
+	connect(this, SIGNAL(guiUpdate()), this, SLOT(onGuiUpdate()));
 	if(auto u = unit<SuFlacLoad>()) {
 		u->cbStateChange(mfStateChangePtr);
 	}
@@ -105,19 +108,30 @@ void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 		}
 		break;
 	case SuFlacLoad::STREAMING:
-		//mPlay.setStyleSheet("color: #F97FFF;");
+		mPlaying = true;
+		emit guiUpdate();
 		break;
 
 	case SuFlacLoad::PAUSED:
-		//mPlay.setStyleSheet("color: #8E06A0;");
+		mPlaying = false;
+		emit guiUpdate();
 		break;
 	default:
 		break;
 	}
+
 }
 
 void SpFlacWaveview::triggerMidiPlay() {
 	if(auto u = unit<SuFlacLoad>()) {
 		u->midiPause(127);
+	}
+}
+
+void SpFlacWaveview::onGuiUpdate() {
+	if(mPlaying) {
+		mPlay.setStyleSheet("color: #F97FFF;");
+	} else {
+		mPlay.setStyleSheet("color: #8E06A0;");
 	}
 }

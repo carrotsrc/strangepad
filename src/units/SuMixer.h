@@ -19,22 +19,17 @@
 #include "framework/rack/RackUnit.h"
 
 class SuMixer : public StrangeIO::RackUnit {
+public:
+	enum GainType {
+		Channel1, Channel2, Master, Fader
+	};
+
 	enum WorkState {
 		IDLE,
 		INIT,
 		READY
 	};
-	PcmSample *periodC1, *periodC2, *mixedPeriod, *waitPeriod;
-	float gainC1, gainC2, peakC1, peakC2;
-	StrangeIO::Jack *mOut;
-	WorkState workState;
 
-	std::atomic<short> mixerState;
-	std::atomic<bool> mWaiting;
-
-	std::mutex mMut;
-
-public:
 	SuMixer();
 	StrangeIO::FeedState feed(StrangeIO::Jack*);
 	void setConfig(std::string,std::string);
@@ -46,5 +41,27 @@ public:
 	PcmSample getChannelPeak(int channel);
 
 	void midiFade(int);
+
+	void cbGainChange(std::weak_ptr<std::function<void(SuMixer::GainType, int)>>);
+
+private:
+	PcmSample *periodC1, *periodC2, *mixedPeriod, *waitPeriod;
+	
+	float faderC1, faderC2, 
+		  peakC1, peakC2,
+		  gainC1, gainC2,
+		  gainMaster;
+
+	StrangeIO::Jack *mOut;
+	WorkState workState;
+
+	std::atomic<short> mixerState;
+	std::atomic<bool> mWaiting;
+
+	std::mutex mMut;
+	std::vector<std::weak_ptr<std::function<void(SuMixer::GainType, int) > > > mGainListeners;
+	void onGainChange(SuMixer::GainType, int);
+
 };
+using SuMixerCbGainChange=std::function<void(SuMixer::GainType, int)>;
 #endif

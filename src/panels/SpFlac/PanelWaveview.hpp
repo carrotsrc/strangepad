@@ -31,6 +31,11 @@ public:
 
 	public slots:
 	void triggerMidiPlay();
+	void onGuiUpdate();
+
+	signals:
+	void guiUpdate();
+
 
 private:
 	QVBoxLayout mContainer;
@@ -40,6 +45,7 @@ private:
 	QLabel mTitle;
 	SButton mPlay, mPause;
 	QMutex mMut;
+	std::atomic<bool> mPlaying;
 
 
 	std::shared_ptr<SuflCbStateChange> mfStateChangePtr;
