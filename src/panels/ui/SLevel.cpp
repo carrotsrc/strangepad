@@ -70,14 +70,17 @@ void SLevel::setOrientation(SLevel::Orientation orientation) {
 	mOrientation = orientation;
 
 	mHeightTracker = height();
-	auto h = (mHeightTracker-40)/10;
+	mWidthTracker = width();
+
+	auto h = qFloor((mHeightTracker-50)/10);
 	auto off = h+5;
+	auto w = mWidthTracker-80;
 
 	switch(mOrientation) {
 	case Orientation::Right:
 		mLeds.clear();
 		for(int i = 0; i < 10; i++) {
-			auto width = 40+(4*i)+((i*i)/2);
+			auto width = w+(4*i)+((i*i)/2);
 			auto top = i*off;
 			mLeds.push_back(QRectF(0,top,width,h));
 		}
@@ -86,9 +89,9 @@ void SLevel::setOrientation(SLevel::Orientation orientation) {
 	default:
 		mLeds.clear();
 		for(int i = 0; i < 10; i++) {
-			auto width = 40+(4*i)+((i*i)/2);
+			auto width = w+(4*i)+((i*i)/2);
 			auto top = i*off;
-			mLeds.push_back(QRectF(120-width,top,width,h));
+			mLeds.push_back(QRectF(mWidthTracker-width,top,width,h));
 		}
 		break;
 	}

@@ -26,7 +26,7 @@ private:
 	QString highOn, midOn, lowOn,
 	       highOff, midOff, lowOff;
 
-	int mHeightTracker;
+	int mHeightTracker, mWidthTracker;
 	float mValue;
 	SLevel::Orientation mOrientation;
 	QMutex mMut;
