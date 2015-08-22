@@ -27,6 +27,9 @@ public:
 
 	void setOrientation(SSlider::Orientation orientation);
 	void setBarSize(SSlider::Width width);
+
+	void setStart(int start);
+	int start();
 	QSize sizeHint() const;
 
 signals:
@@ -35,6 +38,7 @@ signals:
 private:
 	SSlider::Orientation mOrientation;
 	short mControlSize, mHalfWidth;
+	int mWidthActual, mXActual, mJump, mStart;
 	
 	SSlider::Width mSize;
 	QRectF *cursor;
