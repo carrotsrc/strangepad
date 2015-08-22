@@ -29,7 +29,6 @@
 
 #define C1 1
 #define C2 2
-
 using namespace StrangeIO;
 SuMixer::SuMixer()
 : RackUnit(std::string("SuMixer")) {
@@ -49,17 +48,18 @@ SuMixer::SuMixer()
 
 	midiExportMethod("channel1Gain", [this](int value) {
 				this->gainC1 = Helpers::MidiRoutines::normaliseVelocity128(value);
-				UnitMsg("Gain C1: " << gainC1);
+				onGainChange(Channel1, value);
+
 			});
 
 	midiExportMethod("channel2Gain", [this](int value) {
 				this->gainC2 = Helpers::MidiRoutines::normaliseVelocity128(value);
-				UnitMsg("Gain C2: " << gainC2);
+				onGainChange(Channel2, value);
 			});
 
 	midiExportMethod("masterGain", [this](int value) {
 				this->gainMaster = Helpers::MidiRoutines::normaliseVelocity128(value);
-				UnitMsg("Master: " << gainMaster);
+				onGainChange(Master, value);
 			});
 }
 
@@ -165,8 +165,8 @@ FeedState SuMixer::feed(Jack *jack) {
 
 		auto totalSamples = jack->numSamples * 2;
 		for(int i = 0; i < totalSamples; i++) {
-			auto c1 = periodC1[i] * gainC1 * faderC1;
-			auto c2 = periodC2[i] * gainC2 * faderC2;
+			auto c1 = periodC1[i] * gainC1 * faderC2;
+			auto c2 = periodC2[i] * gainC2 * faderC1;
 			pc1 = c1 > pc1 ? c1 : pc1;
 			pc2 = c2 > pc2 ? c2 : pc2;
 			mixedPeriod[i] = (c1+c2)*gainMaster;
@@ -241,6 +241,7 @@ void SuMixer::midiFade(int value) {
 		faderC1 = (((float)value/64)*100)/100;
 		faderC2 = 1.0;
 	}
+	onGainChange(Fader, value);
 }
 
 PcmSample SuMixer::getChannelPeak(int channel) {
@@ -255,5 +256,16 @@ PcmSample SuMixer::getChannelPeak(int channel) {
 	return p;
 }
 
+void SuMixer::cbGainChange(std::weak_ptr<std::function<void(SuMixer::GainType, int)>> cb) {
+	mGainListeners.push_back(cb);
+}
+
+void SuMixer::onGainChange(SuMixer::GainType type, int value) {
+	for(auto wptr : mGainListeners) {
+		if(auto cb = wptr.lock()) {
+			(*cb)(type, value);
+		}
+	}
+}
 // Make this unit loadable at runtime by defining a builder method
 DynamicBuilder(SuMixer);

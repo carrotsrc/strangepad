@@ -42,6 +42,8 @@ private:
 	SKnob mGainLeft, mGainRight, mGainMaster;
 	SSlider mFader;
 	void onRegisterUnit();
+	std::shared_ptr<SuMixerCbGainChange> cbGainChange;
+	void onGainChange(SuMixer::GainType type, int value);
 };
 
 #endif

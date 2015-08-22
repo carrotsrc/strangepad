@@ -118,3 +118,7 @@ void SSlider::setStart(int start) {
 int SSlider::start() {
 	return mStart;
 }
+
+bool SSlider::grabbed() {
+	return mGrabbed;
+}
