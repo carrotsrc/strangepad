@@ -3,6 +3,7 @@
 #include <qmath.h>
 #include "SWaveform.hpp"
 #include <iostream>
+#include <QBitmap>
 SWaveform::SWaveform(QWidget* parent)
 : QWidget(parent) {
 	mWaveData = nullptr;
@@ -31,23 +32,15 @@ void SWaveform::paintEvent(QPaintEvent*) {
 	if(!isLoaded) return;
 	if(mReset) generateWaveform();
 
-
-
-
-
 	painter.setBrush(mWaveform->waveform());
 	painter.drawRect(mWaveRect);
 
 	if(mProgress == 0) return;
 
 	auto prog = mProgress/mSampleStep;
-	if(prog < mCurrentStep+1)
-		return;
-
-	mCurrentStep++;
 	QRectF rect(0,0,prog, mWaveRect.size().height());
-	auto wf = mWaveform->waveform().copy(0,0,prog,mWaveRect.size().height());
-	painter.setBrush(QBrush("#FF0000",wf));
+	auto wf = mOverlay.copy(0,0,prog,mWaveRect.size().height());
+	painter.setBrush(QBrush(wf));
 	painter.drawRect(rect);
 /*
 	if(mHoverPosition >= 0) {
@@ -85,6 +78,10 @@ void SWaveform::generateWaveform() {
 	WaveformManager wfm;
 	auto geo = mWaveRect.size();
 	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength);
+	mOverlay = QPixmap(geo.width(), geo.height());
+	mOverlay.fill("#FFE64C");
+	mOverlay.fill("#FFB876");
+	mOverlay.setMask( mWaveform->waveform().createMaskFromColor(Qt::transparent) );
 	mSampleStep = mWaveform->blocksize();
 	mReset = false;
 }
