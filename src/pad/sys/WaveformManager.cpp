@@ -107,7 +107,7 @@ QPixmap WaveformManager::compress(int width, int height, const pcm_sample *compr
 		painter.drawLine(x,mid-yp, x,mid-yn);
 
 	}
-
+	
 	return graph;
 }
 

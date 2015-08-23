@@ -10,12 +10,10 @@ SWaveform::SWaveform(QWidget* parent)
 	mHoverPosition = -1;
 	setMouseTracking(true);
 	mReset = mBgHighlight = isLoaded = false;
-	mProgress = 0;
+	mCurrentStep = mProgress = 0;
 }
 
 void SWaveform::paintEvent(QPaintEvent*) {
-	if(!isLoaded) return;
-	if(mReset) generateWaveform();
 
 	QPainter painter(this);
 	QPen pen;
@@ -25,19 +23,31 @@ void SWaveform::paintEvent(QPaintEvent*) {
 
 	if(mBgHighlight) {
 		painter.setBrush(QColor("#656565"));
+		if(!isLoaded) mWaveRect.setRect(0,0,width(),height());
 		painter.drawRoundedRect(mWaveRect, 10, 10);
 	}
+
+
+	if(!isLoaded) return;
+	if(mReset) generateWaveform();
+
+
+
+
 
 	painter.setBrush(mWaveform->waveform());
 	painter.drawRect(mWaveRect);
 
 	if(mProgress == 0) return;
 
-	auto prog = mProgress/mSampleStep;///mWaveRect.size().width();
-	std::cout << mProgress << "\t" << prog << "\t+" << mSampleStep << std::endl;
+	auto prog = mProgress/mSampleStep;
+	if(prog < mCurrentStep+1)
+		return;
+
+	mCurrentStep++;
 	QRectF rect(0,0,prog, mWaveRect.size().height());
 	auto wf = mWaveform->waveform().copy(0,0,prog,mWaveRect.size().height());
-	painter.setBrush(QBrush("#FF0000", wf));
+	painter.setBrush(QBrush("#FF0000",wf));
 	painter.drawRect(rect);
 /*
 	if(mHoverPosition >= 0) {
@@ -92,5 +102,8 @@ int SWaveform::getSampleStep() {
 }
 
 void SWaveform::updateProgress(int progress) {
-	mProgress += progress;
+
+	// This needs to keep track of it's own progress
+	// otherwise all waveforms update exactly the same
+	mProgress = progress;
 }

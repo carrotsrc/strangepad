@@ -142,7 +142,7 @@ void SpFlacWaveview::onGuiUpdate() {
 
 void SpFlacWaveview::probeProgress() {
 	if(auto u = unit<SuFlacLoad>()) {
-		auto prog = u->getProgress()/2;
+		auto prog = u->getProgress();
 		mNextStep -= prog;
 		mWave.updateProgress(prog);
 		if(mNextStep <= 0) {

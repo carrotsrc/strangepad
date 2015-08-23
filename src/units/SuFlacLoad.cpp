@@ -89,18 +89,25 @@ void SuFlacLoad::actionLoadFile() {
 	onStateChange(PRESTREAM);
 	workState = PRESTREAM;
 	UnitMsg("Initialised");
+	mSamplesOut = 0;
 
 	notifyProcComplete();
 }
 
 StrangeIO::RackState SuFlacLoad::init() {
+
+	addEventListener(SndSamplesOut, [this](std::shared_ptr<EventMessage> msg){
+		if(workState < STREAMING)
+			return;
+		mSamplesOut += SndSamplesOutCast(msg)->numSamples;
+	});
+
+	if(filename == "") return RACK_UNIT_OK;
+
 	workState = LOADING;
 	onStateChange(workState);
 	ConcurrentTask(SuFlacLoad::actionLoadFile);
 	mSamplesOut = 0;
-	addEventListener(SndSamplesOut, [this](std::shared_ptr<EventMessage> msg){
-		mSamplesOut += SndSamplesOutCast(msg)->numSamples;
-	});
 	return RACK_UNIT_OK;
 }
 

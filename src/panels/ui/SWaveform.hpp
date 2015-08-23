@@ -24,9 +24,10 @@ signals:
 
 private:
 	float* mWaveData;
-	int mWaveLength, mSampleStep, mHoverPosition, mProgress;
+	int mWaveLength, mSampleStep, mHoverPosition, mProgress, mCurrentStep;
 
 	std::unique_ptr<Waveform> mWaveform;
+	QPixmap mOverlay;
 
 	QRectF mWaveRect;
 
