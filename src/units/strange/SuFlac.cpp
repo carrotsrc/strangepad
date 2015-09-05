@@ -11,7 +11,7 @@ SuFlac::SuFlac(std::string label)
 {
 	add_output("audio");
 	register_midi_handler("pause",[this](midi::msg){
-		
+		trigger_cycle();
 	});
 }
 
@@ -63,4 +63,23 @@ void SuFlac::load_file(std::string path) {
 	log("Initialised");
 	m_samples_played = 0;
 
+}
+
+void SuFlac::cache_chunk() {
+	m_cptr = cache_alloc(1);
+	auto tmp = cache_alloc(1);
+
+	auto csz = m_period_size;
+	if(m_count < csz) csz = (count/2);
+
+	std::copy(m_position, m_position + csz, tmp.get());
+	routine::sound::deinterleave2(tmp.get(), m_cptr.get(), m_period_size);
+
+	count -= csz*2;
+	position += psize;
+	//workState = STREAMING;
+}
+
+cycle_state SuFlac::resync() {
+	m_period_size = global_profile().period;
 }
