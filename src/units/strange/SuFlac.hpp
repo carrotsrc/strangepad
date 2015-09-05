@@ -10,12 +10,17 @@ public:
 	~SuFlac();
 
 public:
-	virtual
-strangeio::component::cycle_state cycle();
-	virtual
-void feed_line(strangeio::memory::cache_ptr samples, int line);
-	virtual
-strangeio::component::cycle_state init();
+	strangeio::component::cycle_state cycle();
+	void feed_line(strangeio::memory::cache_ptr samples, int line);
+	strangeio::component::cycle_state init();
+
+private:
+
+	PcmSample* m_buffer;
+	PcmSample* m_position;
+
+	unsigned int m_buf_size, m_count, m_samples_played;
+	void load_file(std::string path);
 };
 
 #endif // SUFLAC_HPP__
