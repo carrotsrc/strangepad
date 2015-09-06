@@ -13,8 +13,26 @@ TEST_CASE("Creation and deletion", "[SuFlac]") {
 TEST_CASE("Buffer reset", "SuFlac") {
 	SuFlac unit("test_flac");
 	unit.db_reset_buffer(1024);
-	REQUIRE(unit.db_buffer() != nullptr);
-	REQUIRE(unit.db_buf_size() == 1024);
+	auto initial_ptr = unit.db_buffer();
+
+	SECTION("Verify initial reset conditions") {
+		REQUIRE(unit.db_buffer() != nullptr);
+		REQUIRE(unit.db_buf_size() == 1024);
+	}
+
+	SECTION("Reset with lower sample count") {
+		unit.db_reset_buffer(768);
+		REQUIRE(unit.db_buffer() != nullptr);
+		REQUIRE(unit.db_buffer() == initial_ptr);
+		REQUIRE(unit.db_buf_size() == 768);
+	}
+
+	SECTION("Reset with higher sample count") {
+		unit.db_reset_buffer(2048);
+		REQUIRE(unit.db_buffer() != nullptr);
+		REQUIRE(unit.db_buffer() != initial_ptr);
+		REQUIRE(unit.db_buf_size() == 2048);
+	}
 }
 
 TEST_CASE("Load file", "SuFlac") {

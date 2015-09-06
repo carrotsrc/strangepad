@@ -29,9 +29,9 @@ SuFlac::~SuFlac() {
 }
 
 cycle_state SuFlac::cycle() {
-	if(!m_cache) return cycle_state::complete;
+	if(!m_cptr) return cycle_state::complete;
 
-	feed_out(m_cache, LineAudio)
+	feed_out(m_cptr, LineAudio);
 	return cycle_state::complete;
 }
 
