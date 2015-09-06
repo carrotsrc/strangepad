@@ -33,9 +33,18 @@ SuFlac::~SuFlac() {
 
 cycle_state SuFlac::cycle() {
 
+	/* potential problem could be that
+	 * the system is starved, so some
+	 * sort of way of triggering a 
+	 * recycle is necessary (low priority)
+	 */
 	if(!m_num_cached) return cycle_state::complete;
 
 	feed_out(m_cptr[m_rindex++], LineAudio);
+
+	m_num_cached--;
+	if(m_rindex == 5) m_rindex = 0;
+
 	add_task(std::bind(&SuFlac::cache_chunk, this));
 	return cycle_state::complete;
 }
@@ -126,7 +135,7 @@ void SuFlac::reset_buffer(unsigned int total_samples) {
 
 		m_buffer = new PcmSample[total_samples];
 	}
-	m_windex = m_rindex = 0;
+	m_num_cached = m_windex = m_rindex = 0;
 
 	m_buf_size = total_samples;
 	m_remain = total_samples;
