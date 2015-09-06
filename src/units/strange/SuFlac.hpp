@@ -1,41 +1,45 @@
 #ifndef SUFLAC_HPP__
 #define SUFLAC_HPP__
+#include <atomic>
+#include <array>
 
+#include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
 
-class SuFlac : public strangeio::component::unit
+class SuFlac : public siocom::unit
 {
 public:
 	SuFlac(std::string label);
 	~SuFlac();
 
 public:
-	strangeio::component::cycle_state cycle();
-	void feed_line(strangeio::memory::cache_ptr samples, int line);
-	strangeio::component::cycle_state init();
+	siocom::cycle_state cycle();
+	void feed_line(siomem::cache_ptr samples, int line);
+	siocom::cycle_state init();
 
 #if DEVBUILD
-
 	void db_load_file(std::string path) { load_file(path); };
 	PcmSample* db_buffer() { return m_buffer; };
 	unsigned int db_buf_size() { return m_buf_size; };
 	void db_reset_buffer(unsigned int total_samples) { reset_buffer(total_samples); };
 
-	strangeio::memory::cache_ptr db_cache() { return m_cptr; };
+	strangeio::memory::cache_ptr db_cache() { return m_cptr[m_rindex++]; };
+	int db_cache_size() { return m_num_cached; };
 	void db_cache_chunk() { cache_chunk(); };
 #endif
 
 protected:
-	strangeio::component::cycle_state resync();
-private:
+	siocom::cycle_state resync();
 
-	strangeio::memory::cache_ptr m_cptr;
+private:
+	std::array< siomem::cache_ptr, 5 > m_cptr;
+	std::atomic_int m_num_cached, m_rindex, m_windex;
 
 	PcmSample* m_buffer;
 	PcmSample* m_position;
 
-	unsigned int m_buf_size, m_count, m_samples_played;
-	unsigned int m_period_size;
+	unsigned int m_buf_size, m_remain, m_samples_played;
+	unsigned int m_period_size, m_num_channels;
 
 	void load_file(std::string path);
 	void cache_chunk();

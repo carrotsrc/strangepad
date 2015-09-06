@@ -52,20 +52,24 @@ TEST_CASE("Cache chunk", "SuFlac") {
 	profile.period = 256;
 	profile.channels = 2;
 	SuFlac unit("test_flac");
+
 	unit.set_cache_utility(&cache);
+
 	auto globsync = (component::sync_flag)component::sync_flags::glob_sync;
 	unit.sync_line(profile, globsync);
-
+/*
 	SECTION("Fail cache with no buffer") {
 		unit.db_cache_chunk();
 		auto cptr = unit.db_cache();
 		REQUIRE(cptr == false);
 	}
-	
+*/
+
 	SECTION("Succeed cache with buffer") {
 		unit.db_load_file("120hz.flac");
 		unit.db_cache_chunk();
 		auto cptr = unit.db_cache();
 		REQUIRE(cptr == true);
+		REQUIRE(unit.db_cache_size() == 5);
 	}
 }

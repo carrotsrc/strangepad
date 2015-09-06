@@ -11,13 +11,16 @@ using namespace strangeio::component;
 
 SuFlac::SuFlac(std::string label)
 	: unit(unit_type::mainline, "SuFlac", label)
+	, m_num_cached(0)
+	, m_rindex(0)
+	, m_windex(0)
 	, m_buffer(nullptr)
 	, m_position(nullptr)
 	, m_buf_size(0)
-	, m_count(0)
+	, m_remain(0)
 	, m_samples_played(0)
-	
 {
+
 	add_output("audio");
 	register_midi_handler("pause",[this](midi::msg){
 		trigger_cycle();
@@ -29,9 +32,11 @@ SuFlac::~SuFlac() {
 }
 
 cycle_state SuFlac::cycle() {
-	if(!m_cptr) return cycle_state::complete;
 
-	feed_out(m_cptr, LineAudio);
+	if(!m_num_cached) return cycle_state::complete;
+
+	feed_out(m_cptr[m_rindex++], LineAudio);
+	add_task(std::bind(&SuFlac::cache_chunk, this));
 	return cycle_state::complete;
 }
 
@@ -57,6 +62,7 @@ void SuFlac::load_file(std::string path) {
 		log(ss.str());
 		return;
 	}
+
 	auto num_channels = file.channels();
 	register_metric(profile_metric::channels, num_channels);
 
@@ -71,9 +77,9 @@ void SuFlac::load_file(std::string path) {
 	}
 
 	m_position = m_buffer;
+	m_num_cached = 0;
 
-//	onStateChange(PRESTREAM);
-//	workState = PRESTREAM;
+
 	log("Done");
 	m_samples_played = 0;
 
@@ -82,25 +88,33 @@ void SuFlac::load_file(std::string path) {
 void SuFlac::cache_chunk() {
 	if(!m_buffer) return;
 
-	{
-		auto tmp = cache_alloc(1);
-		m_cptr = tmp;
+	auto tc = 5 - m_num_cached;
+
+	for(auto i = 0; i < tc; i++) {
+
+		auto inter = cache_alloc(1);
+		auto deint = cache_alloc(1);
+
+		auto csz = m_period_size * m_num_channels;
+
+		if(m_remain < csz) csz = m_remain;
+		inter.copy_from(m_position, csz);
+
+		routine::sound::deinterleave2(*inter, *deint, m_period_size);
+
+		m_remain -= csz*2;
+		m_position += csz*2;
+		m_cptr[m_windex] = deint;
+
+		m_num_cached++;
+		if(++m_windex == 5) m_windex = 0;
 	}
 
-	auto tmp = cache_alloc(1);
-	auto csz = m_period_size;
-	if(m_count < csz) csz = (m_count/2);
-
-	tmp.copy_from(m_position, csz);
-	routine::sound::deinterleave2(*tmp, *m_cptr, m_period_size);
-
-	m_count -= csz*2;
-	m_position += csz*2;
-	//workState = STREAMING;
 }
 
 cycle_state SuFlac::resync() {
 	m_period_size = global_profile().period;
+	m_num_channels = global_profile().channels;
 	return cycle_state::complete;
 }
 
@@ -112,8 +126,9 @@ void SuFlac::reset_buffer(unsigned int total_samples) {
 
 		m_buffer = new PcmSample[total_samples];
 	}
-	
+	m_windex = m_rindex = 0;
+
 	m_buf_size = total_samples;
-	m_count = m_buf_size;
+	m_remain = total_samples;
 	m_position = m_buffer;
 }
