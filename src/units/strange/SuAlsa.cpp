@@ -23,13 +23,14 @@ SuAlsa::~SuAlsa() {
 }
 
 cycle_state SuAlsa::cycle() {
+	if(m_buffer) flush_samples();
 
 	return cycle_state::complete;
 }
 
 void SuAlsa::feed_line(memory::cache_ptr samples, int line) {
 	m_buffer = samples;
-	flush_samples();
+
 }
 
 void SuAlsa::flush_samples() {
