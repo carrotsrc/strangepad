@@ -142,7 +142,7 @@ cycle_state SuAlsa::init() {
 	}
 
 	if ((err = snd_pcm_hw_params_set_period_size(m_handle, hw_params, min_period_size, dir)) < 0) {
-		log("cannot set period size - ");
+		log("cannot set period size - "+ std::to_string(min_period_size));
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}

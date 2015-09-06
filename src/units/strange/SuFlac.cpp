@@ -19,6 +19,7 @@ SuFlac::SuFlac(std::string label)
 	, m_buf_size(0)
 	, m_remain(0)
 	, m_samples_played(0)
+	, m_flac_path("")
 {
 
 	add_output("audio");
@@ -32,16 +33,19 @@ SuFlac::~SuFlac() {
 }
 
 cycle_state SuFlac::cycle() {
-
+	log("Cycling");
 	/* potential problem could be that
 	 * the system is starved, so some
 	 * sort of way of triggering a 
 	 * recycle is necessary (low priority)
 	 */
-	if(!m_num_cached) return cycle_state::complete;
+	if(!m_num_cached) {
+		log("Nothing in cache");
+		return cycle_state::error;
+	}
 
 	feed_out(m_cptr[m_rindex++], LineAudio);
-
+	log("Feeding");
 	m_num_cached--;
 	if(m_rindex == 5) m_rindex = 0;
 
@@ -55,6 +59,8 @@ void SuFlac::feed_line(strangeio::memory::cache_ptr samples, int line) {
 
 cycle_state SuFlac::init() {
 	register_metric(profile_metric::channels, 2); // default
+	if(m_flac_path != "") load_file(m_flac_path);
+	log("Initialised");
 	return cycle_state::complete;
 }
 
@@ -88,18 +94,21 @@ void SuFlac::load_file(std::string path) {
 	m_position = m_buffer;
 	m_num_cached = 0;
 
-
+	add_task(std::bind(&SuFlac::cache_chunk, this));
 	log("Done");
 	m_samples_played = 0;
-
+	
 }
 
 void SuFlac::cache_chunk() {
+
 	if(!m_buffer) return;
 
+	log("Caching");
 	auto tc = 5 - m_num_cached;
-
+	
 	for(auto i = 0; i < tc; i++) {
+		if(m_remain == 0) return;
 
 		auto inter = cache_alloc(1);
 		auto deint = cache_alloc(1);
@@ -109,11 +118,11 @@ void SuFlac::cache_chunk() {
 		if(m_remain < csz) csz = m_remain;
 		inter.copy_from(m_position, csz);
 
-		routine::sound::deinterleave2(*inter, *deint, m_period_size);
+		//routine::sound::deinterleave2(*inter, *deint, m_period_size);
 
-		m_remain -= csz*2;
-		m_position += csz*2;
-		m_cptr[m_windex] = deint;
+		m_remain -= csz;
+		m_position += csz;
+		m_cptr[m_windex] = inter;
 
 		m_num_cached++;
 		if(++m_windex == 5) m_windex = 0;
@@ -141,3 +150,13 @@ void SuFlac::reset_buffer(unsigned int total_samples) {
 	m_remain = total_samples;
 	m_position = m_buffer;
 }
+
+void SuFlac::set_configuration(std::string key, std::string value) {
+	if(key == "flac") {
+		m_flac_path = value;
+	} else if(key == "kick_start") {
+		trigger_cycle();
+	}
+}
+
+UnitBuilder(SuFlac);

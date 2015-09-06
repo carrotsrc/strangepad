@@ -34,7 +34,7 @@ SuFlacLoad::SuFlacLoad()
 }
 
 StrangeIO::FeedState SuFlacLoad::feed(StrangeIO::Jack*jack) {
-	return FEED_OK;
+	return FEED_OK;1
 }
 
 void SuFlacLoad::setConfig(std::string config, std::string value) {
@@ -56,7 +56,6 @@ void SuFlacLoad::actionNextChunk() {
 	count -= psize;
 	position += psize;
 	workState = STREAMING;
-	notifyProcComplete();
 }
 
 void SuFlacLoad::actionLoadFile() {
@@ -169,6 +168,7 @@ void SuFlacLoad::midiPause(int code) {
 			onStateChange(workState);
 		} else {
 			workState = STREAMING;
+			notifyProcComplete();
 			onStateChange(workState);
 		}
 	}

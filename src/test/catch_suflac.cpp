@@ -1,3 +1,4 @@
+#include "catch.hpp"
 #include "suite.hpp"
 #include "framework/memory/cache_manager.hpp"
 #include "../units/strange/SuFlac.hpp"
