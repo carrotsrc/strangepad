@@ -1,4 +1,4 @@
-OBJ=rso/SuFlac.rso
+OBJ=rso/SuFlac.rso rso/SuAlsa.rso
 all: suite
 
 suite: $(OBJ) suite.cpp catch_suflac.hpp
@@ -6,3 +6,6 @@ suite: $(OBJ) suite.cpp catch_suflac.hpp
 	
 rso/SuFlac.rso: ../units/strange/SuFlac.cpp ../units/strange/SuFlac.hpp
 	unitbuild rso/SuFlac -ggdb -lsndfile ../units/strange/SuFlac.cpp 
+
+rso/SuAlsa.rso: ../units/strange/SuAlsa.cpp ../units/strange/SuAlsa.hpp
+	unitbuild rso/SuAlsa -ggdb -lsndfile ../units/strange/SuAlsa.cpp 
