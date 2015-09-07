@@ -57,7 +57,7 @@ TEST_CASE("Cache chunk", "SuFlac") {
 	unit.set_cache_utility(&cache);
 
 	auto globsync = (component::sync_flag)component::sync_flags::glob_sync;
-	unit.sync_line(profile, globsync);
+	unit.sync_line(profile, globsync, 0);
 /*
 	SECTION("Fail cache with no buffer") {
 		unit.db_cache_chunk();
