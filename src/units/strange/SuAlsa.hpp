@@ -7,6 +7,7 @@
 
 #include <alsa/asoundlib.h>
 
+#include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
 
 class SuAlsa : public strangeio::component::unit

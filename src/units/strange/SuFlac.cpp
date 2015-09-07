@@ -104,25 +104,23 @@ void SuFlac::cache_chunk() {
 
 	if(!m_buffer) return;
 
-	log("Caching");
 	auto tc = 5 - m_num_cached;
 	
 	for(auto i = 0; i < tc; i++) {
 		if(m_remain == 0) return;
 
-		auto inter = cache_alloc(1);
-		auto deint = cache_alloc(1);
+		auto samples = cache_alloc(1);
 
 		auto csz = m_period_size * m_num_channels;
 
 		if(m_remain < csz) csz = m_remain;
-		inter.copy_from(m_position, csz);
+		samples.copy_from(m_position, csz);
 
-		//routine::sound::deinterleave2(*inter, *deint, m_period_size);
+		routine::sound::deinterleave2(*samples, m_period_size);
 
 		m_remain -= csz;
 		m_position += csz;
-		m_cptr[m_windex] = inter;
+		m_cptr[m_windex] = samples;
 
 		m_num_cached++;
 		if(++m_windex == 5) m_windex = 0;

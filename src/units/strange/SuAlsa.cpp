@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include "framework/routine/sound.hpp"
 #include "SuAlsa.hpp"
 using namespace strangeio;
 using namespace strangeio::component;
@@ -39,6 +39,7 @@ void SuAlsa::flush_samples() {
 	// clear the held buffer
 	{
 		auto local_buffer = m_buffer;
+		siortn::sound::interleave2(*local_buffer, profile.period);
 		nframes = snd_pcm_writei(m_handle, local_buffer.get(), profile.period);
 	}
 
