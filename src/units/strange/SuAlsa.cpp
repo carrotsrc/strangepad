@@ -80,6 +80,11 @@ cycle_state SuAlsa::init() {
 					ul.unlock();
 					break;
 				}
+				if(unit_profile().state == (int)line_state::inactive) {
+					// if inactive, don't bother triggering a cycle
+					continue;
+				}
+
 				trigger_cycle();
 			}
 			m_active = false;

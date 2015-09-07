@@ -24,7 +24,10 @@ SuFlac::SuFlac(std::string label)
 
 	add_output("audio");
 	register_midi_handler("pause",[this](midi::msg){
-		trigger_cycle();
+		if(unit_profile().state == (int)line_state::inactive) {
+			register_metric(profile_metric::state, (int)line_state::active)
+			trigger_sync((sync_flag)sync_flags::upstream);
+		}
 	});
 }
 
@@ -36,7 +39,10 @@ cycle_state SuFlac::cycle() {
 	/* potential problem could be that
 	 * the system is starved, so some
 	 * sort of way of triggering a 
-	 * recycle is necessary (low priority)
+	 * recycle is necessary (low priority).
+	 * 
+	 * For now, the cached periods should
+	 * be OK.
 	 */
 	if(!m_num_cached) {
 		return cycle_state::error;
