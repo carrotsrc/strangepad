@@ -33,19 +33,16 @@ SuFlac::~SuFlac() {
 }
 
 cycle_state SuFlac::cycle() {
-	log("Cycling");
 	/* potential problem could be that
 	 * the system is starved, so some
 	 * sort of way of triggering a 
 	 * recycle is necessary (low priority)
 	 */
 	if(!m_num_cached) {
-		log("Nothing in cache");
 		return cycle_state::error;
 	}
 
 	feed_out(m_cptr[m_rindex++], LineAudio);
-	log("Feeding");
 	m_num_cached--;
 	if(m_rindex == 5) m_rindex = 0;
 
