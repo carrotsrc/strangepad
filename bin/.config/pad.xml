@@ -6,8 +6,7 @@
 	<hud label="Overview">
 		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
 
-		<pad collection="SpMixer" type="controller" label="Master" unit="mastermix" />
-		<pad collection="SpFlac" type="waveview" label="Beta" unit="flac2" />
+
 
 	</hud>
 
