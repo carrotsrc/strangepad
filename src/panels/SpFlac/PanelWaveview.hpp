@@ -16,9 +16,7 @@
 #include "ui/SWaveform.hpp"
 #include "ui/SButton.hpp"
 
-#define SUFLACLOAD_GUARDED 1
-#include "SuFlacLoad.h"
-#undef SUFLACLOAD_GUARDED
+#include "strange/SuFlac.hpp"
 
 class SpFlacWaveview : public SPad
 {
@@ -52,10 +50,13 @@ private:
 	int mSampleStep;
 	std::atomic<int> mNextStep;
 
+	suflac_onchange_sptr mOnChangePtr;
 
-	std::shared_ptr<SuflCbStateChange> mfStateChangePtr;
 	void onRegisterUnit();
-	void onUnitStateChange(SuFlacLoad::WorkState state);
+	void listenOnChange(SuFlac::working_state state);
+
+	// listeners
+	void listener_onchange(SuFlac::working_state);
 };
 
 #endif

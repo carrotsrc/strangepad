@@ -8,10 +8,10 @@
 #include <iostream>
 SpFlacWaveview::SpFlacWaveview(QWidget *parent) :
 SPad(parent) {
-	mfStateChangePtr.reset(new SuflCbStateChange(
-				std::bind(&SpFlacWaveview::onUnitStateChange, this, std::placeholders::_1)
+	
+	mOnChangePtr.reset(new suflac_onchange_cb(
+				std::bind(&SpFlacWaveview::listenOnChange, this, std::placeholders::_1)
 				));
-
 
 	mTitle.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	mTitle.setStyleSheet("font-size: 18px;");
@@ -47,8 +47,8 @@ SPad(parent) {
 
 void SpFlacWaveview::onRegisterUnit() {
 	connect(this, SIGNAL(guiUpdate()), this, SLOT(onGuiUpdate()));
-	if(auto u = unit<SuFlacLoad>()) {
-		u->cbStateChange(mfStateChangePtr);
+	if(auto u = unit<SuFlac>()) {
+		u->listen_onchange(mOnChangePtr);
 	}
 
 }
@@ -74,7 +74,7 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 	mWave.toggleBgHighlight(false);
 
 	const auto mimeData = e->mimeData();
-	auto ru = unit<SuFlacLoad>();
+	auto ru = unit<SuFlac>();
 
 	for(auto url : mimeData->urls()) {
 		auto path = url.path();
@@ -84,42 +84,40 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 			update();
 		}
 
-		ru->setFilename(path.toStdString());
+		ru->action_load_file(path.toStdString());
 	}
-	update();
-	ru->init();
 	update();
 }
 
-
-void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
+void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 	switch(state) {
-	case SuFlacLoad::LOADING:
+	case SuFlac::loading:
 		mMut.lock();
 		mTitle.setText("Loading...");
 		mMut.unlock();
 		emit update();
 		break;
-	case SuFlacLoad::PRESTREAM:
-		if(auto u = unit<SuFlacLoad>()) {
+	case SuFlac::prestream:
+		if(auto u = unit<SuFlac>()) {
 			mMut.lock();
-			mWave.setWaveData(u->getSampleData(), u->getSpc());
+			mWave.setWaveData(u->probe_flac_data(), u->probe_total_spc());
 			mSampleStep = mWave.getSampleStep();
-			auto info = QFileInfo(QString(u->getFilename().c_str()));
+			auto info = QFileInfo(QString(u->probe_flac_path().c_str()));
 			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
-			emit update();
 			mMut.unlock();
+			emit update();
 		}
 		break;
-	case SuFlacLoad::STREAMING:
+	case SuFlac::streaming:
 		mPlaying = true;
 		emit guiUpdate();
 		break;
 
-	case SuFlacLoad::PAUSED:
+	case SuFlac::paused:
 		mPlaying = false;
 		emit guiUpdate();
 		break;
+
 	default:
 		break;
 	}
@@ -127,10 +125,11 @@ void SpFlacWaveview::onUnitStateChange(SuFlacLoad::WorkState state) {
 }
 
 void SpFlacWaveview::triggerMidiPlay() {
-	if(auto u = unit<SuFlacLoad>()) {
-		u->midiPause(127);
+	if(auto u = unit<SuFlac>()) {
+		u->action_start_stream();
 	}
 }
+
 
 void SpFlacWaveview::onGuiUpdate() {
 	if(mPlaying) {
@@ -141,7 +140,9 @@ void SpFlacWaveview::onGuiUpdate() {
 }
 
 void SpFlacWaveview::probeProgress() {
-	if(auto u = unit<SuFlacLoad>()) {
+	if(auto u = unit<SuFlac>()) {
+
+/*
 		auto prog = u->getProgress();
 		mNextStep -= prog;
 		mWave.updateProgress(prog);
@@ -149,5 +150,6 @@ void SpFlacWaveview::probeProgress() {
 			emit guiUpdate();
 			mNextStep = mSampleStep;
 		}
+*/
 	}
 }
