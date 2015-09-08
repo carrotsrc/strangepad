@@ -1,5 +1,5 @@
 #include "PadLoader.hpp"
-
+#include <iostream>
 
 std::unique_ptr<SPad> PadLoader::load(const QString & collection, const QString & pad) {
 	PadBuilder func;

@@ -1,7 +1,10 @@
 #ifndef __SPAD_HPP_1436984479__
 #define __SPAD_HPP_1436984479__
 #include <QWidget>
-#include "framework/rack/RackUnit.h"
+
+#include "framework/alias.hpp"
+#include "framework/component/unit.hpp"
+
 
 class SPad : public QWidget {
 Q_OBJECT
@@ -9,12 +12,12 @@ public:
 	explicit SPad(QWidget *parent = 0);
 	void paintEvent(QPaintEvent *);
 
-	void registerUnit(std::weak_ptr<StrangeIO::RackUnit> unit);
+	void registerUnit(siocom::unit_wptr unit);
 signals:
 	public slots:
 
 protected:
-	std::weak_ptr<StrangeIO::RackUnit> mUnit;
+	siocom::unit_wptr mUnit;
 
 	template<typename T>
 	std::shared_ptr<T> unit() {

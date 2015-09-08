@@ -1,33 +1,8 @@
 #include "setup.hpp"
-#include "framework/memory/BitfieldCache.h"
-#include "framework/rack/config/RackDocument.h"
-#include "framework/rack/config/RackAssembler.h"
-#include "MessageFactory.hpp"
-using namespace StrangeIO;
 
-static void setupFactory(RackUnitGenericFactory* factory) {
+using namespace strangeio;
 
-	factory->setMessageFactory(new MessageFactory());
-	auto cache = new StrangeIO::BitfieldCache();
-	cache->init(512, 64);
-	factory->setCacheHandler(cache);
-}
-
-void setupIo(StrangeIO::Rack *rack, QString path) {
-	Config::RackDocument doc;
-	rack->setRackQueue(std::unique_ptr<RackQueue>(new RackQueue(0)));
-
-	std::unique_ptr<StrangeIO::RackUnitGenericFactory> factory(new StrangeIO::RackUnitGenericFactory);
-	setupFactory(factory.get());
-
-	auto config = doc.load(path.toStdString());
-	Config::RackAssembler as(std::move(factory));
-	as.assemble((*config), (*rack));
-	rack->init();
-	rack->initEvents(1);
-}
-
-QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, StrangeIO::Rack *rack) {
+QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, siocom::rack *sys) {
 	QVector<SHud*> huds;
 
 	for(auto it = rig.begin(); it != rig.end(); it++ ) {
@@ -37,7 +12,9 @@ QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, StrangeIO::Ra
 			if(pad == nullptr) {
 				continue;
 			}
-			pad->registerUnit(rack->getUnit(jt.unit.toStdString()));
+			auto wptr = sys->get_unit(jt.unit.toStdString());
+			if(wptr.expired()) continue;
+			pad->registerUnit(wptr);
 
 			hud->addWidget(pad.release());
 		}

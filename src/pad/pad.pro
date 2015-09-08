@@ -8,12 +8,14 @@ INCLUDEPATH += .
 DESTDIR=../../bin
 OBJECTS_DIR=../../build/obj
 MOC_DIR=../../build
-LIBS += -L$(STRANGEFW) -lstrangeio -L../../bin/ -lui -lssl -lcrypto -pthread
+LIBS += -L$(STRANGEFW) -lstrangeio -L../../bin/ -lui -lssl -lcrypto -pthread -ldl
 QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(STRANGEFW) -ggdb -pthread
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW) -ggdb -pthread
+QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW)/framework/include -ggdb -pthread
 # Input
-HEADERS += sys/MessageFactory.hpp sys/setup.hpp sys/Waveform.hpp sys/WaveformManager.hpp sys/RigDesc.hpp sys/PadLoader.hpp sys/ConfigLoader.hpp
-SOURCES += sys/MessageFactory.cpp sys/setup.cpp sys/Waveform.cpp sys/WaveformManager.cpp sys/RigDesc.cpp sys/PadLoader.cpp sys/ConfigLoader.cpp
+HEADERS += sys/Waveform.hpp sys/WaveformManager.hpp sys/RigDesc.hpp sys/PadLoader.hpp sys/ConfigLoader.hpp
+SOURCES += sys/Waveform.cpp sys/WaveformManager.cpp sys/RigDesc.cpp sys/PadLoader.cpp sys/ConfigLoader.cpp
 
 HEADERS += ui/SHud.hpp ui/SWindow.hpp
-SOURCES += ui/SHud.cpp ui/SWindow.cpp sys/entry.cpp
+SOURCES += ui/SHud.cpp ui/SWindow.cpp
+HEADERS += sys/setup.hpp
+SOURCES += sys/setup.cpp sys/entry.cpp
