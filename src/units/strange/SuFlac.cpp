@@ -23,11 +23,15 @@ SuFlac::SuFlac(std::string label)
 {
 
 	add_output("audio");
-	register_midi_handler("pause",[this](midi::msg){
-		if(unit_profile().state == (int)line_state::inactive) {
-			register_metric(profile_metric::state, (int)line_state::active)
-			trigger_sync((sync_flag)sync_flags::upstream);
-		}
+	register_midi_handler("pause",[this](midi::msg m){
+		if(m.v != 127) return;
+		action_start_stream();
+	});
+
+	register_midi_handler("load",[this](midi::msg m){
+		if(m.v != 127) return;
+		log("Starting load");
+		load_file();
 	});
 }
 
@@ -62,18 +66,19 @@ void SuFlac::feed_line(strangeio::memory::cache_ptr samples, int line) {
 
 cycle_state SuFlac::init() {
 	register_metric(profile_metric::channels, 2); // default
-	if(m_flac_path != "") load_file(m_flac_path);
 	log("Initialised");
 	return cycle_state::complete;
 }
 
-void SuFlac::load_file(std::string path) {
+void SuFlac::load_file() {
 	std::stringstream ss;
-	ss << "Loading " << path;
+	ss << "Loading " << m_flac_path;
 	log(ss.str());
 	ss.str("");
 
-	SndfileHandle file(path.c_str());
+	event_onchange(SuFlac::loading);
+
+	SndfileHandle file(m_flac_path.c_str());
 
 	if(file.error() > 0) {
 		ss << "Error occured when loading file - " << file.error();
@@ -99,12 +104,13 @@ void SuFlac::load_file(std::string path) {
 
 	add_task(std::bind(&SuFlac::cache_chunk, this));
 	log("Done");
+	event_onchange(SuFlac::prestream);
 	m_samples_played = 0;
 	
 }
 
 void SuFlac::cache_chunk() {
-
+	
 	if(!m_buffer) return;
 
 	auto tc = 5 - m_num_cached;
@@ -113,17 +119,18 @@ void SuFlac::cache_chunk() {
 		if(m_remain == 0) return;
 
 		auto samples = cache_alloc(1);
+		auto deint = cache_alloc(1);
 
 		auto csz = m_period_size * m_num_channels;
 
 		if(m_remain < csz) csz = m_remain;
 		samples.copy_from(m_position, csz);
 
-		routine::sound::deinterleave2(*samples, m_period_size);
+		routine::sound::deinterleave2(*samples, *deint, m_period_size);
 
 		m_remain -= csz;
 		m_position += csz;
-		m_cptr[m_windex] = samples;
+		m_cptr[m_windex] = deint;
 
 		m_num_cached++;
 		if(++m_windex == 5) m_windex = 0;
@@ -158,6 +165,51 @@ void SuFlac::set_configuration(std::string key, std::string value) {
 	} else if(key == "kick_start") {
 		trigger_cycle();
 	}
+}
+
+void SuFlac::event_onchange(SuFlac::working_state state) {
+	for(auto wptr : m_onchange_listeners) {
+		if(auto cb = wptr.lock()) {
+			(*cb)(state);
+		}
+	}
+}
+
+
+void SuFlac::action_load_file(std::string path) {
+	m_flac_path = path;
+	load_file();
+}
+
+void SuFlac::action_start_stream() {
+	if(!m_buffer || m_buf_size == 0) return;
+
+	if(unit_profile().state == (int)line_state::inactive) {
+		register_metric(profile_metric::state, (int)line_state::active);
+		trigger_sync((sync_flag)sync_flags::upstream);
+
+		if(global_profile().state == (int)line_state::inactive) {
+			trigger_cycle();
+		}
+	}
+}
+
+std::string SuFlac::probe_flac_path() const {
+	return m_flac_path;
+}
+
+const PcmSample* SuFlac::probe_flac_data() const {
+	return m_buffer;
+}
+
+
+
+void SuFlac::listen_onchange(std::weak_ptr<std::function<void(SuFlac::working_state)> > cb) {
+	m_onchange_listeners.push_back(cb);
+}
+
+unsigned int SuFlac::probe_total_spc() const {
+	return m_buf_size  / unit_profile().channels;
 }
 
 UnitBuilder(SuFlac);

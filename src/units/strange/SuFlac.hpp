@@ -1,7 +1,9 @@
 #ifndef SUFLAC_HPP__
 #define SUFLAC_HPP__
 #include <atomic>
+#include <memory>
 #include <array>
+#include <vector>
 
 #include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
@@ -13,11 +15,31 @@ public:
 	~SuFlac();
 
 public:
+	enum working_state {
+		idle,
+		loading,
+		prestream,
+		streaming,
+		paused,
+	};
+
+public:
 	siocom::cycle_state cycle();
 	void feed_line(siomem::cache_ptr samples, int line);
 	siocom::cycle_state init();
 	
 	void set_configuration(std::string key, std::string value);
+
+	// listener registration
+	void listen_onchange(std::weak_ptr<std::function<void(SuFlac::working_state)>> cb);
+
+	// Action methods for the pad
+	void action_load_file(std::string path);
+	void action_start_stream();
+
+	const PcmSample* probe_flac_data() const;
+	std::string probe_flac_path() const;
+	unsigned int probe_total_spc() const;
 
 protected:
 	siocom::cycle_state resync();
@@ -34,15 +56,17 @@ private:
 
 	std::string m_flac_path;
 
-	void load_file(std::string path);
+	std::vector<std::weak_ptr<std::function<void(SuFlac::working_state) > > > m_onchange_listeners;
+
+	void load_file();
 	void cache_chunk();
 	void reset_buffer(unsigned int num_samples);
-	
 
+	void event_onchange(SuFlac::working_state state);
 
 #if DEVBUILD
 public:
-	void db_load_file(std::string path) { load_file(path); };
+	void db_load_file(std::string path) { m_flac_path = path; load_file(); };
 	PcmSample* db_buffer() { return m_buffer; };
 	unsigned int db_buf_size() { return m_buf_size; };
 	void db_reset_buffer(unsigned int total_samples) { reset_buffer(total_samples); };
@@ -57,11 +81,14 @@ public:
 		if(key == "num_cached") {
 			return std::to_string(m_num_cached);
 		}
-		
 		return std::string();
 	}
 #endif
 
 };
+
+using suflac_onchange_cb = std::function<void(SuFlac::working_state)>;
+using suflac_onchange_wptr = std::weak_ptr<suflac_onchange_cb>;
+using suflac_onchange_sptr = std::shared_ptr<suflac_onchange_cb>;
 
 #endif // SUFLAC_HPP__
