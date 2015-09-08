@@ -1,12 +1,12 @@
 #include <sstream>
 #include <sndfile.hh>
-
+#include <thread>
 #include "SuFlac.hpp"
 #include "framework/routine/sound.hpp"
 
 using namespace strangeio;
 using namespace strangeio::component;
-#define CHUNK_SIZE 0x100000
+#define CHUNK_SIZE 0x10000
 #define LineAudio 0
 
 SuFlac::SuFlac(std::string label)
@@ -97,6 +97,7 @@ void SuFlac::load_file() {
 	// Load the whole file into memory (might stream it in future)
 	while(file.read((PcmSample*)m_position, CHUNK_SIZE) == CHUNK_SIZE) {
 		m_position += CHUNK_SIZE;
+		std::this_thread::sleep_for(std::chrono::microseconds(15));
 	}
 
 	m_position = m_buffer;
