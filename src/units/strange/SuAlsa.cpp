@@ -11,7 +11,7 @@ using namespace strangeio::component;
 static void pcm_trigger_callback(snd_async_handler_t *);
 
 SuAlsa::SuAlsa(std::string label)
-	: unit(unit_type::dispatch, "SuAlsa", label)
+	: dispatch("SuAlsa", label)
 	, m_running(false)
 	, m_active(false)
 {
@@ -39,8 +39,9 @@ void SuAlsa::flush_samples() {
 	// clear the held buffer
 	{
 		auto local_buffer = m_buffer;
-		siortn::sound::interleave2(*local_buffer, profile.period);
-		nframes = snd_pcm_writei(m_handle, local_buffer.get(), profile.period);
+		auto intw = cache_alloc(1);
+		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
+		nframes = snd_pcm_writei(m_handle, intw.get(), profile.period);
 	}
 
 	if(nframes != (signed) profile.period) {
@@ -54,13 +55,6 @@ void SuAlsa::flush_samples() {
 			snd_pcm_recover(m_handle, nframes, 0);
 		}
 	}
-	//std::cout << "Flushed" << std::endl;
-
-
-	/* once it's done, set the unit back to streaming
-	 * so the buffer continued to fill up
-	 */
-	//workState = STREAMING;
 }
 
 cycle_state SuAlsa::init() {
@@ -80,11 +74,11 @@ cycle_state SuAlsa::init() {
 					ul.unlock();
 					break;
 				}
+
 				if(unit_profile().state == (int)line_state::inactive) {
 					// if inactive, don't bother triggering a cycle
 					continue;
 				}
-
 				trigger_cycle();
 			}
 			m_active = false;
@@ -153,11 +147,6 @@ cycle_state SuAlsa::init() {
 		return cycle_state::error;
 	}
 
-	if ((err = snd_pcm_hw_params_set_periods_max(m_handle, hw_params, &m_max_periods, &dir)) < 0) {
-		log("cannot set periods - ");
-		log(std::string(snd_strerror(err)));
-		return cycle_state::error;
-	}
 
 	if ((err = snd_pcm_hw_params_set_periods(m_handle, hw_params, 2, dir)) < 0) {
 		log("cannot set periods - ");
@@ -191,6 +180,7 @@ cycle_state SuAlsa::init() {
 		log("cannot get buffer size - ");
 		log(std::string(snd_strerror(err)));
 	}
+
 	register_metric(profile_metric::latency, (signed int)buffer_size);
 	
 
@@ -202,16 +192,20 @@ cycle_state SuAlsa::init() {
 	register_metric(profile_metric::fs, (signed int)sample_rate);
 
 
-	m_trigger_level = snd_pcm_avail_update(m_handle) - (m_fperiod<<1);
-
 	//	Handle async signals safely
 	auto *func = new std::function<void(void)>([this](){
 		m_signal_cv.notify_one();
 	});
+
 	snd_async_add_pcm_handler(&m_cb, m_handle, &pcm_trigger_callback, (void*)func);
 
 	
 	log("Initialised");
+	return cycle_state::complete;
+}
+
+siocom::cycle_state SuAlsa::resync(){
+
 	return cycle_state::complete;
 }
 

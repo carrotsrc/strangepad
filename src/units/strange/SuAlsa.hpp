@@ -9,8 +9,9 @@
 
 #include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
+#include "framework/spec/dispatch.hpp" // Base class: strangeio::component::unit
 
-class SuAlsa : public strangeio::component::unit
+class SuAlsa : public strangeio::spec::dispatch
 {
 public:
 	enum work_state {
@@ -31,6 +32,9 @@ public:
 	strangeio::component::cycle_state cycle();
 	void feed_line(strangeio::memory::cache_ptr samples, int line);
 	strangeio::component::cycle_state init();
+
+protected:
+	siocom::cycle_state resync();
 
 private:
 	// Buffer
