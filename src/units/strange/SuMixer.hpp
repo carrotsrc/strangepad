@@ -23,6 +23,8 @@ public:
 	void action_gain_chan_b(int value);
 
 	void listen_onchange(std::weak_ptr<std::function<void(SuMixer::gain_type, int)>> cb);
+
+	float probe_channel_peak(int channel);
 protected:
 	siocom::cycle_state cycle();
 	siocom::cycle_state init();
