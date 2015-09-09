@@ -18,7 +18,7 @@
 #include "ui/SKnob.hpp"
 #include "ui/SSlider.hpp"
 
-#include "SuMixer.h"
+#include "strange/SuMixer.hpp"
 
 class SpMixerController : public SPad
 {
@@ -42,8 +42,9 @@ private:
 	SKnob mGainLeft, mGainRight, mGainMaster;
 	SSlider mFader;
 	void onRegisterUnit();
-	std::shared_ptr<SuMixerCbGainChange> cbGainChange;
-	void onGainChange(SuMixer::GainType type, int value);
+	sumixer_onchange_sptr m_shr_onchange;
+
+	void onGainChange(SuMixer::gain_type type, int value);
 };
 
 #endif

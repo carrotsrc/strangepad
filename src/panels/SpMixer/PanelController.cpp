@@ -8,7 +8,7 @@
 #include <iostream>
 SpMixerController::SpMixerController(QWidget *parent) :
 SPad(parent) {
-	cbGainChange.reset( new SuMixerCbGainChange(
+	m_shr_onchange.reset( new sumixer_onchange_cb(
 				std::bind(&SpMixerController::onGainChange, this, 
 					std::placeholders::_1, 
 					std::placeholders::_2)
@@ -56,25 +56,27 @@ SPad(parent) {
 
 void SpMixerController::onRegisterUnit() {
 	if(auto u = unit<SuMixer>()) {
-		u->cbGainChange(cbGainChange);
+		u->listen_onchange(m_shr_onchange);
 	}
 
 }
 
 void SpMixerController::probeLevels() {
+	/*
 	auto u = unit<SuMixer>();
 	if(!u) return;
 
 	mLevelsLeft.setValue(u->getChannelPeak(0));
 	mLevelsRight.setValue(u->getChannelPeak(1));
+	*/
 	emit update();
 }
 
-void SpMixerController::onGainChange(SuMixer::GainType type, int value) {
+void SpMixerController::onGainChange(SuMixer::gain_type type, int value) {
 		switch(type) {
-			case SuMixer::Channel1: mGainLeft.setValue(value); break;
-			case SuMixer::Channel2: mGainRight.setValue(value); break;
-			case SuMixer::Master: mGainMaster.setValue(value); break;
-			case SuMixer::Fader: mFader.setValue(value); mFader.update(); break;
+			case SuMixer::channel_a: mGainLeft.setValue(value); break;
+			case SuMixer::channel_b: mGainRight.setValue(value); break;
+			case SuMixer::master: mGainMaster.setValue(value); break;
+			//case SuMixer::Fader: mFader.setValue(value); mFader.update(); break;
 		}
 }
