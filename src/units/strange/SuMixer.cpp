@@ -5,9 +5,11 @@
 #define AudioOut 0
 SuMixer::SuMixer(std::string label)
 	: siospc::combine("SuMixer", label)
-	, m_gain_master(0.5)
-	, m_gain_chan_a(1.0)
-	, m_gain_chan_b(1.0)
+	, m_gain_master(0.5f)
+	, m_gain_chan_a(1.0f)
+	, m_peak_chan_a(0.0f)
+	, m_gain_chan_b(1.0f)
+	, m_peak_chan_b(0.0f)
 {
 	add_input("channel_a");
 	add_input("channel_b");
@@ -55,37 +57,55 @@ siocom::cycle_state SuMixer::cycle() {
 }
 
 void SuMixer::mix_channels() {
+
 		auto total = m_chan_a.block_size();
+
+		auto lpeaka = m_peak_chan_a;
+		auto lpeakb = m_peak_chan_b;
+
 		for(auto i = 0u; i < total; i++) { 
-			auto sampleA = m_chan_a[i] * m_gain_final_a;
-			auto sampleB = m_chan_b[i] * m_gain_final_b;
+			auto sampleA = m_chan_a[i];
+			auto sampleB = m_chan_b[i];
 			
-			m_chan_a[i] = sampleA + sampleB;
+			if((sampleA *= m_gain_chan_a) > lpeaka) lpeaka = sampleA;
+			if((sampleB *= m_gain_chan_b) > lpeakb) lpeakb = sampleB;
+
+			m_chan_a[i] = (sampleA + sampleB) * m_gain_master;
 		}
 		m_chan_b.free();
 		feed_out(m_chan_a, AudioOut);
 }
 
 void SuMixer::single_channel() {
+
 	if(input_active(ChannelA) && m_chan_a) {
 
 		auto total = m_chan_a.block_size();
+		auto lpeak = m_peak_chan_b;
 
 		for(auto i = 0u; i < total; i++) {
-			auto sample = m_chan_a[i] * m_gain_final_a;
-			m_chan_a[i] = sample;
+			auto sample = m_chan_a[i];
+			if((sample *= m_gain_chan_a) > lpeak) lpeak = sample;
+
+			m_chan_a[i] = sample * m_gain_master;
 		}
 
+		m_peak_chan_b = lpeak;
 		feed_out(m_chan_a, AudioOut);
 
 	} else if(input_active(ChannelB) && m_chan_b) {
 
 		auto total = m_chan_b.block_size();
+		auto lpeak = m_peak_chan_b;
+
 		for(auto i = 0u; i < total; i++) {
-			auto sample = m_chan_b[i] * m_gain_final_b;
-			m_chan_b[i] = sample;
+			auto sample = m_chan_b[i];
+			if((sample *= m_gain_chan_b) > lpeak) lpeak = sample;
+
+			m_chan_b[i] = sample * m_gain_master;
 		}
 
+		m_peak_chan_b = lpeak;
 		feed_out(m_chan_b, AudioOut);
 
 	}
@@ -103,18 +123,32 @@ void SuMixer::action_gain_master(int value) {
 	m_gain_master = fv;
 	m_gain_final_a = m_gain_chan_a * m_gain_master;
 	m_gain_final_b = m_gain_chan_b * m_gain_master;
-
+	event_onchange(gain_type::master, value);
 }
 
 void SuMixer::action_gain_chan_a(int value) {
 	auto fv = siortn::midi::normalise_velocity128(value);
 	m_gain_chan_a = fv;
 	m_gain_final_a = m_gain_chan_a * m_gain_master;
+	event_onchange(gain_type::channel_a, value);
 }
 
 void SuMixer::action_gain_chan_b(int value) {
 	auto fv = siortn::midi::normalise_velocity128(value);
 	m_gain_chan_b = fv;
 	m_gain_final_b = m_gain_chan_b * m_gain_master;
+	event_onchange(gain_type::channel_b, value);
+}
+
+void SuMixer::listen_onchange(std::weak_ptr<std::function<void(SuMixer::gain_type, int)>> cb) {
+	m_onchange_listeners.push_back(cb);
+}
+
+void SuMixer::event_onchange(SuMixer::gain_type type, int value) {
+	for(auto& wptr : m_onchange_listeners) {
+		if(auto shr = wptr.lock()) {
+			(*shr)(type, value);
+		}
+	}
 }
 UnitBuilder(SuMixer);
