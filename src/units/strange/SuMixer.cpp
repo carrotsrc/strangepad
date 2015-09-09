@@ -60,8 +60,8 @@ void SuMixer::mix_channels() {
 
 		auto total = m_chan_a.block_size();
 
-		auto lpeaka = m_peak_chan_a;
-		auto lpeakb = m_peak_chan_b;
+		auto lpeaka = 0.0f;
+		auto lpeakb = 0.0f;
 
 		for(auto i = 0u; i < total; i++) { 
 			auto sampleA = m_chan_a[i];
@@ -81,7 +81,7 @@ void SuMixer::single_channel() {
 	if(input_active(ChannelA) && m_chan_a) {
 
 		auto total = m_chan_a.block_size();
-		auto lpeak = m_peak_chan_b;
+		auto lpeak = 0.0f;
 
 		for(auto i = 0u; i < total; i++) {
 			auto sample = m_chan_a[i];
@@ -91,12 +91,13 @@ void SuMixer::single_channel() {
 		}
 
 		m_peak_chan_b = lpeak;
+
 		feed_out(m_chan_a, AudioOut);
 
 	} else if(input_active(ChannelB) && m_chan_b) {
 
 		auto total = m_chan_b.block_size();
-		auto lpeak = m_peak_chan_b;
+		auto lpeak = 0.0f;
 
 		for(auto i = 0u; i < total; i++) {
 			auto sample = m_chan_b[i];
@@ -150,5 +151,18 @@ void SuMixer::event_onchange(SuMixer::gain_type type, int value) {
 			(*shr)(type, value);
 		}
 	}
+}
+
+float SuMixer::probe_channel_peak(int channel) {
+
+	auto p = 0.0f;
+
+	if(channel) {
+		p = m_peak_chan_a;
+	} else {
+		p = m_peak_chan_b;
+	}
+
+	return p;
 }
 UnitBuilder(SuMixer);
