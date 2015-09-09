@@ -30,7 +30,6 @@ SuFlac::SuFlac(std::string label)
 
 	register_midi_handler("load",[this](midi::msg m){
 		if(m.v != 127) return;
-		log("Starting load");
 		load_file();
 	});
 }
@@ -49,9 +48,14 @@ cycle_state SuFlac::cycle() {
 	 * be OK.
 	 */
 	if(!m_num_cached) {
-		return cycle_state::error;
+		return cycle_state::complete;
 	}
 
+	if(m_ws != working_state::streaming) {
+		return cycle_state::complete;
+	}
+
+	log("Feeding");
 	feed_out(m_cptr[m_rindex++], LineAudio);
 	m_num_cached--;
 	if(m_rindex == 5) m_rindex = 0;
@@ -121,7 +125,6 @@ void SuFlac::cache_chunk() {
 
 		auto samples = cache_alloc(1);
 		auto deint = cache_alloc(1);
-
 		auto csz = m_period_size * m_num_channels;
 
 		if(m_remain < csz) csz = m_remain;
@@ -139,9 +142,19 @@ void SuFlac::cache_chunk() {
 
 }
 
-cycle_state SuFlac::resync() {
-	m_period_size = global_profile().period;
-	m_num_channels = global_profile().channels;
+cycle_state SuFlac::resync(siocom::sync_flag flags) {
+
+	if(flags & (sync_flag)sync_flags::glob_sync) {
+
+		m_period_size = global_profile().period;
+		m_num_channels = global_profile().channels;
+
+	} else if(flags & (sync_flag)sync_flags::upstream) {
+		if(m_ws == working_state::sync_streaming) {
+			event_onchange(working_state::streaming);
+		}
+
+	}
 	return cycle_state::complete;
 }
 
@@ -169,6 +182,7 @@ void SuFlac::set_configuration(std::string key, std::string value) {
 }
 
 void SuFlac::event_onchange(SuFlac::working_state state) {
+	m_ws = state;
 	for(auto wptr : m_onchange_listeners) {
 		if(auto cb = wptr.lock()) {
 			(*cb)(state);
@@ -187,6 +201,7 @@ void SuFlac::action_start_stream() {
 
 	if(unit_profile().state == (int)line_state::inactive) {
 		register_metric(profile_metric::state, (int)line_state::active);
+		event_onchange(working_state::sync_streaming);
 		trigger_sync((sync_flag)sync_flags::upstream);
 
 		if(global_profile().state == (int)line_state::inactive) {

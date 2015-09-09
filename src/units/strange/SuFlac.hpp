@@ -21,6 +21,8 @@ public:
 		prestream,
 		streaming,
 		paused,
+
+		sync_streaming,
 	};
 
 public:
@@ -42,7 +44,7 @@ public:
 	unsigned int probe_total_spc() const;
 
 protected:
-	siocom::cycle_state resync();
+	siocom::cycle_state resync(siocom::sync_flag flags);
 
 private:
 	std::array< siomem::cache_ptr, 5 > m_cptr;
@@ -53,6 +55,8 @@ private:
 
 	unsigned int m_buf_size, m_remain, m_samples_played;
 	unsigned int m_period_size, m_num_channels;
+
+	working_state m_ws;
 
 	std::string m_flac_path;
 

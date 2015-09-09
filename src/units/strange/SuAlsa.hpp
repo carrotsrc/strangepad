@@ -7,6 +7,8 @@
 
 #include <alsa/asoundlib.h>
 
+#include <stdio.h>
+
 #include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
 #include "framework/spec/dispatch.hpp" // Base class: strangeio::component::unit
@@ -39,6 +41,7 @@ protected:
 private:
 	// Buffer
 	strangeio::memory::cache_ptr m_buffer;
+	FILE *m_fp;
 
 	// Alsa variables
 	snd_pcm_t *m_handle;

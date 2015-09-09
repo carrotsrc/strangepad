@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
 
 	std::cout << "Loading rack: " << rigDescription.getRackConfig().toStdString() << std::endl;
-	auto srack = siortn::system::setup(as, rigDescription.getRackConfig().toStdString(), 32);
+	auto srack = siortn::system::setup(as, rigDescription.getRackConfig().toStdString(), 64);
 
 	QApplication app (argc, argv);
 	auto huds = setupRig(rigDescription, &padLoader, srack.get());

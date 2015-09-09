@@ -19,7 +19,7 @@ SuAlsa::SuAlsa(std::string label)
 }
 
 SuAlsa::~SuAlsa() {
-
+	fclose(m_fp);
 }
 
 cycle_state SuAlsa::cycle() {
@@ -30,7 +30,6 @@ cycle_state SuAlsa::cycle() {
 
 void SuAlsa::feed_line(memory::cache_ptr samples, int line) {
 	m_buffer = samples;
-
 }
 
 void SuAlsa::flush_samples() {
@@ -41,6 +40,7 @@ void SuAlsa::flush_samples() {
 		auto local_buffer = m_buffer;
 		auto intw = cache_alloc(1);
 		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
+		fwrite((void*)intw.get(), intw.block_size(), sizeof(PcmSample), m_fp);
 		nframes = snd_pcm_writei(m_handle, intw.get(), profile.period);
 	}
 
@@ -199,7 +199,7 @@ cycle_state SuAlsa::init() {
 
 	snd_async_add_pcm_handler(&m_cb, m_handle, &pcm_trigger_callback, (void*)func);
 
-	
+	m_fp = fopen("dump.raw", "wb");
 	log("Initialised");
 	return cycle_state::complete;
 }

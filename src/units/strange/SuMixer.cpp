@@ -41,15 +41,16 @@ void SuMixer::feed_line(siomem::cache_ptr samples, int line) {
 }
 
 siocom::cycle_state SuMixer::cycle() {
+
 	if(all_active()) {
 		if(!m_chan_a || !m_chan_b) {
 			return siocom::cycle_state::partial;
 		}
 		mix_channels();
-
 	} else {
 		single_channel();
 	}
+
 	return siocom::cycle_state::complete;
 }
 
@@ -61,11 +62,12 @@ void SuMixer::mix_channels() {
 			
 			m_chan_a[i] = sampleA + sampleB;
 		}
+		m_chan_b.free();
 		feed_out(m_chan_a, AudioOut);
 }
 
 void SuMixer::single_channel() {
-	if(m_chan_a) {
+	if(input_active(ChannelA) && m_chan_a) {
 
 		auto total = m_chan_a.block_size();
 
@@ -73,16 +75,19 @@ void SuMixer::single_channel() {
 			auto sample = m_chan_a[i] * m_gain_final_a;
 			m_chan_a[i] = sample;
 		}
+
 		feed_out(m_chan_a, AudioOut);
 
-	} else if(m_chan_b) {
+	} else if(input_active(ChannelB) && m_chan_b) {
 
 		auto total = m_chan_b.block_size();
 		for(auto i = 0u; i < total; i++) {
 			auto sample = m_chan_b[i] * m_gain_final_b;
 			m_chan_b[i] = sample;
 		}
+
 		feed_out(m_chan_b, AudioOut);
+
 	}
 }
 
