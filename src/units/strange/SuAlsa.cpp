@@ -40,17 +40,15 @@ void SuAlsa::flush_samples() {
 		auto local_buffer = m_buffer;
 		auto intw = cache_alloc(1);
 		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
-		fwrite((void*)intw.get(), intw.block_size(), sizeof(PcmSample), m_fp);
 		nframes = snd_pcm_writei(m_handle, intw.get(), profile.period);
 	}
 
 	if(nframes != (signed) profile.period) {
 		if(nframes == -EPIPE) {
-//			if(workState != PAUSED)
 			std::cerr << "Underrun occurred" << std::endl;
 			snd_pcm_recover(m_handle, nframes, 0);
 		} else {
-			std::cerr << "Screwed: Code[" << (signed int)nframes << "]" << std::endl;
+			std::cerr << "Error Code " << (signed int)nframes << ": " << std::endl;
 			std::cerr << snd_strerror(nframes) << std::endl;
 			snd_pcm_recover(m_handle, nframes, 0);
 		}
@@ -88,7 +86,7 @@ cycle_state SuAlsa::init() {
 	}
 
 
-	if ((err = snd_pcm_open (&m_handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+	if ((err = snd_pcm_open (&m_handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
 		log("cannot open audio device `default` - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
