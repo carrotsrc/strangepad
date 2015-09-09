@@ -38,7 +38,7 @@ SPad(parent) {
 	mSplit.addLayout(&mGainBar);
 	mFader.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	mFader.setStart(64);
-	mSplit.addWidget(&mFader);
+	//mSplit.addWidget(&mFader);
 
 
 	mLevelsLeft.setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -62,13 +62,13 @@ void SpMixerController::onRegisterUnit() {
 }
 
 void SpMixerController::probeLevels() {
-	/*
+	
 	auto u = unit<SuMixer>();
 	if(!u) return;
 
-	mLevelsLeft.setValue(u->getChannelPeak(0));
-	mLevelsRight.setValue(u->getChannelPeak(1));
-	*/
+	mLevelsLeft.setValue(u->probe_channel_peak(0));
+	mLevelsRight.setValue(u->probe_channel_peak(1));
+
 	emit update();
 }
 
