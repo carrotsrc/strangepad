@@ -5,13 +5,13 @@ import os
 from subprocess import call
 
 
-if not os.environ.has_key('RACKOONIOFW'):
-	print "Error: environment RACKOONIOFW does not exist\n\n\tTry 'export RACKOONIOFW=path/to/framework'"
+if not os.environ.has_key('STRANGEFW'):
+	print "Error: environment STRANGEFW does not exist\n\n\tTry 'export STRANGEFW=path/to/framework'"
 	exit()
 if not os.environ.has_key('STRANGEPADFW'):
 	print "Error: environment STRANGEPADFW does not exist\n\n\tTry 'export STRANGEPADFW=path/to/framework'"
 	exit()
-fw = os.environ['RACKOONIOFW']
+fw = os.environ['STRANGEFW']
 sw = os.environ['STRANGEPADFW']
 owd = os.getcwd();
 
@@ -19,7 +19,7 @@ owd = os.getcwd();
 
 targets = {
 	'framework' :{
-			'cd' : fw+"/framework/",
+			'cd' : fw+"/build/",
 			'cmd' : ['make']
 			},
 
@@ -51,38 +51,43 @@ targets = {
 
 
 
-	'unit/RuAlsa' :{
+	'unit/SuAlsa' :{
 			'cd' : sw+"/src/units/",
-			'cmd' : ['unitbuild', '../../bin/units/RuAlsa', '-ggdb', '-lasound', 'RuAlsa.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/SuAlsa', '-O', '-O3', '-lasound', 'strange/SuAlsa.cpp']
 			},
 
-	'unit/SuFlacLoad' :{
+	'unit/SuFlac' :{
 			'cd' : sw+"/src/units/",
-			'cmd' : ['unitbuild', '../../bin/units/SuFlacLoad', '-ggdb', '-lsndfile', 'SuFlacLoad.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/SuFlac', '-O', '-O3', '-lsndfile', 'strange/SuFlac.cpp']
 			},
 
 	'unit/SuMixer' :{
 			'cd' : sw+"/src/units/",
-			'cmd' : ['unitbuild', '../../bin/units/SuMixer', '-ggdb', 'SuMixer.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/SuMixer',  '-O', '-O3', 'strange/SuMixer.cpp']
+			#'cmd' : ['unitbuild', '../../bin/units/SuMixer', '-g', 'strange/SuMixer.cpp']
 			},
 
 	'unit/SuEncoder' :{
 			'cd' : sw+"/src/units/",
-			'cmd' : ['unitbuild', '../../bin/units/SuEncoder', '-ggdb', 'SuEncoder.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/SuEncoder', '-g', 'SuEncoder.cpp']
 			},
 
 	'unit/RuSine' :{
 			'cd' : sw+"/src/units/",
-			'cmd' : ['unitbuild', '../../bin/units/RuSine', '-ggdb', 'RuSine.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/RuSine', '-g', 'RuSine.cpp']
 			},
 
 	'unit/BfForderFw' :{
 			'cd' : sw+"/src/units/basic",
-			'cmd' : ['unitbuild', '../../../bin/units/BfForderFw', '-ggdb', 'BfForderFw.cpp']
+			'cmd' : ['unitbuild', '../../../bin/units/basic/BfForderFw', '-g', 'BfForderFw.cpp']
 			},
 	'unit/BfSineOsc' :{
 			'cd' : sw+"/src/units/basic",
-			'cmd' : ['unitbuild', '../../../bin/units/BfSineOsc', '-ggdb', 'BfSineOsc.cpp']
+			'cmd' : ['unitbuild', '../../../bin/units/basic/BfSineOsc', '-g', 'BfSineOsc.cpp']
+			},
+	'unit/BfForderBw' :{
+			'cd' : sw+"/src/units/basic",
+			'cmd' : ['unitbuild', '../../../bin/units/basic/BfForderBw', '-g', 'BfForderBw.cpp']
 			},
 }
 
@@ -108,6 +113,6 @@ if os.environ.has_key("VERBOSE") and os.environ['VERBOSE'] == "1":
     print(" ".join(args))
 
 if call(args) == 0:
-    print("OK")
+    print("OK");
 
 os.chdir(owd)
