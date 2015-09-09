@@ -55,7 +55,6 @@ cycle_state SuFlac::cycle() {
 		return cycle_state::complete;
 	}
 
-	log("Feeding");
 	feed_out(m_cptr[m_rindex++], LineAudio);
 	m_num_cached--;
 	if(m_rindex == 5) m_rindex = 0;
