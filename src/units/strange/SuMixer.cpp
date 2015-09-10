@@ -72,6 +72,8 @@ void SuMixer::mix_channels() {
 
 			m_chan_a[i] = (sampleA + sampleB) * m_gain_master;
 		}
+		m_peak_chan_a = lpeaka;
+		m_peak_chan_b = lpeakb;
 		m_chan_b.free();
 		feed_out(m_chan_a, AudioOut);
 }
