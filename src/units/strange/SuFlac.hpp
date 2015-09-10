@@ -6,9 +6,11 @@
 #include <vector>
 
 #include "framework/alias.hpp"
-#include "framework/component/unit.hpp" // Base class: strangeio::component::unit
+#include "framework/spec/mainline.hpp" // Base class: strangeio::component::unit
 
-class SuFlac : public siocom::unit
+#define SuFlacCacheSize 3
+
+class SuFlac : public siospc::mainline
 {
 public:
 	SuFlac(std::string label);
@@ -23,6 +25,7 @@ public:
 		paused,
 
 		sync_streaming,
+		sync_paused,
 	};
 
 public:
@@ -47,7 +50,7 @@ protected:
 	siocom::cycle_state resync(siocom::sync_flag flags);
 
 private:
-	std::array< siomem::cache_ptr, 5 > m_cptr;
+	std::array< siomem::cache_ptr, SuFlacCacheSize > m_cptr;
 	std::atomic_int m_num_cached, m_rindex, m_windex;
 
 	PcmSample* m_buffer;

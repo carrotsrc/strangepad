@@ -10,7 +10,7 @@ using namespace strangeio::component;
 #define LineAudio 0
 
 SuFlac::SuFlac(std::string label)
-	: unit(unit_type::mainline, "SuFlac", label)
+	: siospc::mainline("SuFlac", label)
 	, m_num_cached(0)
 	, m_rindex(0)
 	, m_windex(0)
@@ -32,6 +32,8 @@ SuFlac::SuFlac(std::string label)
 		if(m.v != 127) return;
 		load_file();
 	});
+
+	
 }
 
 SuFlac::~SuFlac() {
@@ -47,6 +49,7 @@ cycle_state SuFlac::cycle() {
 	 * For now, the cached periods should
 	 * be OK.
 	 */
+
 	if(!m_num_cached) {
 		return cycle_state::complete;
 	}
@@ -57,7 +60,7 @@ cycle_state SuFlac::cycle() {
 
 	feed_out(m_cptr[m_rindex++], LineAudio);
 	m_num_cached--;
-	if(m_rindex == 5) m_rindex = 0;
+	if(m_rindex == SuFlacCacheSize) m_rindex = 0;
 
 	add_task(std::bind(&SuFlac::cache_chunk, this));
 	return cycle_state::complete;
@@ -117,8 +120,8 @@ void SuFlac::cache_chunk() {
 	
 	if(!m_buffer) return;
 
-	auto tc = 5 - m_num_cached;
-	
+	auto tc = SuFlacCacheSize - m_num_cached;
+
 	for(auto i = 0; i < tc; i++) {
 		if(m_remain == 0) return;
 
@@ -136,7 +139,7 @@ void SuFlac::cache_chunk() {
 		m_cptr[m_windex] = deint;
 
 		m_num_cached++;
-		if(++m_windex == 5) m_windex = 0;
+		if(++m_windex == SuFlacCacheSize) m_windex = 0;
 	}
 
 }
@@ -149,8 +152,13 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 		m_num_channels = global_profile().channels;
 
 	} else if(flags & (sync_flag)sync_flags::upstream) {
+
 		if(m_ws == working_state::sync_streaming) {
 			event_onchange(working_state::streaming);
+			log("Streaming");
+		} else if (m_ws == working_state::sync_paused) {
+			event_onchange(working_state::paused);
+			log("Paused");
 		}
 
 	}
@@ -175,8 +183,6 @@ void SuFlac::reset_buffer(unsigned int total_samples) {
 void SuFlac::set_configuration(std::string key, std::string value) {
 	if(key == "flac") {
 		m_flac_path = value;
-	} else if(key == "kick_start") {
-		trigger_cycle();
 	}
 }
 
@@ -188,7 +194,6 @@ void SuFlac::event_onchange(SuFlac::working_state state) {
 		}
 	}
 }
-
 
 void SuFlac::action_load_file(std::string path) {
 	m_flac_path = path;
@@ -204,8 +209,12 @@ void SuFlac::action_start_stream() {
 		trigger_sync((sync_flag)sync_flags::upstream);
 
 		if(global_profile().state == (int)line_state::inactive) {
-			trigger_cycle();
+			trigger_cycle(); // need to kick start the process
 		}
+	} else {
+		register_metric(profile_metric::state, (int)line_state::inactive);
+		event_onchange(working_state::sync_paused);
+		trigger_sync((sync_flag)sync_flags::upstream);
 	}
 }
 

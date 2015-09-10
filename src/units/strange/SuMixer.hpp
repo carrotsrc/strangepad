@@ -28,6 +28,7 @@ public:
 protected:
 	siocom::cycle_state cycle();
 	siocom::cycle_state init();
+	siocom::cycle_state resync(siocom::sync_flag flags);
 
 private:
 	siomem::cache_ptr m_chan_a, 
@@ -37,6 +38,8 @@ private:
 	float m_gain_master,
 		  m_gain_chan_a, m_gain_final_a, m_peak_chan_a,
 		  m_gain_chan_b, m_gain_final_b, m_peak_chan_b;
+	
+	unsigned int m_block_size;
 
 	void mix_channels();
 	void single_channel();

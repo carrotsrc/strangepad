@@ -12,8 +12,10 @@ static void pcm_trigger_callback(snd_async_handler_t *);
 
 SuAlsa::SuAlsa(std::string label)
 	: dispatch("SuAlsa", label)
+	, m_in_driver(0)
 	, m_running(false)
 	, m_active(false)
+	
 {
 	add_input("audio_in");
 }
@@ -40,19 +42,32 @@ void SuAlsa::flush_samples() {
 		auto local_buffer = m_buffer;
 		auto intw = cache_alloc(1);
 		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
-		nframes = snd_pcm_writei(m_handle, intw.get(), profile.period);
-	}
 
-	if(nframes != (signed) profile.period) {
-		if(nframes == -EPIPE) {
-			std::cerr << "Underrun occurred" << std::endl;
-			snd_pcm_recover(m_handle, nframes, 0);
-		} else {
-			std::cerr << "Error Code " << (signed int)nframes << ": " << std::endl;
+		if(snd_pcm_state(m_handle) == -EPIPE) {
+			snd_pcm_recover(m_handle, -EPIPE, 1);
+		}
+		/*
+		 * snd_pcm_sframes_t delay = 0;
+		 * snd_pcm_delay(m_handle, &delay);
+		 * std::cout << "\t" << delay << " samples" << std::endl;
+		 */
+		nframes = snd_pcm_writei(m_handle, intw.get(), profile.period);
+
+		if(nframes != (signed) profile.period) {
 			std::cerr << snd_strerror(nframes) << std::endl;
-			snd_pcm_recover(m_handle, nframes, 0);
+			if(nframes == -EPIPE) {
+			//	std::cerr << "Underrun occurred" << std::endl;
+				snd_pcm_recover(m_handle, nframes, 1);
+				nframes = snd_pcm_writei(m_handle, intw.get(), profile.period);
+			} else {
+			//	std::cerr << "Error Code " << (signed int)nframes << ": " << std::endl;
+			//	std::cerr << snd_strerror(nframes) << std::endl;
+				snd_pcm_recover(m_handle, nframes, 1);
+			}
 		}
 	}
+	m_in_driver++;
+	if(m_in_driver < 0) trigger_cycle();
 }
 
 cycle_state SuAlsa::init() {
@@ -146,7 +161,7 @@ cycle_state SuAlsa::init() {
 	}
 
 
-	if ((err = snd_pcm_hw_params_set_periods(m_handle, hw_params, 2, dir)) < 0) {
+	if ((err = snd_pcm_hw_params_set_periods(m_handle, hw_params, 3, dir)) < 0) {
 		log("cannot set periods - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
@@ -180,7 +195,7 @@ cycle_state SuAlsa::init() {
 	}
 
 	register_metric(profile_metric::latency, (signed int)buffer_size);
-	
+
 
 	auto sample_rate = 0u;
 	if ((err = snd_pcm_hw_params_get_rate (hw_params, &sample_rate, &dir)) < 0) {
@@ -192,10 +207,18 @@ cycle_state SuAlsa::init() {
 
 	//	Handle async signals safely
 	auto *func = new std::function<void(void)>([this](){
+		//std::cout << m_in_driver << "in driver" << std::endl;
+		if(unit_profile().state == (int)line_state::active) m_in_driver--;
 		m_signal_cv.notify_one();
 	});
 
 	snd_async_add_pcm_handler(&m_cb, m_handle, &pcm_trigger_callback, (void*)func);
+
+	//snd_pcm_sw_params_t *sw_params;
+	//snd_pcm_sw_params_malloc (&sw_params);
+	//snd_pcm_sw_params_set_start_threshold(m_handle, sw_params, buffer_size);
+	//snd_pcm_sw_params(m_handle, sw_params);
+	//snd_pcm_sw_params_free (sw_params);
 
 	m_fp = fopen("dump.raw", "wb");
 	log("Initialised");

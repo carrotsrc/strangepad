@@ -38,6 +38,7 @@ public:
 protected:
 	siocom::cycle_state resync();
 
+
 private:
 	// Buffer
 	strangeio::memory::cache_ptr m_buffer;
@@ -48,6 +49,7 @@ private:
 	snd_async_handler_t *m_cb;
 	snd_pcm_uframes_t m_trigger_level, m_fperiod;
 	unsigned int m_max_periods;
+	std::atomic<int> m_in_driver;
 
 	// safe signal handling
 	std::condition_variable m_signal_cv;

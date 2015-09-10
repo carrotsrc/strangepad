@@ -66,8 +66,8 @@ void SpMixerController::probeLevels() {
 	auto u = unit<SuMixer>();
 	if(!u) return;
 
-	mLevelsLeft.setValue(u->probe_channel_peak(0));
-	mLevelsRight.setValue(u->probe_channel_peak(1));
+	mLevelsLeft.setValue(u->probe_channel_peak(1));
+	mLevelsRight.setValue(u->probe_channel_peak(0));
 
 	emit update();
 }

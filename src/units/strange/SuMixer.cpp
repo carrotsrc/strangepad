@@ -57,8 +57,7 @@ siocom::cycle_state SuMixer::cycle() {
 }
 
 void SuMixer::mix_channels() {
-
-		auto total = m_chan_a.block_size();
+		auto total = m_block_size;
 
 		auto lpeaka = 0.0f;
 		auto lpeakb = 0.0f;
@@ -81,27 +80,24 @@ void SuMixer::mix_channels() {
 void SuMixer::single_channel() {
 
 	if(input_active(ChannelA) && m_chan_a) {
-
-		auto total = m_chan_a.block_size();
 		auto lpeak = 0.0f;
 
-		for(auto i = 0u; i < total; i++) {
+		for(auto i = 0u; i < m_block_size; i++) {
 			auto sample = m_chan_a[i];
 			if((sample *= m_gain_chan_a) > lpeak) lpeak = sample;
 
 			m_chan_a[i] = sample * m_gain_master;
 		}
 
-		m_peak_chan_b = lpeak;
+		m_peak_chan_a = lpeak;
 
 		feed_out(m_chan_a, AudioOut);
 
 	} else if(input_active(ChannelB) && m_chan_b) {
 
-		auto total = m_chan_b.block_size();
 		auto lpeak = 0.0f;
 
-		for(auto i = 0u; i < total; i++) {
+		for(auto i = 0u; i < m_block_size; i++) {
 			auto sample = m_chan_b[i];
 			if((sample *= m_gain_chan_b) > lpeak) lpeak = sample;
 
@@ -110,10 +106,8 @@ void SuMixer::single_channel() {
 
 		m_peak_chan_b = lpeak;
 		feed_out(m_chan_b, AudioOut);
-
 	}
 }
-
 
 siocom::cycle_state SuMixer::init() {
 	m_gain_final_a = m_gain_chan_a * m_gain_master;
@@ -121,6 +115,7 @@ siocom::cycle_state SuMixer::init() {
 	log("Initialised");
 	return siocom::cycle_state::complete;
 }
+
 void SuMixer::action_gain_master(int value) {
 	auto fv = siortn::midi::normalise_velocity128(value);
 	m_gain_master = fv;
@@ -166,5 +161,13 @@ float SuMixer::probe_channel_peak(int channel) {
 	}
 
 	return p;
+}
+
+siocom::cycle_state SuMixer::resync(siocom::sync_flag flags) {
+	if(flags & (siocom::sync_flag) siocom::sync_flags::glob_sync) {
+		m_block_size = global_profile().period*global_profile().channels;
+	}
+	
+	return siocom::cycle_state::complete;
 }
 UnitBuilder(SuMixer);

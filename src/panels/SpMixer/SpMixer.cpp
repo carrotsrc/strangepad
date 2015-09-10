@@ -9,5 +9,6 @@ extern "C" QWidget *SpMixerBuild(const QString & panelId) {
 		return obj;
 	}
 
+
 	return nullptr;
 }
