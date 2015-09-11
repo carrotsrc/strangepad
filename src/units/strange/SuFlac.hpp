@@ -45,6 +45,7 @@ public:
 	const PcmSample* probe_flac_data() const;
 	std::string probe_flac_path() const;
 	unsigned int probe_total_spc() const;
+	int probe_progress() const;
 
 protected:
 	siocom::cycle_state resync(siocom::sync_flag flags);
@@ -56,9 +57,9 @@ private:
 	PcmSample* m_buffer;
 	PcmSample* m_position;
 
-	unsigned int m_buf_size, m_remain, m_samples_played;
+	unsigned int m_buf_size, m_remain;
 	unsigned int m_period_size, m_num_channels;
-
+	signed int m_samples_played;
 	working_state m_ws;
 
 	std::string m_flac_path;

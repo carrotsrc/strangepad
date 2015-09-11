@@ -63,6 +63,7 @@ cycle_state SuFlac::cycle() {
 	if(m_rindex == SuFlacCacheSize) m_rindex = 0;
 
 	add_task(std::bind(&SuFlac::cache_chunk, this));
+	m_samples_played += (m_period_size*2);
 	return cycle_state::complete;
 }
 
@@ -112,7 +113,11 @@ void SuFlac::load_file() {
 	add_task(std::bind(&SuFlac::cache_chunk, this));
 	log("Done");
 	event_onchange(SuFlac::prestream);
-	m_samples_played = 0;
+	
+	/* The first period stays in the buffer
+	 * until the second period is received
+	 */
+	m_samples_played = -m_period_size;
 	
 }
 
@@ -234,6 +239,12 @@ void SuFlac::listen_onchange(std::weak_ptr<std::function<void(SuFlac::working_st
 
 unsigned int SuFlac::probe_total_spc() const {
 	return m_buf_size  / unit_profile().channels;
+}
+
+signed int SuFlac::probe_progress() const {
+	if(m_samples_played < 0) return 0;
+
+	return m_samples_played;
 }
 
 UnitBuilder(SuFlac);
