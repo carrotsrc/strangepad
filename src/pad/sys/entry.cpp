@@ -65,17 +65,23 @@ int main(int argc, char **argv)
 	return app.exec();
 }
 
+#include <stdio.h>
+#include <unistd.h>
 
 static int branchNoGui(siocom::rack *srack) {
 	bool running = true;
 	std::string in;
 	srack->warmup();
 	srack->start();
+//	FILE *cpu_proc_fp = fopen("/proc/stat");
+//	fclose(cpu_proc_fp);
+
 	while(running) {
 		std::cout << "rack@strangepad $ " << std::flush;
 		std::cin >> in;
 		if(in == "quit")
 			running = false;
+
 	}
 	delete srack;
 	return 0;

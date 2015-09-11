@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include "framework/routine/sound.hpp"
 #include "SuAlsa.hpp"
 using namespace strangeio;
@@ -12,6 +13,7 @@ static void pcm_trigger_callback(snd_async_handler_t *);
 
 SuAlsa::SuAlsa(std::string label)
 	: dispatch("SuAlsa", label)
+	, m_cfg_period_size(0)
 	, m_in_driver(0)
 	, m_running(false)
 	, m_active(false)
@@ -102,31 +104,31 @@ cycle_state SuAlsa::init() {
 
 
 	if ((err = snd_pcm_open (&m_handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
-		log("cannot open audio device `default` - ");
+		log("# cannot open audio device `default` - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
-		log("cannot allocated hardware param struct - ");
+		log("# cannot allocated hardware param struct - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	if ((err = snd_pcm_hw_params_any (m_handle, hw_params)) < 0) {
-		log("cannot init hardware param struct - ");
+		log("# cannot init hardware param struct - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	if ((err = snd_pcm_hw_params_set_access (m_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-		log("cannot set access type - ");
+		log("# cannot set access type - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	if ((err = snd_pcm_hw_params_set_format (m_handle, hw_params, SND_PCM_FORMAT_FLOAT_LE)) < 0) {
-		log("cannot set format - ");
+		log("# cannot set format - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
@@ -134,59 +136,93 @@ cycle_state SuAlsa::init() {
 	// Sample rate
 	auto fs = 44100u;
 	if ((err = snd_pcm_hw_params_set_rate_near (m_handle, hw_params, &fs, &dir)) < 0) {
-		log("cannot set sample rate - ");
+		log("# cannot set sample rate - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	// Channels
 	if ((err = snd_pcm_hw_params_set_channels (m_handle, hw_params, 2)) < 0) {
-		log("cannot set channels - ");
+		log("# cannot set channels - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
+	auto min_period_size = 256ul, max_period_size = 2048ul;
+	if(( err = 
+		snd_pcm_hw_params_set_period_size_minmax(
+			m_handle, hw_params,
+			&min_period_size, &dir,
+			&max_period_size, &dir
+		)) < 0 ) {
+		log("# cannot set minmax period size - ");
+		log(std::string(snd_strerror(err)));
+		return cycle_state::error;
+	}
+	std::stringstream ss;
+	ss << "min/max: " << min_period_size << "/" << max_period_size;
+	log(ss.str());
+	ss.str("");
+/*
 	// Period sizes
-	auto min_period_size = 0ul;
 	if ((err = snd_pcm_hw_params_get_period_size_min(hw_params, &min_period_size, &dir)) < 0) {
 		log("cannot get period size - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
+*/
+	auto actual_period_size = min_period_size;
 
-	if ((err = snd_pcm_hw_params_set_period_size(m_handle, hw_params, min_period_size, dir)) < 0) {
-		log("cannot set period size - "+ std::to_string(min_period_size));
-		log(std::string(snd_strerror(err)));
-		return cycle_state::error;
+	if(m_cfg_period_size  > 0
+	&& m_cfg_period_size >= min_period_size
+	&& m_cfg_period_size <= max_period_size) {
+		actual_period_size = m_cfg_period_size;
+	}
+
+	if ((err = snd_pcm_hw_params_set_period_size(m_handle, hw_params, actual_period_size, dir)) < 0) {
+		ss << "# Cannot set period size to " << actual_period_size << " frames";
+		log(ss.str());
+		log("~ Setting to configurable minimum");
+		actual_period_size = min_period_size;
+		if ((err = snd_pcm_hw_params_set_period_size(m_handle, hw_params, min_period_size, dir)) < 0) {
+			log("# Failed and bailed!");
+			return cycle_state::error;
+		}
 	}
 
 
 	if ((err = snd_pcm_hw_params_set_periods(m_handle, hw_params, 3, dir)) < 0) {
-		log("cannot set periods - ");
+		log("# cannot set periods - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	if ((err = snd_pcm_hw_params (m_handle, hw_params)) < 0) {
-		log("cannot set parameters - ");
+		log("# cannot set parameters - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	snd_pcm_hw_params_free (hw_params);
 
+
 	if ((err = snd_pcm_prepare (m_handle)) < 0) {
-		log("cannot prepare audio interface - ");
+		log("# cannot prepare audio interface - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
 
 	auto period_size = 0ul;
 	if ((err = snd_pcm_hw_params_get_period_size (hw_params, &period_size, &dir)) < 0) {
-		log("cannot get period size - ");
+		log("# cannot get period size - ");
 			log(std::string(snd_strerror(err)));
 	}
 	register_metric(profile_metric::period, (signed int)period_size);
+
+	ss << "Period size : " << period_size << " frames";
+	log(ss.str());
+	ss.str("");
+
 
 	snd_pcm_uframes_t buffer_size;
 	if ((err = snd_pcm_hw_params_get_buffer_size (hw_params, &buffer_size)) < 0) {
@@ -194,7 +230,10 @@ cycle_state SuAlsa::init() {
 		log(std::string(snd_strerror(err)));
 	}
 
-	register_metric(profile_metric::latency, (signed int)buffer_size);
+	register_metric(profile_metric::latency, (signed int)(buffer_size/period_size));
+	ss << "Buffer size : " << (buffer_size/period_size) << " periods (trigger on 1)";
+	log(ss.str());
+	ss.str("");
 
 
 	auto sample_rate = 0u;
@@ -228,6 +267,12 @@ cycle_state SuAlsa::init() {
 siocom::cycle_state SuAlsa::resync(){
 
 	return cycle_state::complete;
+}
+
+void SuAlsa::set_configuration(std::string key, std::string value) {
+	if(key == "period_size") {
+		m_cfg_period_size = std::stoi(value);
+	}
 }
 
 /* This is a signal handler. ALSA uses SIGIO to tell the unit that the

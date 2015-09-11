@@ -34,6 +34,7 @@ public:
 	strangeio::component::cycle_state cycle();
 	void feed_line(strangeio::memory::cache_ptr samples, int line);
 	strangeio::component::cycle_state init();
+	void set_configuration(std::string key, std::string value);
 
 protected:
 	siocom::cycle_state resync();
@@ -49,6 +50,7 @@ private:
 	snd_async_handler_t *m_cb;
 	snd_pcm_uframes_t m_trigger_level, m_fperiod;
 	unsigned int m_max_periods;
+	unsigned int m_cfg_period_size;
 	std::atomic<int> m_in_driver;
 
 	// safe signal handling
