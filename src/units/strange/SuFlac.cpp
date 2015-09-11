@@ -202,7 +202,7 @@ void SuFlac::event_onchange(SuFlac::working_state state) {
 
 void SuFlac::action_load_file(std::string path) {
 	m_flac_path = path;
-	load_file();
+	add_task(std::bind(&SuFlac::load_file, this));
 }
 
 void SuFlac::action_start_stream() {
