@@ -11,7 +11,7 @@ local context state line
 typeset -A opt_args
 _arguments \
 "1:target:(framework strangepad strangeui pad/SpFlac pad/SpMixer pad/SpSine unit/RuAlsa \
-unit/SuFlacLoad unit/SuMixer unit/SuEncoder unit/RuSine unit/BfForderFw unit/BfSineOsc)"
+unit/SuFlacLoad unit/SuMixer unit/SuEncoder unit/SuDelay unit/RuSine unit/BfForderFw unit/BfSineOsc)"
 }
 _strangemake "$@"
 

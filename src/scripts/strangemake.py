@@ -58,13 +58,19 @@ targets = {
 
 	'unit/SuFlac' :{
 			'cd' : sw+"/src/units/",
-			'cmd' : ['unitbuild', '../../bin/units/SuFlac', '-O', '-O3', '-lsndfile', 'strange/SuFlac.cpp']
+#			'cmd' : ['unitbuild', '../../bin/units/SuFlac', '-O', '-O3', '-lsndfile', 'strange/SuFlac.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/SuFlac', '-g', '-lsndfile', 'strange/SuFlac.cpp']
 			},
 
 	'unit/SuMixer' :{
 			'cd' : sw+"/src/units/",
 			'cmd' : ['unitbuild', '../../bin/units/SuMixer',  '-O', '-O3', 'strange/SuMixer.cpp']
 			#'cmd' : ['unitbuild', '../../bin/units/SuMixer', '-g', 'strange/SuMixer.cpp']
+			},
+
+	'unit/SuDelay' :{
+			'cd' : sw+"/src/units/",
+			'cmd' : ['unitbuild', '../../bin/units/SuDelay', '-g', 'strange/SuDelay.cpp']
 			},
 
 	'unit/SuEncoder' :{

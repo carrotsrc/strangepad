@@ -4,7 +4,7 @@ if [ "$1" == "gdb" ]; then
 	len=${#args[@]}
 
 	params=${args[@]:1:$len-1}
-	LD_LIBRARY_PATH=$RACKOONIOFW:./ $1 --args ./pad $params
+	LD_LIBRARY_PATH=$STRANGEFW:./ $1 --args ./pad $params
 else
-	LD_LIBRARY_PATH=$RACKOONIOFW:./ ./pad $@
+	LD_LIBRARY_PATH=$STRANGEFW:./ ./pad $@
 fi
