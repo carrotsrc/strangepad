@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <atomic>
 
 #include "framework/alias.hpp"
 #include "framework/component/unit.hpp"
@@ -15,7 +16,7 @@ public:
 
 public:
 	enum working_state {
-		passing, priming, ready, filtering
+		passing, resetting, priming, ready, filtering
 	};
 
 	void feed_line(siomem::cache_ptr samples, int line);
@@ -25,6 +26,9 @@ public:
 	void action_start();
 	void action_stop();
 
+	void action_mod_decay(float value);
+	void action_mod_volume(float value);
+
 protected:
 	siocom::cycle_state cycle();
 	siocom::cycle_state init();
@@ -33,9 +37,10 @@ protected:
 private:
 	working_state m_ws;
 	unsigned int m_delay_time,  m_delay_size, m_period_size;
-	unsigned int m_spms;
-	float m_a;
+	unsigned int m_spms, m_delay_range;
+	std::atomic<float> m_a, m_b;
 
+	std::atomic<bool> m_resetting;
 	PcmSample* m_delay_buffer, 
 				*m_write_r, *m_read_r, *m_end_r, 
 				*m_write_l, *m_read_l, *m_end_l,

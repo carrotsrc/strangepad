@@ -1,15 +1,21 @@
-#include "SuDelay.hpp"
 #include <sstream>
+
+#include "framework/routine/midi.hpp"
+#include "SuDelay.hpp"
 #define SuDelayAudio 0
 
 SuDelay::SuDelay(std::string label)
 	: unit(siocom::unit_type::step, "SuDelay", label)
 
-	, m_delay_time(500)
+	, m_delay_time(750)
 	, m_delay_size(0)
 	, m_period_size(0)
 	, m_spms(0)
+	, m_delay_range(2000)
 	, m_a(0.5)
+	, m_b(1.0)
+
+	, m_resetting(false)
 
 	, m_delay_buffer(nullptr)
 	, m_write_r(nullptr), m_read_r(nullptr), m_end_r(nullptr)
@@ -27,6 +33,43 @@ SuDelay::SuDelay(std::string label)
 		if(m_ws == working_state::ready) action_start();
 		else if(m_ws == working_state::filtering) action_stop();
 	});
+
+	register_midi_handler("volume", [this](siomid::msg m) {
+		auto fv = siortn::midi::normalise_velocity128(m.v);
+		action_mod_volume(fv);
+	});
+
+	register_midi_handler("decay", [this](siomid::msg m) {
+		auto fv = siortn::midi::normalise_velocity128(m.v);
+		action_mod_decay(fv);
+	});
+
+	register_midi_handler("reset_toggle", [this](siomid::msg m) {
+		if(m.v == 127) {
+			m_resetting = true;
+			m_ws = working_state::resetting;
+		}
+		else {
+			reset_delay();
+			log("Delay buffer reset");
+			m_resetting = false;
+		}
+	});
+
+	register_midi_handler("reset_buffer", [this](siomid::msg m) {
+		if(!m_resetting) return;
+
+		auto fv = siortn::midi::normalise_velocity128(m.v);
+		m_delay_time = m_delay_range*fv;
+		if(m_delay_time == 0) m_delay_time = 1;
+		auto bpm = (60000/m_delay_time);
+		std::stringstream ss;
+		
+		ss << "Delay time " << m_delay_time << "ms" 
+		<< "[" << bpm << " bpm]";
+		log(ss.str());
+		
+	});
 }
 
 SuDelay::~SuDelay() {
@@ -37,7 +80,7 @@ siocom::cycle_state SuDelay::cycle() {
 		return siocom::cycle_state::complete;
 	}
 
-	if(m_ws == working_state::passing) {
+	if(m_ws == working_state::passing || m_ws == working_state::resetting) {
 		feed_out(m_cptr, SuDelayAudio);
 		return siocom::cycle_state::complete;
 	}
@@ -46,11 +89,11 @@ siocom::cycle_state SuDelay::cycle() {
 		auto c1 = 0u, c2 = m_period_size;
 		for(auto i = 0u; i < m_period_size; i++) {
 
-			auto sl = (*m_write_l * m_a) + m_cptr[c1];
+			auto sl = (*m_write_l * m_a) + (m_cptr[c1]*m_b);
 			m_cptr[c1++] = sl;
 			*m_write_l = sl;
 
-			auto sr = (*m_write_r * m_a) + m_cptr[c2];
+			auto sr = (*m_write_r * m_a) + (m_cptr[c2]*m_b);
 			m_cptr[c2++] = sr;
 			*m_write_r = sr;
 
@@ -172,6 +215,14 @@ void SuDelay::action_stop() {
 
 	m_ws = working_state::ready;
 	log("Echo delay off");
+}
+
+void SuDelay::action_mod_volume(float value) {
+	m_b = value;
+}
+
+void SuDelay::action_mod_decay(float value) {
+	m_a = value;
 }
 
 UnitBuilder(SuDelay);
