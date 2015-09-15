@@ -1,6 +1,7 @@
 #ifndef SUFLAC_HPP__
 #define SUFLAC_HPP__
 #include <atomic>
+#include <mutex>
 #include <memory>
 #include <array>
 #include <vector>
@@ -41,6 +42,7 @@ public:
 	// Action methods for the pad
 	void action_load_file(std::string path);
 	void action_start_stream();
+	void action_jump_to_sample(int sample);
 
 	const PcmSample* probe_flac_data() const;
 	std::string probe_flac_path() const;
@@ -52,14 +54,16 @@ protected:
 
 private:
 	std::array< siomem::cache_ptr, SuFlacCacheSize > m_cptr;
+	std::mutex m_buffer_mutex;
 	std::atomic_int m_num_cached, m_rindex, m_windex;
 
 	PcmSample* m_buffer;
-	PcmSample* m_position;
+	PcmSample* m_position, *m_jump_pos;
 
 	unsigned int m_buf_size, m_remain;
 	unsigned int m_period_size, m_num_channels;
 	signed int m_samples_played;
+	std::atomic<bool> m_jump;
 	working_state m_ws;
 
 	std::string m_flac_path;
@@ -69,6 +73,7 @@ private:
 	void load_file();
 	void cache_chunk();
 	void reset_buffer(unsigned int num_samples);
+	void clear_buffer();
 
 	void event_onchange(SuFlac::working_state state);
 

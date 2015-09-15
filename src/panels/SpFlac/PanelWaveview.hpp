@@ -28,6 +28,8 @@ public:
 	void dragMoveEvent(QDragMoveEvent *e);
 	void dropEvent(QDropEvent *e);
 
+	void mouseReleaseEvent(QMouseEvent* e);
+
 public slots:
 	void triggerMidiPlay();
 	void onGuiUpdate();

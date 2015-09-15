@@ -19,6 +19,7 @@ SuFlac::SuFlac(std::string label)
 	, m_buf_size(0)
 	, m_remain(0)
 	, m_samples_played(0)
+	, m_jump(false)
 	, m_flac_path("")
 {
 
@@ -78,6 +79,10 @@ cycle_state SuFlac::init() {
 }
 
 void SuFlac::load_file() {
+
+	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+	clear_buffer();
+
 	std::stringstream ss;
 	ss << "Loading " << m_flac_path;
 	log(ss.str());
@@ -124,7 +129,8 @@ void SuFlac::load_file() {
 void SuFlac::cache_chunk() {
 	
 	if(!m_buffer) return;
-
+	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+	
 	auto tc = SuFlacCacheSize - m_num_cached;
 
 	for(auto i = 0; i < tc; i++) {
@@ -245,6 +251,30 @@ signed int SuFlac::probe_progress() const {
 	if(m_samples_played < 0) return 0;
 
 	return m_samples_played;
+}
+
+void SuFlac::action_jump_to_sample(int sample) {
+	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+	auto check = m_ws;
+	if(check != working_state::prestream
+	&& check != working_state::paused) {
+		return;
+	}
+
+	auto offset = sample;
+	m_position = m_buffer + offset;
+	m_num_cached = 0;
+	m_remain = m_buf_size - offset;
+	m_samples_played = offset;
+
+	add_task(std::bind(&SuFlac::cache_chunk, this));
+}
+
+void SuFlac::clear_buffer() {
+	for(auto& cptr : m_cptr) {
+		cptr.free();
+	}
+	m_num_cached = 0;
 }
 
 UnitBuilder(SuFlac);

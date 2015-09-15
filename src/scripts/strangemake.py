@@ -70,8 +70,8 @@ targets = {
 
 	'unit/SuDelay' :{
 			'cd' : sw+"/src/units/",
-			#'cmd' : ['unitbuild', '../../bin/units/SuDelay', '-g', 'strange/SuDelay.cpp']
-			'cmd' : ['unitbuild', '../../bin/units/SuDelay', '-O', '-O3', 'strange/SuDelay.cpp']
+			'cmd' : ['unitbuild', '../../bin/units/SuDelay', '-g', 'strange/SuDelay.cpp']
+			#'cmd' : ['unitbuild', '../../bin/units/SuDelay', '-O', '-O3', 'strange/SuDelay.cpp']
 			},
 
 	'unit/SuEncoder' :{

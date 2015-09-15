@@ -153,3 +153,14 @@ void SpFlacWaveview::probeProgress() {
 
 	}
 }
+
+void SpFlacWaveview::mouseReleaseEvent(QMouseEvent* e) {
+	auto wrect = mWave.geometry();
+	if(e->button() == Qt::LeftButton && mWave.rect().contains(e->pos())) {
+		auto x = e->x() - mWave.x();
+		auto jump = x * mWave.getSampleStep();
+		if(auto u = unit<SuFlac>()) {
+			u->action_jump_to_sample(jump);
+		}
+	}
+}

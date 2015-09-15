@@ -85,26 +85,32 @@ siocom::cycle_state SuDelay::cycle() {
 		return siocom::cycle_state::complete;
 	}
 
-	if(m_ws == working_state::filtering) {
+	if(m_ws == working_state::filtering || m_ws == working_state::ready) {
 		auto c1 = 0u, c2 = m_period_size;
 		for(auto i = 0u; i < m_period_size; i++) {
 
 			auto sl = (*m_write_l * m_a) + (m_cptr[c1]*m_b);
-			m_cptr[c1++] = sl;
+			
+			if(m_ws == working_state::filtering) m_cptr[c1] = sl;
+
 			*m_write_l = sl;
 
 			auto sr = (*m_write_r * m_a) + (m_cptr[c2]*m_b);
-			m_cptr[c2++] = sr;
+			
+			if(m_ws == working_state::filtering) m_cptr[c2] = sr;
+			
 			*m_write_r = sr;
 
 			if(++m_write_l == m_end_l) m_write_l = m_start_l;
 			if(++m_write_r == m_end_r) m_write_r = m_start_r;
+
+			c1++; c2++;
 		}
 		feed_out(m_cptr, SuDelayAudio);
 		return siocom::cycle_state::complete;
 	}
 
-	if(m_ws == working_state::priming || m_ws == working_state::ready) {
+	if(m_ws == working_state::priming) {
 		std::stringstream ss;
 		auto rem = m_period_size;
 		auto wrap = m_end_l - m_write_l;
