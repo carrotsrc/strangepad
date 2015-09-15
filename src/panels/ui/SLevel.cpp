@@ -109,6 +109,5 @@ void SLevel::setValue(float value) {
 }
 
 QSize SLevel::sizeHint() const {
-	std::cout << "SLevel size: " << width() << "," << height() << std::endl;
 	return QSize(width(), height());
 }

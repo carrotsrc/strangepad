@@ -37,11 +37,13 @@ SuDelay::SuDelay(std::string label)
 	register_midi_handler("volume", [this](siomid::msg m) {
 		auto fv = siortn::midi::normalise_velocity128(m.v);
 		action_mod_volume(fv);
+		event_onvalue(value_change::input, m.v);
 	});
 
 	register_midi_handler("decay", [this](siomid::msg m) {
 		auto fv = siortn::midi::normalise_velocity128(m.v);
 		action_mod_decay(fv);
+		event_onvalue(value_change::decay, m.v);
 	});
 
 	register_midi_handler("reset_toggle", [this](siomid::msg m) {
@@ -68,7 +70,7 @@ SuDelay::SuDelay(std::string label)
 		ss << "Delay time " << m_delay_time << "ms" 
 		<< "[" << bpm << " bpm]";
 		log(ss.str());
-		
+		event_onvalue(value_change::buffer, m.v);
 	});
 }
 
@@ -126,7 +128,7 @@ siocom::cycle_state SuDelay::cycle() {
 
 			rem -= wrap;
 			if(m_ws == priming) {
-				m_ws = working_state::ready;
+				event_onchange(working_state::ready);
 				log("Primed");
 			}
 
@@ -143,6 +145,10 @@ siocom::cycle_state SuDelay::cycle() {
 
 void SuDelay::listen_onchange(std::weak_ptr<std::function<void(SuDelay::working_state)> > cb) {
 	m_onchange_listeners.push_back(cb);
+}
+
+void SuDelay::listen_onvalue(std::weak_ptr<std::function<void(SuDelay::value_change,int)> > cb) {
+	m_onvalue_listeners.push_back(cb);
 }
 
 void SuDelay::feed_line(siomem::cache_ptr samples, int line) {
@@ -196,7 +202,8 @@ void SuDelay::reset_delay() {
 	m_start_r = m_write_r = m_read_r = (m_delay_buffer+chan_sw);
 	m_end_r = m_start_r + chan_sw;
 
-	m_ws = working_state::priming;
+	event_onchange(working_state::priming);
+	
 
 }
 
@@ -209,17 +216,25 @@ void SuDelay::event_onchange(SuDelay::working_state state) {
 	}
 }
 
+void SuDelay::event_onvalue(SuDelay::value_change type, int value) {
+	for(auto wptr : m_onvalue_listeners) {
+		if(auto cb = wptr.lock()) {
+			(*cb)(type, value);
+		}
+	}
+}
+
 void SuDelay::action_start() {
 	if(m_ws == working_state::passing || m_ws == working_state::passing) return;
 
-	m_ws = working_state::filtering;
+	event_onchange(working_state::filtering);
 	log("Echo delay on");
 }
 
 void SuDelay::action_stop() {
 	if(m_ws == working_state::passing || m_ws == working_state::passing) return;
 
-	m_ws = working_state::ready;
+	event_onchange(working_state::ready);
 	log("Echo delay off");
 }
 
@@ -229,6 +244,10 @@ void SuDelay::action_mod_volume(float value) {
 
 void SuDelay::action_mod_decay(float value) {
 	m_a = value;
+}
+
+int SuDelay::probe_buffer_time() {
+	return m_delay_time;
 }
 
 UnitBuilder(SuDelay);

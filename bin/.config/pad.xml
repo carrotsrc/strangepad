@@ -10,7 +10,9 @@
 
 	</hud>
 
-	<hud label="Focus">
+	<hud label="Focus Alpha">
+		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
+		<pad collection="SpDelay" type="controller" label="AlphaDelay" unit="delay_c1" />
 	</hud>
 
 </rig>

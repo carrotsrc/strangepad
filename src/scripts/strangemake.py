@@ -49,7 +49,10 @@ targets = {
 			'cmd' : ['make']
 			},
 
-
+	'pad/SpSine' :{
+			'cd' : sw+"/src/panels/SpDelay/",
+			'cmd' : ['make']
+			},
 
 	'unit/SuAlsa' :{
 			'cd' : sw+"/src/units/",

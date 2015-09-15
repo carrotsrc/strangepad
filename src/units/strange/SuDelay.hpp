@@ -19,15 +19,23 @@ public:
 		passing, resetting, priming, ready, filtering
 	};
 
+	enum value_change {
+		buffer, input, decay
+	};
+
 	void feed_line(siomem::cache_ptr samples, int line);
 
 	void listen_onchange(std::weak_ptr<std::function<void(SuDelay::working_state)> > cb);
+	void listen_onvalue(std::weak_ptr<std::function<void(SuDelay::value_change,int)> > cb);
 
 	void action_start();
 	void action_stop();
 
 	void action_mod_decay(float value);
 	void action_mod_volume(float value);
+	
+
+	int probe_buffer_time();
 
 protected:
 	siocom::cycle_state cycle();
@@ -51,7 +59,9 @@ private:
 	void reset_delay();
 
 	std::vector<std::weak_ptr<std::function<void(SuDelay::working_state) > > > m_onchange_listeners;
+	std::vector<std::weak_ptr<std::function<void(SuDelay::value_change,int) > > > m_onvalue_listeners;
 	void event_onchange(SuDelay::working_state state);
+	void event_onvalue(SuDelay::value_change type, int value);
 
 };
 
@@ -59,4 +69,7 @@ using sudelay_onchange_cb = std::function<void(SuDelay::working_state)>;
 using sudelay_onchange_wptr = std::weak_ptr<sudelay_onchange_cb>;
 using sudelay_onchange_sptr = std::shared_ptr<sudelay_onchange_cb>;
 
+using sudelay_onvalue_cb = std::function<void(SuDelay::value_change,int)>;
+using sudelay_onvalue_wptr = std::weak_ptr<std::function<void(SuDelay::value_change,int)>>;
+using sudelay_onvalue_sptr = std::shared_ptr<std::function<void(SuDelay::value_change,int)>>;
 #endif // SUDELAY_HPP
