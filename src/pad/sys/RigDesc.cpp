@@ -36,3 +36,15 @@ void RigDesc::setRackConfig(QString path) {
 QString RigDesc::getRackConfig() {
 	return mRackConfig;
 }
+void RigDesc::addMidi(QString device, QString code, QString function) {
+	mMidi.push_back({
+		.device = device,
+		.code = code,
+		.function = function
+	});
+	std::cout << "Added midi" << std::endl;
+}
+
+const QVector<MidiDesc>& RigDesc::getMidi() const {
+	return mMidi;
+}

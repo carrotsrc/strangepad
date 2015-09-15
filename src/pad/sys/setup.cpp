@@ -2,6 +2,8 @@
 
 using namespace strangeio;
 
+
+
 QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, siocom::rack *sys) {
 	QVector<SHud*> huds;
 
@@ -23,3 +25,4 @@ QVector<SHud*> setupRig(const RigDesc & rig, PadLoader *padLoader, siocom::rack 
 
 	return huds;
 }
+

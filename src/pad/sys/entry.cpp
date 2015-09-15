@@ -59,7 +59,9 @@ int main(int argc, char **argv)
 	for(auto hud : huds) {
 		window.addHeadsup(hud);
 	}
-	
+
+	auto handler = srack->get_midi_handler();
+	window.bindMidi(rigDescription.getMidi(), handler);
 	window.show();
 
 	return app.exec();

@@ -20,3 +20,34 @@ void SWindow::addHeadsup(SHud *widget) {
 	mHud.addTab(widget, widget->getLabel());
 }
 
+void SWindow::bindMidi(const QVector<MidiDesc> & bindings, siomid::midi_handler* handler) {
+
+	for(auto& binding : bindings) {
+		if(binding.function == "hud_left") {
+			handler->add_binding(binding.device.toStdString(), binding.code.toInt(),
+								[this](siomid::msg m) {
+									if(!m.v) return;
+
+									auto i = mHud.currentIndex();
+									if(i == 0) i = mHud.count();
+									i--;
+									mHud.setCurrentIndex(i);
+									
+								} );
+		}
+
+		if(binding.function == "hud_right") {
+			handler->add_binding(binding.device.toStdString(), binding.code.toInt(),
+								[this](siomid::msg m) {
+									if(!m.v) return;
+
+									auto i = mHud.currentIndex();
+									if(i == mHud.count()-1) i = 0;
+									else i++;
+									
+									mHud.setCurrentIndex(i);
+									
+								} );
+		}
+	}
+}

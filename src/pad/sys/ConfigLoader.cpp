@@ -10,6 +10,7 @@ ConfigLoader::ConfigLoader() {
 void ConfigLoader::initStateTokens() {
 	mStateTokens.insert(State::Rig, QString("rig"));
 	mStateTokens.insert(State::Hud, QString("hud"));
+	mStateTokens.insert(State::Hud, QString("midi"));
 }
 
 bool ConfigLoader::load(const QString &path, RigDesc *description) {
@@ -52,8 +53,9 @@ void ConfigLoader::switchStartElement(const QString & element) {
 		readPadElement();
 	} else if(element == "rack") {
 		readRackElement();
+	} else if(element == "midi") {
+		readMidiElement();
 	}
-
 	// push the state
 	for(auto it = mStateTokens.constBegin(); it != mStateTokens.constEnd(); ++it) {
 		if(it.value() == element) {
@@ -111,4 +113,20 @@ void ConfigLoader::readPadElement() {
 		at.value("type").toString(),
 		at.value("label").toString(),
 		at.value("unit").toString());
+}
+
+void ConfigLoader::readMidiElement() {
+		auto at = mXml.attributes();
+
+	if(!at.hasAttribute("device")
+	|| !at.hasAttribute("code")
+	|| !at.hasAttribute("function")) {
+		std::cerr << "Pad Config: midi element" 
+			<< " has malformed description" << std::endl;
+		return;
+	}
+
+	mRig->addMidi(at.value("device").toString(),
+				at.value("code").toString(),
+				at.value("function").toString());
 }

@@ -2,7 +2,9 @@
 <!DOCTYPE rig>
 
 <rig>
-	
+	<midi device="LaunchControl" code="106" function="hud_left" />
+	<midi device="LaunchControl" code="107" function="hud_right" />
+
 	<hud label="Overview">
 		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
 		<pad collection="SpMixer" type="controller" label="Mastermix" unit="mastermix" />
@@ -10,9 +12,14 @@
 
 	</hud>
 
-	<hud label="Focus Alpha">
+	<hud label="Focus A">
 		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
 		<pad collection="SpDelay" type="controller" label="AlphaDelay" unit="delay_c1" />
+	</hud>
+
+	<hud label="Focus B">
+		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac2" />
+		<pad collection="SpDelay" type="controller" label="AlphaDelay" unit="delay_c2" />
 	</hud>
 
 </rig>
