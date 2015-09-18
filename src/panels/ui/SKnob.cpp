@@ -21,18 +21,25 @@ void SKnob::paintEvent(QPaintEvent*) {
 	auto step = 240.0/maximum();
 	auto theta = (value() * step)+150;
 
-	QPen pen("#52015B");
+	
 	painter.setBrush(QColor("#5FA4FF"));
+	QPen pen("#5FA4FF");
+	
 	pen.setWidth(0);
 	painter.setPen(pen);
 
 	mKnobHighlight->moveTo(a-25,b-25);
+
+	pen.setColor(QColor("#52015B"));
 	painter.drawPie(*mKnobHighlight, 150*-16, ((theta-150)*-16));
 
 	mKnobContainer->moveTo(a-20,b-20);
 
 	pen.setWidth(3);
-	painter.setBrush(QColor("#8E06A0"));
+	pen.setColor(QColor("#272727"));
+	painter.setBrush(QColor("#757575"));
+	//painter.setBrush(QColor("#F97FFF"));
+	
 	auto x1 = (int) a + 20*std::cos(theta * (M_PI/180.0));
 	auto y1 = (int) b + 20*std::sin(theta * (M_PI/180.0));
 
@@ -40,7 +47,7 @@ void SKnob::paintEvent(QPaintEvent*) {
 	painter.drawEllipse(*mKnobContainer);
 
 	pen.setWidth(2);
-	pen.setColor(QColor("#A841B6"));
+	pen.setColor(QColor("#272727"));
 	painter.setPen(pen);
 	QLine line(a,b,x1,y1);
 	painter.drawLine(line);
