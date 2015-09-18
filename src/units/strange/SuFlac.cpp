@@ -20,6 +20,7 @@ SuFlac::SuFlac(std::string label)
 	, m_remain(0)
 	, m_samples_played(0)
 	, m_jump(false)
+	, m_final(false)
 	, m_flac_path("")
 {
 
@@ -59,12 +60,18 @@ cycle_state SuFlac::cycle() {
 		return cycle_state::complete;
 	}
 
+
 	feed_out(m_cptr[m_rindex++], LineAudio);
+
+	
 	m_num_cached--;
+
 	if(m_rindex == SuFlacCacheSize) m_rindex = 0;
 
 	add_task(std::bind(&SuFlac::cache_chunk, this));
-	m_samples_played += (m_period_size*2);
+	if(m_remain) {
+		m_samples_played += (m_period_size*2);
+	}
 	return cycle_state::complete;
 }
 
@@ -79,6 +86,8 @@ cycle_state SuFlac::init() {
 }
 
 void SuFlac::load_file() {
+
+	if(m_ws == working_state::streaming) return;
 
 	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
 	clear_buffer();
@@ -123,6 +132,7 @@ void SuFlac::load_file() {
 	 * until the second period is received
 	 */
 	m_samples_played = -m_period_size;
+	m_final = false;
 	
 }
 
@@ -132,15 +142,28 @@ void SuFlac::cache_chunk() {
 	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
 	
 	auto tc = SuFlacCacheSize - m_num_cached;
+	auto csz = m_period_size * m_num_channels;
 
 	for(auto i = 0; i < tc; i++) {
-		if(m_remain == 0) return;
+
+		if(m_remain == 0) {
+			auto samples = cache_alloc(1);
+			for(auto  i = 0u; i < csz; i++)
+				samples[i] = 0.0000001f;
+			m_cptr[m_windex] = samples;
+			m_num_cached++;
+			if(++m_windex == SuFlacCacheSize) m_windex = 0;
+			continue;
+		}
 
 		auto samples = cache_alloc(1);
 		auto deint = cache_alloc(1);
 		auto csz = m_period_size * m_num_channels;
 
-		if(m_remain < csz) csz = m_remain;
+		if(m_remain < csz) {
+			csz = m_remain;
+			m_final = true; // toggle final load
+		}
 		samples.copy_from(m_position, csz);
 
 		routine::sound::deinterleave2(*samples, *deint, m_period_size);

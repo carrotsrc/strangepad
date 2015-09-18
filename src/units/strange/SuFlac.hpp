@@ -24,6 +24,7 @@ public:
 		prestream,
 		streaming,
 		paused,
+		zero,
 
 		sync_streaming,
 		sync_paused,
@@ -63,7 +64,7 @@ private:
 	unsigned int m_buf_size, m_remain;
 	unsigned int m_period_size, m_num_channels;
 	signed int m_samples_played;
-	std::atomic<bool> m_jump;
+	std::atomic<bool> m_jump, m_final;
 	working_state m_ws;
 
 	std::string m_flac_path;
