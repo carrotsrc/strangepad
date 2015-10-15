@@ -5,17 +5,33 @@ import os
 from subprocess import call
 
 
-if not os.environ.has_key('STRANGEFW'):
-	print "Error: environment STRANGEFW does not exist\n\n\tTry 'export STRANGEFW=path/to/framework'"
+if not 'STRANGEFW' in os.environ:
+	print("Error: environment STRANGEFW does not exist\n\n\tTry 'export STRANGEFW=path/to/framework'")
 	exit()
-if not os.environ.has_key('STRANGEPADFW'):
-	print "Error: environment STRANGEPADFW does not exist\n\n\tTry 'export STRANGEPADFW=path/to/framework'"
+if not 'STRANGEPADFW' in os.environ:
+	print("Error: environment STRANGEPADFW does not exist\n\n\tTry 'export STRANGEPADFW=path/to/framework'")
 	exit()
+
 fw = os.environ['STRANGEFW']
 sw = os.environ['STRANGEPADFW']
 owd = os.getcwd();
 
+target_order = [
+	'framework',
 
+	'unit/SuAlsa',
+	'unit/SuFlac',
+	'unit/SuMixer',
+	'unit/SuDelay',
+
+	'strangeui',
+	'pad/SpFlac',
+	'pad/SpMixer',
+	'pad/SpSine',
+	'pad/SpSine',
+
+	'strangepad',
+]	
 
 targets = {
 	'framework' :{
@@ -30,27 +46,6 @@ targets = {
 
 	'strangeui' :{
 			'cd' : sw+"/src/panels/ui/",
-			'cmd' : ['make']
-			},
-
-
-	'pad/SpFlac' :{
-			'cd' : sw+"/src/panels/SpFlac/",
-			'cmd' : ['make']
-			},
-
-	'pad/SpMixer' :{
-			'cd' : sw+"/src/panels/SpMixer/",
-			'cmd' : ['make']
-			},
-
-	'pad/SpSine' :{
-			'cd' : sw+"/src/panels/SpSine/",
-			'cmd' : ['make']
-			},
-
-	'pad/SpSine' :{
-			'cd' : sw+"/src/panels/SpDelay/",
 			'cmd' : ['make']
 			},
 
@@ -87,17 +82,39 @@ targets = {
 			'cmd' : ['unitbuild', '../../bin/units/RuSine', '-g', 'RuSine.cpp']
 			},
 
-	'unit/BfForderFw' :{
-			'cd' : sw+"/src/units/basic",
-			'cmd' : ['unitbuild', '../../../bin/units/basic/BfForderFw', '-g', 'BfForderFw.cpp']
+#	'unit/BfForderFw' :{
+#			'cd' : sw+"/src/units/basic",
+#			'cmd' : ['unitbuild', '../../../bin/units/basic/BfForderFw', '-g', 'BfForderFw.cpp']
+#			},
+#	'unit/BfSineOsc' :{
+#			'cd' : sw+"/src/units/basic",
+#			'cmd' : ['unitbuild', '../../../bin/units/basic/BfSineOsc', '-g', 'BfSineOsc.cpp']
+#			},
+
+#	'unit/BfForderBw' :{
+#			'cd' : sw+"/src/units/basic",
+#			'cmd' : ['unitbuild', '../../../bin/units/basic/BfForderBw', '-g', 'BfForderBw.cpp']
+#			},
+
+
+	'pad/SpFlac' :{
+			'cd' : sw+"/src/panels/SpFlac/",
+			'cmd' : ['make']
 			},
-	'unit/BfSineOsc' :{
-			'cd' : sw+"/src/units/basic",
-			'cmd' : ['unitbuild', '../../../bin/units/basic/BfSineOsc', '-g', 'BfSineOsc.cpp']
+
+	'pad/SpMixer' :{
+			'cd' : sw+"/src/panels/SpMixer/",
+			'cmd' : ['make']
 			},
-	'unit/BfForderBw' :{
-			'cd' : sw+"/src/units/basic",
-			'cmd' : ['unitbuild', '../../../bin/units/basic/BfForderBw', '-g', 'BfForderBw.cpp']
+
+	'pad/SpSine' :{
+			'cd' : sw+"/src/panels/SpSine/",
+			'cmd' : ['make']
+			},
+
+	'pad/SpSine' :{
+			'cd' : sw+"/src/panels/SpDelay/",
+			'cmd' : ['make']
 			},
 }
 
@@ -109,7 +126,21 @@ if sys.argv[1] == "-v" or sys.argv[1] == "--version":
 	print("StrangeMaker build script\nv1.0")
 	exit()
 
-if not targets.has_key(sys.argv[1]):
+if sys.argv[1] == "-a" or sys.argv[1] == "--all":
+	print("Running through all targets...")
+	for target in target_order:
+		print("SMake: \033[1;34m"+target+"\033[1;m")
+		os.chdir(targets[target]['cd'])		
+		args = targets[target]['cmd'] + sys.argv[2:]
+		if call(args) != 0:
+			print("Target: \033[1;31mFailed\033[1;m")
+			exit()
+		print("Target: \033[1;32mOk\033[1;m")
+	print("\033[1;32mFinished!\033[1;m")
+	exit()
+
+
+if not sys.argv[1] in targets:
 	print("Error - target not found")
 	exit()
 
@@ -119,7 +150,7 @@ os.chdir(targets[sys.argv[1]]['cd'])
 print("Building target...")
 
 args = targets[sys.argv[1]]['cmd'] + sys.argv[2:]
-if os.environ.has_key("VERBOSE") and os.environ['VERBOSE'] == "1":
+if "VERBOSE" in os.environ and os.environ['VERBOSE'] == "1":
     print(" ".join(args))
 
 if call(args) == 0:
