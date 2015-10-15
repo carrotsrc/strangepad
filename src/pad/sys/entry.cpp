@@ -36,7 +36,6 @@ int main(int argc, char **argv)
 	ConfigLoader configLoader;
 	configLoader.load(configPath, &rigDescription);
 
-
 	std::cout << "Loading rack: " << rigDescription.getRackConfig().toStdString() << std::endl;
 	auto srack = siortn::system::setup(as, rigDescription.getRackConfig().toStdString(), 64);
 

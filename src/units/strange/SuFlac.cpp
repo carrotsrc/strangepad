@@ -283,10 +283,9 @@ void SuFlac::action_jump_to_sample(int sample) {
 	&& check != working_state::paused) {
 		return;
 	}
-
+	clear_buffer();
 	auto offset = sample;
 	m_position = m_buffer + offset;
-	m_num_cached = 0;
 	m_remain = m_buf_size - offset;
 	m_samples_played = offset;
 

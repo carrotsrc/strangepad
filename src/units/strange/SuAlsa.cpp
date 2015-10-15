@@ -69,7 +69,7 @@ void SuAlsa::flush_samples() {
 		}
 	}
 	m_in_driver++;
-	if(m_in_driver < 0) trigger_cycle();
+	if(m_in_driver < 2) trigger_cycle();
 }
 
 cycle_state SuAlsa::init() {
