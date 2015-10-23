@@ -49,9 +49,11 @@ private:
 	snd_pcm_t *m_handle;
 	snd_async_handler_t *m_cb;
 	snd_pcm_uframes_t m_trigger_level, m_fperiod;
+        snd_pcm_channel_area_t *m_areas;
 	unsigned int m_max_periods;
 	unsigned int m_cfg_period_size;
-	std::atomic<int> m_in_driver, m_is_active;
+        
+	std::atomic<int> m_in_driver;
 
 	struct pollfd *m_pfd;
         std::string m_alsa_dev;
@@ -64,6 +66,8 @@ private:
 
 	void flush_samples();
         void init_swparams();
+        siocom::cycle_state init_hwparams();
+
         void poll_loop(int num);
 };
 
