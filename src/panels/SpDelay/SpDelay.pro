@@ -1,8 +1,9 @@
 TEMPLATE = lib
-TARGET = 
+TARGET = SpDelay
 DEPENDPATH += .
 INCLUDEPATH += . ../ ../../units
 LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio ./units/SuDelay.rso
+QT += widgets
 
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj

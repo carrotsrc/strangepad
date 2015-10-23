@@ -3,10 +3,11 @@
 ######################################################################
 
 TEMPLATE = lib
-TARGET = 
+TARGET = SpMixer
 DEPENDPATH += .
 INCLUDEPATH += . ../ ../../units
 LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio ./units/SuMixer.rso
+QT += widgets
 
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj

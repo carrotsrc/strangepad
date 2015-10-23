@@ -16,6 +16,7 @@
 static int branchNoGui(siocom::rack *srack);
 int main(int argc, char **argv)
 {
+
 	RigDesc rigDescription;
 	PadLoader padLoader;
 	siocfg::assembler as;
@@ -40,6 +41,7 @@ int main(int argc, char **argv)
 	auto srack = siortn::system::setup(as, rigDescription.getRackConfig().toStdString(), 64);
 
 	QApplication app (argc, argv);
+
 	auto huds = setupRig(rigDescription, &padLoader, srack.get());
 
 	if(!loadGui) {
@@ -55,12 +57,14 @@ int main(int argc, char **argv)
 	app.setStyleSheet(qss.readAll());
 
 	SWindow window;
+
 	for(auto hud : huds) {
 		window.addHeadsup(hud);
 	}
 
 	auto handler = srack->get_midi_handler();
 	window.bindMidi(rigDescription.getMidi(), handler);
+
 	window.show();
 
 	return app.exec();

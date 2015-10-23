@@ -3,10 +3,11 @@
 ######################################################################
 
 TEMPLATE = lib
-TARGET = 
+TARGET = SpFlac
 DEPENDPATH += .
 INCLUDEPATH += . ../ ../../units
 LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio ./units/SuFlac.rso
+QT += widgets
 
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj

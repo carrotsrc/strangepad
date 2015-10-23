@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = lib
-TARGET = 
+TARGET = SpSine
 DEPENDPATH += .
 INCLUDEPATH += . ../
 LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio -lui

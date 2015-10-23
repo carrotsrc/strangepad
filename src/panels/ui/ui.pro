@@ -3,9 +3,10 @@
 ######################################################################
 
 TEMPLATE = lib
-TARGET = 
+TARGET = ui
 DEPENDPATH += .
 INCLUDEPATH += .
+QT += widgets
 
 LIBS += -L$(STRANGEFW) -lstrangeio
 

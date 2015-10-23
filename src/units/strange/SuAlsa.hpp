@@ -37,7 +37,7 @@ public:
 	void set_configuration(std::string key, std::string value);
 
 protected:
-	siocom::cycle_state resync();
+	siocom::cycle_state resync(strangeio::component::sync_flag flags);
 
 
 private:
@@ -51,7 +51,10 @@ private:
 	snd_pcm_uframes_t m_trigger_level, m_fperiod;
 	unsigned int m_max_periods;
 	unsigned int m_cfg_period_size;
-	std::atomic<int> m_in_driver;
+	std::atomic<int> m_in_driver, m_is_active;
+
+	struct pollfd *m_pfd;
+        std::string m_alsa_dev;
 
 	// safe signal handling
 	std::condition_variable m_signal_cv;
@@ -60,6 +63,8 @@ private:
 	bool m_running, m_active;
 
 	void flush_samples();
+        void init_swparams();
+        void poll_loop(int num);
 };
 
 #endif // SUALSA_HPP
