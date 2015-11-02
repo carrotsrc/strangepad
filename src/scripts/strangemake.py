@@ -2,6 +2,7 @@
 
 import sys
 import os
+import time;
 from subprocess import call
 
 
@@ -135,17 +136,26 @@ if "--debug" in sys.argv:
 
 print("Build profile: \033[1;35m"+build_profile+"\033[1;m")
 
+tps = time.time();
+
 if sys.argv[1] == "-a" or sys.argv[1] == "--all":
 	print("Running through all targets...")
 	for target in target_order:
+
 		print("SMake: \033[1;34m"+target+"\033[1;m")
 		os.chdir(targets[target]['cd'])		
 		args = targets[target][build_profile] + sys.argv[2:]
 		if call(args) != 0:
 			print("Target: \033[1;31mFailed\033[1;m")
+                        total = round(time.time()-tps, 2);
+                        print("Duration: {} seconds".format(total));
 			exit()
 		print("Target: \033[1;32mOk\033[1;m")
+
 	print("\033[1;32mFinished!\033[1;m")
+        total = round(time.time()-tps, 2);
+        print("Duration: {} seconds".format(total));
+
 	exit()
 
 
@@ -163,6 +173,11 @@ if "VERBOSE" in os.environ and os.environ['VERBOSE'] == "1":
     print(" ".join(args))
 
 if call(args) == 0:
-    print("OK");
+    print("\033[1;32mFinished!\033[1;m")
+else:
+    print("Target: \033[1;31mFailed\033[1;m")
+
+total = round(time.time()-tps, 2);
+print("Duration: {} seconds".format(total));
 
 os.chdir(owd)
