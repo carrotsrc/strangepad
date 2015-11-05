@@ -12,8 +12,8 @@ QT += widgets
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj
 
-QMAKE_CXXFLAGS_DEBUG += --std=c++11 -I$(STRANGEFW)/framework/include --ggdb
-QMAKE_CXXFLAGS_RELEASE += --std=c++11 -I$(STRANGEFW)/framework/include -ggdb
+QMAKE_CXXFLAGS_DEBUG += --std=c++14 -I$(STRANGEFW)/framework/include --ggdb
+QMAKE_CXXFLAGS_RELEASE += --std=c++14 -I$(STRANGEFW)/framework/include -ggdb
 
 # Input
 HEADERS += SpFlac.hpp PanelWaveview.hpp
