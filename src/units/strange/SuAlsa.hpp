@@ -12,20 +12,12 @@
 #include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
 #include "framework/spec/dispatch.hpp" // Base class: strangeio::component::unit
+#include "framework/routine/debug.hpp"
 
 class SuAlsa : public strangeio::spec::dispatch
 {
 public:
-	enum work_state {
-		idle, ///< Unitialised
-		inititalise, ///< Initialising the unit
-		ready, ///< Ready to receive data
-		priming, ///< Priming the delay buffer
-		streaming, ///< Loading delay buffer
-		flushing, ///< Flushing the delay buffer
-		paused, ///< Received a pause state
-		waiting
-	};
+	enum class state { uninit, ready, priming, streaming };
 
 	SuAlsa(std::string label);
 	~SuAlsa();
@@ -45,24 +37,33 @@ private:
 	strangeio::memory::cache_ptr m_buffer;
 	FILE *m_fp;
 
+        // state machine
+        std::atomic<state> m_state;
+        
 	// Alsa variables
 	snd_pcm_t *m_handle;
 	snd_async_handler_t *m_cb;
 	snd_pcm_uframes_t m_trigger_level, m_fperiod;
-        snd_pcm_channel_area_t *m_areas;
-	unsigned int m_max_periods;
-	unsigned int m_cfg_period_size;
         
-	std::atomic<int> m_in_driver;
+        std::string m_alsa_dev;
+	unsigned int m_max_periods, m_cfg_period_size, m_trigger;
+        
+	std::atomic<unsigned int> m_in_mmap;
+        std::atomic_flag m_cycling;
 
 	struct pollfd *m_pfd;
-        std::string m_alsa_dev;
+        
 
-	// safe signal handling
+	// poll handler
 	std::condition_variable m_signal_cv;
 	std::mutex m_signal_mutex;
 	std::thread* m_signal;
 	bool m_running, m_active;
+        
+        siortn::debug::tp m_tps, m_tpe;
+        
+        snd_pcm_sframes_t m_delay_trigger, m_delay_flush;
+
 
 	void flush_samples();
         void init_swparams();

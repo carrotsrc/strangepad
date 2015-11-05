@@ -2,12 +2,16 @@
 #include <sstream>
 #include <signal.h>
 #include <algorithm>
+#include <iomanip>
+#include <sched.h>
 
 #include "framework/routine/sound.hpp"
 #include "SuAlsa.hpp"
+
+#define SIO_SCHED SCHED_FIFO
 using namespace strangeio;
 using namespace strangeio::component;
-
+using mem_order = std::memory_order;
 using channel_area = snd_pcm_channel_area_t;
 #if !DEVBUILD
 	#error The testing suite requires DEVBUILD to be enabled
@@ -18,18 +22,24 @@ using channel_area = snd_pcm_channel_area_t;
 
 SuAlsa::SuAlsa(std::string label)
 	: dispatch("SuAlsa", label)
-	, m_cfg_period_size(0)
-	, m_in_driver(0)
 	, m_alsa_dev(std::string("default"))
+
+	, m_cfg_period_size(0)
+	, m_trigger(0)
+	, m_in_mmap(0)
 	, m_running(false)
 	, m_active(false)
-	
+
+	, m_delay_trigger(0)
+	, m_delay_flush(0)
 {
+	m_state.store(state::uninit);
+	m_tps = m_tpe = siortn::debug::zero_timepoint();
+	m_cycling.clear();
 	add_input("audio_in");
 }
 
 SuAlsa::~SuAlsa() {
-	fclose(m_fp);
 }
 
 cycle_state SuAlsa::cycle() {
@@ -41,50 +51,129 @@ cycle_state SuAlsa::cycle() {
 }
 
 void SuAlsa::feed_line(memory::cache_ptr samples, int line) {
-	m_buffer = samples;
+	
+	if(!m_buffer) m_buffer = samples;
+		
 }
+
 #include "framework/routine/debug.hpp"
+void SuAlsa::poll_loop(int num) {
+
+	unsigned short rev;
+	snd_pcm_sframes_t delay;
+	
+	while(1) {
+
+		poll(m_pfd, num, -1);
+
+		snd_pcm_poll_descriptors_revents(m_handle, m_pfd, num, &rev);
+		if(unit_profile().state == (int)line_state::inactive) {
+				// if inactive, don't bother triggering a cycle
+				break;
+		}
+		
+		if(!m_running) break; 
+		
+		if(rev & POLLOUT) {
+			if(m_state.load() == state::streaming) {
+				snd_pcm_avail_update(m_handle);
+				snd_pcm_delay(m_handle, &delay);
+
+				m_delay_trigger = delay;
+
+				if(delay <= m_trigger) {
+
+					if(m_cycling.test_and_set() == true) {
+						// STICKING POINT
+						continue;
+					}
+					trigger_cycle();
+					if(delay <= m_trigger/2) trigger_cycle();
+				}
+			}
+		} else if(rev & POLLERR) {
+			log("I/O Error");
+			break;
+		} else {
+			continue;
+		}
+	}
+}
 
 void SuAlsa::flush_samples() {
+	m_tpe = siortn::debug::clock_time();
 	auto profile = global_profile();
-	
+
 	int err;
 	std::stringstream ss;
 	const channel_area *areas;
-
+	snd_pcm_sframes_t delay = 0;
+	snd_pcm_uframes_t offset, frames = profile.period;
+	
 	// clear the held buffer
 	{
 		auto local_buffer = m_buffer;
 		auto intw = cache_alloc(1);
 		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
-
-		if(snd_pcm_state(m_handle) == -EPIPE) {
-			std::cerr << "State error : " << std::endl;
-			snd_pcm_recover(m_handle, -EPIPE, 1);
-		}
 		
-		snd_pcm_uframes_t offset, frames = profile.period;
+		snd_pcm_avail_update(m_handle);
 		
-		auto available = snd_pcm_avail_update(m_handle);
-
 		if((err = snd_pcm_mmap_begin(m_handle, &areas, &offset, &frames)) < 0) {
 			std::cerr << "ALSA mmap error" << std::endl;
 		}
-		local_buffer.copy_to(((PcmSample*)areas[0].addr)+offset);
-		if((err = snd_pcm_mmap_commit(m_handle, offset, frames)) < 0) {
-			std::cerr << "ALSA mmap commit error\t" << snd_strerror(err) << std::endl;
-			if(err == -EPIPE) {
-				snd_pcm_recover(m_handle, err, 1);
-			}
-		} else {
-			std::cout << "Wrote " << err << " Frames" << std::endl;
-		}
+
+		snd_pcm_delay(m_handle, &delay);
+		m_delay_flush = delay;
+	
+		intw.copy_to(((PcmSample*)areas[0].addr) + (offset*2));
+	}
+
+	if((err = snd_pcm_mmap_commit(m_handle, offset, frames)) < 0) {
 		
-		if(available <= profile.period && available >= 0) {
-			snd_pcm_start(m_handle);
+		std::cerr << "ALSA mmap commit error\t" 
+			<< snd_strerror(err) << std::endl;
+
+		if(err == -EPIPE) {
+			snd_pcm_recover(m_handle, err, 0);
+			snd_pcm_avail_update(m_handle);
+			m_state.store(state::priming);
+			trigger_cycle();
+		}
+	} else {
+
+		snd_pcm_avail_update(m_handle);
+		m_in_mmap += err;
+
+		if(m_state.load() == state::priming) {
+
+			if(m_in_mmap >= m_trigger) {
+				if(m_cycling.test_and_set()) {
+					return;
+				}
+
+				if( (err = snd_pcm_start(m_handle)) < 0) {
+					std::cerr << "Stream start error\t" 
+					<< snd_strerror(err) << std::endl;
+				}
+
+				m_state.store(state::streaming);
+
+				snd_pcm_delay(m_handle, &delay);
+
+				trigger_cycle();
+				
+				return;
+
+			} else {
+				snd_pcm_delay(m_handle, &delay);
+				trigger_cycle();
+			}
+
 		}
 
 	}
+	
+	m_cycling.clear();
 }
 
 cycle_state SuAlsa::init() {
@@ -103,7 +192,18 @@ cycle_state SuAlsa::init() {
 
 
 		m_signal = new std::thread([this](){
-		
+			struct sched_param sparam;
+			
+			sparam.__sched_priority = 3;
+			if(sched_setscheduler(0, SIO_SCHED, &sparam) == 0) {
+				log("Schedule policy set");
+			} else {
+				std::stringstream ss;
+				ss << "### ERROR: Failed to set policy: "
+				<< strerror(errno);
+				log(ss.str());
+				
+			}
 			/*--------------------------------*\
 			 * SuAlsa cycle management thread *
 			\*--------------------------------*/
@@ -121,7 +221,6 @@ cycle_state SuAlsa::init() {
 			std::unique_lock<std::mutex> ul(m_signal_mutex);
 
 			while(1) {
-
 				if(!m_running) {
 					break;
 				}
@@ -129,25 +228,28 @@ cycle_state SuAlsa::init() {
 				this->m_signal_cv.wait(ul);
 				poll_loop(num_fd);
 			}
+
 			m_active = false;
 			
 			/* ---- End of thread ---- */
 		});
 		m_running = true;	
 	}
+	m_state.store(state::ready);
 	log("Initialised");
 	
 	return cycle_state::complete;
 }
 
-siocom::cycle_state SuAlsa::resync(strangeio::component::sync_flag flags){
-	
+siocom::cycle_state SuAlsa::resync(strangeio::component::sync_flag){
 	auto profile = unit_profile();
 	if(profile.state == (int) line_state::active) {
+		
+		if(m_state.load() == state::ready) {
+			m_state.store(state::priming);
+		}
+		
 		m_signal_cv.notify_one();
-		auto channels = global_profile().channels;
-		m_areas = new channel_area[channels]{(channel_area{0})};
-
 	}
 
 	return cycle_state::complete;
@@ -158,6 +260,8 @@ void SuAlsa::set_configuration(std::string key, std::string value) {
 		m_cfg_period_size = std::stoi(value);
 	} else if(key == "device") {
 		m_alsa_dev = value;
+	} else if(key == "trigger") {
+		m_trigger = std::stoi(value);
 	}
 }
 
@@ -171,7 +275,6 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 	ss.str("");
 
 	if ((err = snd_pcm_open (&m_handle, m_alsa_dev.c_str(), SND_PCM_STREAM_PLAYBACK,0)) < 0) {
-	//if ((err = snd_pcm_open (&m_handle, m_alsa_dev.c_str(), SND_PCM_STREAM_PLAYBACK,SND_PCM_NONBLOCK)) < 0) {
 		log("# cannot open audio device - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
@@ -253,8 +356,7 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 			return cycle_state::error;
 		}
 	}
-
-
+	
 	if ((err = snd_pcm_hw_params_set_periods(m_handle, hw_params, 3, dir)) < 0) {
 		log("# cannot set periods - ");
 		log(std::string(snd_strerror(err)));
@@ -270,6 +372,20 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 	snd_pcm_hw_params_free (hw_params);
 	log("Hardware parameters set");
 
+	auto period_size = 0ul;
+	if ((err = snd_pcm_hw_params_get_period_size (hw_params, &period_size, &dir)) < 0) {
+		log("# cannot get period size - ");
+			log(std::string(snd_strerror(err)));
+	}
+	register_metric(profile_metric::period, (signed int)period_size);
+	if(!m_trigger) m_trigger = period_size;
+	
+	auto sample_rate = 0u;
+	if ((err = snd_pcm_hw_params_get_rate (hw_params, &sample_rate, &dir)) < 0) {
+		log("cannot get sample rate - ");
+		log(std::string(snd_strerror(err)));
+	}
+	register_metric(profile_metric::fs, (signed int)sample_rate);
 
 	// ---- Print the HW parameters
 	log("Dumping hardware parameters: ");
@@ -277,25 +393,7 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 	snd_output_stdio_attach(&out, stdout, 0);
 	snd_pcm_dump_hw_setup(m_handle, out);
 	
-	auto period_size = 0ul;
-	if ((err = snd_pcm_hw_params_get_period_size (hw_params, &period_size, &dir)) < 0) {
-		log("# cannot get period size - ");
-			log(std::string(snd_strerror(err)));
-	}
-
-	register_metric(profile_metric::period, (signed int)period_size);
-	snd_pcm_uframes_t buffer_size;
-	if ((err = snd_pcm_hw_params_get_buffer_size (hw_params, &buffer_size)) < 0) {
-		log("cannot get buffer size - ");
-		log(std::string(snd_strerror(err)));
-	}
-
-	auto sample_rate = 0u;
-	if ((err = snd_pcm_hw_params_get_rate (hw_params, &sample_rate, &dir)) < 0) {
-		log("cannot get sample rate - ");
-		log(std::string(snd_strerror(err)));
-	}
-	register_metric(profile_metric::fs, (signed int)sample_rate);
+	
 	
 	return cycle_state::complete;
 }
@@ -320,7 +418,7 @@ void SuAlsa::init_swparams() {
 		return;
 	}
 	
-	if((err = snd_pcm_sw_params_set_avail_min(m_handle, sw_params, unit_profile().period)) < 0) {
+	if((err = snd_pcm_sw_params_set_avail_min(m_handle, sw_params, unit_profile().period*3)) < 0) {
 		log("# Unable to set period minimum available");
 		return;
 	}
@@ -342,34 +440,4 @@ void SuAlsa::init_swparams() {
 	snd_output_stdio_attach(&out, stdout, 0);
 	snd_pcm_dump_sw_setup(m_handle, out);
 }
-
-void SuAlsa::poll_loop(int num) {
-	unsigned short rev;
-	snd_pcm_sframes_t lat, av;
-	std::stringstream ss;
-
-	while(1) {
-		poll(m_pfd, num, -1);
-
-		snd_pcm_poll_descriptors_revents(m_handle, m_pfd, num, &rev);
-		if(unit_profile().state == (int)line_state::inactive) {
-				// if inactive, don't bother triggering a cycle
-				log("Line inactive");
-				break;
-		}
-		if(!m_running) break;
-		
-		if(rev & POLLOUT) {
-			snd_pcm_avail_delay(m_handle, &av, &lat);
-			trigger_cycle();
-
-		} else if(rev & POLLERR) {
-			log("I/O Error");
-			break;
-		} else {
-			continue;
-		}
-	}
-}
-
 UnitBuilder(SuAlsa);
