@@ -6,6 +6,7 @@
 #include <sched.h>
 
 #include "framework/routine/sound.hpp"
+#include "framework/thread/scheduled.hpp"
 #include "SuAlsa.hpp"
 
 #define SIO_SCHED SCHED_FIFO
@@ -189,21 +190,12 @@ cycle_state SuAlsa::init() {
 	}
 
 	if(!m_running) {
+		
+		m_schpolicy.policy = SCHED_FIFO;
+		m_schpolicy.priority = 3;
 
+		m_signal =	new siothr::scheduled(m_schpolicy, [this](){
 
-		m_signal = new std::thread([this](){
-			struct sched_param sparam;
-			
-			sparam.__sched_priority = 3;
-			if(sched_setscheduler(0, SIO_SCHED, &sparam) == 0) {
-				log("Schedule policy set");
-			} else {
-				std::stringstream ss;
-				ss << "### ERROR: Failed to set policy: "
-				<< strerror(errno);
-				log(ss.str());
-				
-			}
 			/*--------------------------------*\
 			 * SuAlsa cycle management thread *
 			\*--------------------------------*/
@@ -216,7 +208,7 @@ cycle_state SuAlsa::init() {
 			num_fd = snd_pcm_poll_descriptors(m_handle, m_pfd, num_fd);
 			
 			ss << num_fd << " descriptor(s) active";
-			log(ss.str());
+			//log(ss.str());
 			ss.str("");
 			std::unique_lock<std::mutex> ul(m_signal_mutex);
 
@@ -232,7 +224,7 @@ cycle_state SuAlsa::init() {
 			m_active = false;
 			
 			/* ---- End of thread ---- */
-		});
+		}, ulabel());
 		m_running = true;	
 	}
 	m_state.store(state::ready);

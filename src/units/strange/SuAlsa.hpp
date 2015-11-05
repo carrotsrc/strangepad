@@ -37,39 +37,38 @@ private:
 	strangeio::memory::cache_ptr m_buffer;
 	FILE *m_fp;
 
-        // state machine
-        std::atomic<state> m_state;
+	// state machine
+	std::atomic<state> m_state;
         
 	// Alsa variables
 	snd_pcm_t *m_handle;
 	snd_async_handler_t *m_cb;
 	snd_pcm_uframes_t m_trigger_level, m_fperiod;
         
-        std::string m_alsa_dev;
+    std::string m_alsa_dev;
 	unsigned int m_max_periods, m_cfg_period_size, m_trigger;
         
 	std::atomic<unsigned int> m_in_mmap;
-        std::atomic_flag m_cycling;
-
+    std::atomic_flag m_cycling;
 	struct pollfd *m_pfd;
-        
 
 	// poll handler
 	std::condition_variable m_signal_cv;
 	std::mutex m_signal_mutex;
-	std::thread* m_signal;
+	siothr::scheduled* m_signal;
+	siothr::sched_desc m_schpolicy;
 	bool m_running, m_active;
-        
-        siortn::debug::tp m_tps, m_tpe;
-        
-        snd_pcm_sframes_t m_delay_trigger, m_delay_flush;
+
+	siortn::debug::tp m_tps, m_tpe;
+    
+	snd_pcm_sframes_t m_delay_trigger, m_delay_flush;
 
 
 	void flush_samples();
-        void init_swparams();
-        siocom::cycle_state init_hwparams();
+	void init_swparams();
+    siocom::cycle_state init_hwparams();
 
-        void poll_loop(int num);
+	void poll_loop(int num);
 };
 
 #endif // SUALSA_HPP
