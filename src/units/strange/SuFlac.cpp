@@ -56,7 +56,7 @@ cycle_state SuFlac::cycle() {
 		return cycle_state::complete;
 	}
 
-	if(m_ws != working_state::streaming) {
+	if(m_ws != working_state::streaming && m_ws != working_state::sync_paused) {
 		return cycle_state::complete;
 	}
 
