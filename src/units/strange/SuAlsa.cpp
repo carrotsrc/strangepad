@@ -38,6 +38,9 @@ SuAlsa::SuAlsa(std::string label)
 	m_tps = m_tpe = siortn::debug::zero_timepoint();
 	m_cycling.clear();
 	add_input("audio_in");
+	
+	m_schpolicy.policy = SCHED_OTHER;
+	m_schpolicy.priority = 0;
 }
 
 SuAlsa::~SuAlsa() {
@@ -191,8 +194,7 @@ cycle_state SuAlsa::init() {
 
 	if(!m_running) {
 		
-		m_schpolicy.policy = SCHED_FIFO;
-		m_schpolicy.priority = 3;
+
 
 		m_signal =	new siothr::scheduled(m_schpolicy, [this](){
 
@@ -254,6 +256,25 @@ void SuAlsa::set_configuration(std::string key, std::string value) {
 		m_alsa_dev = value;
 	} else if(key == "trigger") {
 		m_trigger = std::stoi(value);
+	} else if(key == "sched_priority") {
+		m_schpolicy.priority = std::stoi(value);
+	} else if(key == "sched_policy") {
+		
+		if(value == "SCHED_FIFO") {
+			m_schpolicy.policy = SCHED_FIFO;
+		} else if(value == "SCHED_RR") {
+			m_schpolicy.policy = SCHED_RR;
+		} else if(value == "SCHED_OTHER") {
+			m_schpolicy.policy = SCHED_OTHER;
+		} else if(value == "SCHED_BATCH") {
+			#ifdef __USE_GNU
+			m_schpolicy.policy = SCHED_BATCH;
+			#endif
+		} else if(value == "SCHED_IDLE") {
+			#ifdef __USE_GNU
+			m_schpolicy.policy = SCHED_IDLE;
+			#endif
+		}	
 	}
 }
 
