@@ -9,6 +9,14 @@ using namespace strangeio::component;
 #define CHUNK_SIZE 0x10000
 #define LineAudio 0
 
+#define LED_READY 0
+#define LED_STREAMING 1
+#define LED_PAUSED 1
+
+enum class led_state {
+	ready, streaming, paused
+};
+
 SuFlac::SuFlac(std::string label)
 	: siospc::mainline("SuFlac", label)
 	, m_num_cached(0)
@@ -34,6 +42,9 @@ SuFlac::SuFlac(std::string label)
 		if(m.v != 127) return;
 		load_file();
 	});
+
+	register_midi_led("ready", (int)led_state::ready);
+	register_midi_led("streaming", (int)led_state::streaming);
 
 	
 }
@@ -127,6 +138,7 @@ void SuFlac::load_file() {
 	add_task(std::bind(&SuFlac::cache_chunk, this));
 	log("Done");
 	event_onchange(SuFlac::prestream);
+	toggle_led((int)led_state::ready);
 	
 	/* The first period stays in the buffer
 	 * until the second period is received
@@ -188,10 +200,12 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 	} else if(flags & (sync_flag)sync_flags::upstream) {
 
 		if(m_ws == working_state::sync_streaming) {
+			toggle_led((int)led_state::streaming);
 			event_onchange(working_state::streaming);
 			log("Streaming");
 		} else if (m_ws == working_state::sync_paused) {
 			event_onchange(working_state::paused);
+			toggle_led((int)led_state::ready);
 			log("Paused");
 		}
 

@@ -5,9 +5,5 @@
 	<rack config=".config/basic.cfg" />
 	<hud label="Overview">
 		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
-	</hud>
-
-	<hud label="Focus">
-	</hud>
-
+	</hud>q
 </rig>

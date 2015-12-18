@@ -93,7 +93,13 @@ targets = {
                         'debug' : ['unitbuild', '../../bin/units/RuSine', '-g', 'RuSine.cpp']
 			},
 
-	'pad/SpFlac' :{
+        'unit/BuLPF' :{
+			'cd' : sw+"/src/units/",
+			'release' : ['unitbuild', '../../bin/units/BuLPF', '-O', '-O3', 'basic/BuLPF.cpp'],
+                        'debug' : ['unitbuild', '../../bin/units/BuLPF', '-g', 'BuLPF.cpp']
+			},
+
+        'pad/SpFlac' :{
 			'cd' : sw+"/src/panels/SpFlac/",
 			'release' : ['make'],
                         'debug' : ['make'],
@@ -116,6 +122,7 @@ targets = {
 			'release' : ['make'],
                         'debug' : ['make'],
 			},
+
 }
 
 if len(sys.argv) < 2:

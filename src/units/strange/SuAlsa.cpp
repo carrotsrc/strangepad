@@ -41,6 +41,7 @@ SuAlsa::SuAlsa(std::string label)
 	
 	m_schpolicy.policy = SCHED_OTHER;
 	m_schpolicy.priority = 0;
+	m_fp = fopen("dump.raw", "wb");
 }
 
 SuAlsa::~SuAlsa() {
@@ -128,8 +129,11 @@ void SuAlsa::flush_samples() {
 
 		snd_pcm_delay(m_handle, &delay);
 		m_delay_flush = delay;
-	
+
+		// File write
+		fwrite(intw.get(), sizeof(PcmSample), intw.block_size(), m_fp);
 		intw.copy_to(((PcmSample*)areas[0].addr) + (offset*2));
+		
 	}
 
 	if((err = snd_pcm_mmap_commit(m_handle, offset, frames)) < 0) {
