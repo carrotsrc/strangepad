@@ -14,9 +14,6 @@ using namespace strangeio;
 using namespace strangeio::component;
 using mem_order = std::memory_order;
 using channel_area = snd_pcm_channel_area_t;
-#if !DEVBUILD
-	#error The testing suite requires DEVBUILD to be enabled
-#endif
 
 #define HW_MIN_PERIOD 128ul
 #define HW_MAX_PERIOD 1024ul

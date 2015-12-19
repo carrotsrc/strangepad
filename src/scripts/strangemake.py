@@ -24,6 +24,9 @@ build_profile="release"
 target_order = [
 	'framework',
 
+        'unit/BuLPF',
+	'unit/BuPing',
+
 	'unit/SuAlsa',
 	'unit/SuFlac',
 	'unit/SuMixer',
@@ -96,7 +99,13 @@ targets = {
         'unit/BuLPF' :{
 			'cd' : sw+"/src/units/",
 			'release' : ['unitbuild', '../../bin/units/BuLPF', '-O', '-O3', 'basic/BuLPF.cpp'],
-                        'debug' : ['unitbuild', '../../bin/units/BuLPF', '-g', 'BuLPF.cpp']
+                        'debug' : ['unitbuild', '../../bin/units/BuLPF', '-g', 'basic/BuLPF.cpp']
+			},
+
+        'unit/BuPing' :{
+			'cd' : sw+"/src/units/",
+			'release' : ['unitbuild', '../../bin/units/BuPing', '-O', '-O3', 'basic/BuPing.cpp'],
+                        'debug' : ['unitbuild', '../../bin/units/BuPing', '-g', 'basic/BuPing.cpp']
 			},
 
         'pad/SpFlac' :{

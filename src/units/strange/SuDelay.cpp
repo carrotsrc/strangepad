@@ -4,6 +4,10 @@
 #include "SuDelay.hpp"
 #define SuDelayAudio 0
 
+enum class led_state {
+	priming, ready, filtering
+};
+
 SuDelay::SuDelay(std::string label)
 	: unit(siocom::unit_type::step, "SuDelay", label)
 
@@ -72,6 +76,10 @@ SuDelay::SuDelay(std::string label)
 		log(ss.str());
 		event_onvalue(value_change::buffer, m.v);
 	});
+
+	register_midi_led("priming", (int)led_state::priming);
+	register_midi_led("ready", (int)led_state::ready);
+	register_midi_led("filtering", (int)led_state::filtering);
 }
 
 SuDelay::~SuDelay() {
@@ -129,6 +137,7 @@ siocom::cycle_state SuDelay::cycle() {
 			rem -= wrap;
 			if(m_ws == priming) {
 				event_onchange(working_state::ready);
+				toggle_led((int)led_state::ready);
 				log("Primed");
 			}
 
@@ -167,6 +176,7 @@ siocom::cycle_state SuDelay::resync(siocom::sync_flag flags) {
 
 siocom::cycle_state SuDelay::init() {
 	log("Initialised");
+
 	return siocom::cycle_state::complete;
 }
 
@@ -203,7 +213,7 @@ void SuDelay::reset_delay() {
 	m_end_r = m_start_r + chan_sw;
 
 	event_onchange(working_state::priming);
-	
+	toggle_led((int)led_state::priming);
 
 }
 
@@ -228,6 +238,7 @@ void SuDelay::action_start() {
 	if(m_ws == working_state::passing || m_ws == working_state::passing) return;
 
 	event_onchange(working_state::filtering);
+	toggle_led((int)led_state::filtering);	
 	log("Echo delay on");
 }
 
@@ -235,6 +246,7 @@ void SuDelay::action_stop() {
 	if(m_ws == working_state::passing || m_ws == working_state::passing) return;
 
 	event_onchange(working_state::ready);
+	toggle_led((int)led_state::ready);
 	log("Echo delay off");
 }
 
