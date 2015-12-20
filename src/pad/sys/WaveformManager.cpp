@@ -139,3 +139,31 @@ std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const
 
 	return std::unique_ptr<Waveform>(wf);
 }
+
+std::unique_ptr<Waveform> WaveformManager::generate(int width, int height, const pcm_sample *raw, unsigned long long spc, QString hashValue) {
+	if( (width|height) == 0) return nullptr;
+	unsigned int blockSize;
+
+	WaveStore wfs;
+	Waveform *wf;
+
+	QFile store(".store/"+hashValue+".wfs");
+	if(!store.exists()) {
+		auto compressed = storeCompress(raw, spc, &blockSize); 
+		wfs.blockSize = blockSize,
+		std::memcpy(&wfs.waveform, compressed, WaveformManager::MaxSize*sizeof(pcm_sample));
+		store.open(QIODevice::WriteOnly);
+		store.write((char*)&wfs, sizeof(WaveStore));
+		store.close();
+	} else {
+		store.open(QIODevice::ReadOnly);
+		store.read((char*)&wfs, sizeof(WaveStore));
+		store.close();
+	}
+	auto graph = compress(width, height, wfs.waveform, &blockSize);
+	blockSize = wfs.blockSize * blockSize;
+
+	wf = new Waveform(blockSize, graph, hashValue);
+
+	return std::unique_ptr<Waveform>(wf);
+}

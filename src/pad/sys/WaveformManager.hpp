@@ -14,11 +14,13 @@ public:
 
 	void regenerate(Waveform *waveform);
 	std::unique_ptr<Waveform> generate(int width, int height, const pcm_sample *raw, unsigned long long spc);
+	std::unique_ptr<Waveform> generate(int width, int height, const pcm_sample *raw, unsigned long long spc, QString hashValue);
+	QString hash(const pcm_sample *raw, unsigned long long spc);
 
 private:
 	pcm_sample* storeCompress(const pcm_sample *raw, unsigned long long spc, unsigned int *blockSize);
 	QPixmap compress(int width, int height, const pcm_sample *compressed, unsigned int *blockSize);
-	QString hash(const pcm_sample *raw, unsigned long long spc);
+	
 };
 
 struct WaveStore {
