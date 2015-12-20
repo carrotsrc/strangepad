@@ -30,7 +30,6 @@ void tag_manager::load(QString hash) {
 
 void tag_manager::save() {
 	if(m_hash == "") return;
-	std::cout << "Saved" << std::endl;
 	QFile f(".tags/"+m_hash+".spt");
 
 	if(f.open(QFile::WriteOnly|QFile::Text)) {
