@@ -17,6 +17,7 @@
 #include "ui/SButton.hpp"
 
 #include "strange/SuFlac.hpp"
+#include "tag_manager.hpp"
 
 class SpFlacWaveview : public SPad
 {
@@ -49,14 +50,17 @@ private:
 	QMutex mMut;
 	std::atomic<bool> mPlaying;
 	QTimer mProgressTrigger;
-	int mSampleStep;
+	int mSampleStep, m_bpm;
 	std::atomic<int> mNextStep;
+	tag_manager m_tags;
 
 	suflac_onchange_sptr mOnChangePtr;
 
 	void onRegisterUnit();
 	void listenOnChange(SuFlac::working_state state);
 
+	void organise_tags();
+	
 	// listeners
 	void listener_onchange(SuFlac::working_state);
 };

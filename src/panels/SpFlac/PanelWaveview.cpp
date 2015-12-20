@@ -101,9 +101,11 @@ void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 		if(auto u = unit<SuFlac>()) {
 			mMut.lock();
 			mWave.setWaveData(u->probe_flac_data(), u->probe_total_spc());
+			organise_tags();
 			mSampleStep = mWave.getSampleStep();
 			auto info = QFileInfo(QString(u->probe_flac_path().c_str()));
 			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
+			
 			mMut.unlock();
 			emit update();
 		}
@@ -116,6 +118,14 @@ void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 	case SuFlac::paused:
 		mPlaying = false;
 		emit guiUpdate();
+		break;
+		
+	case SuFlac::bpm_update:
+		if(auto u = unit<SuFlac>()) {
+			m_bpm = u->probe_bpm();
+			this->m_tags.set("bpm", QString::number(m_bpm));
+			this->m_tags.save();
+		}
 		break;
 
 	default:
@@ -132,6 +142,7 @@ void SpFlacWaveview::triggerMidiPlay() {
 
 
 void SpFlacWaveview::onGuiUpdate() {
+
 	if(mPlaying) {
 		mPlay.setStyleSheet("color: #F97FFF;");
 	} else {
@@ -162,5 +173,19 @@ void SpFlacWaveview::mouseReleaseEvent(QMouseEvent* e) {
 		if(auto u = unit<SuFlac>()) {
 			u->action_jump_to_sample(jump);
 		}
+	}
+}
+
+void SpFlacWaveview::organise_tags() {
+	QString hash = mWave.getHash();
+	m_tags.load(hash);
+
+	if(auto u = unit<SuFlac>()) {
+		
+		auto sbpm = m_tags.get("bpm");
+		if(sbpm != "") {
+			u->set_bpm(sbpm.toInt());
+		}
+
 	}
 }

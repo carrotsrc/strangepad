@@ -16,5 +16,5 @@ QMAKE_CXXFLAGS_DEBUG += --std=c++14 -I$(STRANGEFW)/framework/include --ggdb
 QMAKE_CXXFLAGS_RELEASE += --std=c++14 -I$(STRANGEFW)/framework/include -ggdb
 
 # Input
-HEADERS += SpFlac.hpp PanelWaveview.hpp
-SOURCES += SpFlac.cpp PanelWaveview.cpp
+HEADERS += SpFlac.hpp PanelWaveview.hpp tag_manager.hpp
+SOURCES += SpFlac.cpp PanelWaveview.cpp tag_manager.cpp
