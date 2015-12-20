@@ -13,6 +13,7 @@ public:
 	void paintEvent(QPaintEvent *);
 
 	int getSampleStep();
+	QString getHash();
 
 	void mouseMoveEvent(QMouseEvent*);
 	QSize sizeHint() const;
@@ -25,6 +26,7 @@ signals:
 private:
 	float* mWaveData;
 	int mWaveLength, mSampleStep, mHoverPosition, mProgress, mCurrentStep;
+	QString mHash;
 
 	std::unique_ptr<Waveform> mWaveform;
 	QPixmap mOverlay;

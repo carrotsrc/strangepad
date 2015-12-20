@@ -54,6 +54,8 @@ void SWaveform::paintEvent(QPaintEvent*) {
 void SWaveform::setWaveData(const float* data, long long length) {
 	mWaveData = (float*)data;
 	mWaveLength = length;
+	WaveformManager wfm;
+	mHash = wfm.hash(const_cast<float*>(data), length);
 	isLoaded = true;
 	mReset = true;
 	emit update();
@@ -77,7 +79,7 @@ void SWaveform::generateWaveform() {
 	mWaveRect.setSize(QSize(width(), height()));
 	WaveformManager wfm;
 	auto geo = mWaveRect.size();
-	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength);
+	mWaveform = wfm.generate(geo.width(), geo.height(), mWaveData, mWaveLength, mHash);
 	mOverlay = QPixmap(geo.width(), geo.height());
 	mOverlay.fill("#FFE64C");
 	mOverlay.fill("#FFB876");
@@ -96,6 +98,10 @@ QSize SWaveform::minimumSize() const {
 
 int SWaveform::getSampleStep() {
 	return mSampleStep;
+}
+
+QString SWaveform::getHash() {
+	return mHash;
 }
 
 void SWaveform::updateProgress(int progress) {
