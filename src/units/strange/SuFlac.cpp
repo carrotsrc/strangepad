@@ -26,10 +26,12 @@ SuFlac::SuFlac(std::string label)
 	, m_position(nullptr)
 	, m_buf_size(0)
 	, m_remain(0)
+	, m_track_bpm(0)
 	, m_samples_played(0)
 	, m_jump(false)
 	, m_final(false)
 	, m_flac_path("")
+
 {
 
 	add_output("audio");
@@ -45,7 +47,7 @@ SuFlac::SuFlac(std::string label)
 
 	register_midi_led("ready", (int)led_state::ready);
 	register_midi_led("streaming", (int)led_state::streaming);
-
+	this->m_ws = working_state::idle;
 	
 }
 
@@ -196,6 +198,11 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 
 		m_period_size = global_profile().period;
 		m_num_channels = global_profile().channels;
+		auto bpm = global_profile().bpm;
+		if(m_track_bpm != bpm) {
+			m_track_bpm = bpm;
+			event_onchange(working_state::bpm_update);
+		}
 
 	} else if(flags & (sync_flag)sync_flags::upstream) {
 
@@ -235,7 +242,9 @@ void SuFlac::set_configuration(std::string key, std::string value) {
 }
 
 void SuFlac::event_onchange(SuFlac::working_state state) {
-	m_ws = state;
+	if(state != working_state::bpm_update)
+		m_ws = state;
+
 	for(auto wptr : m_onchange_listeners) {
 		if(auto cb = wptr.lock()) {
 			(*cb)(state);
@@ -274,6 +283,9 @@ const PcmSample* SuFlac::probe_flac_data() const {
 	return m_buffer;
 }
 
+int SuFlac::probe_bpm() const {
+	return m_track_bpm;
+}
 
 
 void SuFlac::listen_onchange(std::weak_ptr<std::function<void(SuFlac::working_state)> > cb) {
@@ -304,6 +316,13 @@ void SuFlac::action_jump_to_sample(int sample) {
 	m_samples_played = offset;
 
 	add_task(std::bind(&SuFlac::cache_chunk, this));
+}
+
+void SuFlac::set_bpm(int bpm) {
+	log("Centre: " + std::to_string(bpm) +"bpm");
+	m_track_bpm = bpm;
+	register_metric(profile_metric::bpm, m_track_bpm);
+	trigger_sync((sync_flag)sync_flags::glob_sync);
 }
 
 void SuFlac::clear_buffer() {

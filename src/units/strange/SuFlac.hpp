@@ -25,6 +25,7 @@ public:
 		streaming,
 		paused,
 		zero,
+		bpm_update,
 
 		sync_streaming,
 		sync_paused,
@@ -49,6 +50,9 @@ public:
 	std::string probe_flac_path() const;
 	unsigned int probe_total_spc() const;
 	int probe_progress() const;
+	int probe_bpm() const;
+	
+	void set_bpm(int bpm);
 
 protected:
 	siocom::cycle_state resync(siocom::sync_flag flags);
@@ -63,6 +67,7 @@ private:
 
 	unsigned int m_buf_size, m_remain;
 	unsigned int m_period_size, m_num_channels;
+	int m_track_bpm;
 	signed int m_samples_played;
 	std::atomic<bool> m_jump, m_final;
 	working_state m_ws;
