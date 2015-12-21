@@ -6,14 +6,14 @@ TEMPLATE = lib
 TARGET = SpFlac
 DEPENDPATH += .
 INCLUDEPATH += . ../ ../../units
-LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio ./units/SuFlac.rso
+LIBS += -L$(STRANGEFW) -L../../../bin/ -lstrangeio ./units/SuFlac.rso -ltag
 QT += widgets
 
 DESTDIR=../../../bin/pads/
 OBJECTS_DIR=../../../build/obj
 
-QMAKE_CXXFLAGS_DEBUG += --std=c++14 -I$(STRANGEFW)/framework/include --ggdb
-QMAKE_CXXFLAGS_RELEASE += --std=c++14 -I$(STRANGEFW)/framework/include -ggdb
+QMAKE_CXXFLAGS_DEBUG += --std=c++14 -I/usr/include/taglib -I$(STRANGEFW)/framework/include --ggdb
+QMAKE_CXXFLAGS_RELEASE += --std=c++14 -I/usr/include/taglib -I$(STRANGEFW)/framework/include -ggdb
 
 # Input
 HEADERS += SpFlac.hpp PanelWaveview.hpp tag_manager.hpp

@@ -50,11 +50,14 @@ private:
 	QMutex mMut;
 	std::atomic<bool> mPlaying;
 	QTimer mProgressTrigger;
+	
 	int mSampleStep, m_bpm;
 	std::atomic<int> mNextStep;
 	tag_manager m_tags;
 
 	suflac_onchange_sptr mOnChangePtr;
+	
+	QString mTrackPath, mTrackArtist, mTrackTitle, mTrackAlbum;
 
 	void onRegisterUnit();
 	void listenOnChange(SuFlac::working_state state);

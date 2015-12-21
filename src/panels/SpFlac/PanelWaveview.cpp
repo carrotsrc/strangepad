@@ -7,6 +7,7 @@
 #include <QMimeData>
 #include <iostream>
 #include <qt5/QtCore/qiodevice.h>
+
 SpFlacWaveview::SpFlacWaveview(QWidget *parent) :
 SPad(parent) {
 	
@@ -90,7 +91,7 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 		
 		if(strcmp(magic, "fLaC") != 0) return;
 		
-		
+		mTrackPath = path;
 		ru->action_load_file(path.toStdString());
 	}
 	update();
@@ -184,10 +185,16 @@ void SpFlacWaveview::mouseReleaseEvent(QMouseEvent* e) {
 	}
 }
 
+#include <tag.h>
+#include <fileref.h>
+#include <tpropertymap.h>
 void SpFlacWaveview::organise_tags() {
 	QString hash = mWave.getHash();
-	m_tags.load(hash);
+	std::cout << "Hash: " << hash.toStdString() << std::endl;
 
+	m_tags.load(hash);
+	bool modified = false;
+	
 	if(auto u = unit<SuFlac>()) {
 		
 		auto sbpm = m_tags.get("bpm");
@@ -195,5 +202,30 @@ void SpFlacWaveview::organise_tags() {
 			u->set_bpm(sbpm.toInt());
 		}
 
+		TagLib::FileRef f(mTrackPath.toStdString().c_str());
+		auto ltag = f.tag();
+		
+		mTrackArtist = m_tags.get("artist");
+		if(mTrackArtist == "") {	
+			mTrackArtist = QString(ltag->artist().toCString());
+			m_tags.set("artist", mTrackArtist);
+			modified = true;
+		}
+		
+		mTrackTitle = m_tags.get("title");
+		if(mTrackTitle == "") {	
+			mTrackTitle = QString(ltag->title().toCString());
+			m_tags.set("title", mTrackTitle);
+			modified = true;
+		}
+		
+		mTrackAlbum = m_tags.get("album");
+		if(mTrackAlbum == "") {	
+			mTrackAlbum = QString(ltag->album().toCString());
+			m_tags.set("album", mTrackAlbum);
+			modified = true;
+		}
+		
+		if(modified) m_tags.save();
 	}
 }
