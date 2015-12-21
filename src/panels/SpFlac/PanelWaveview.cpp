@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QMimeData>
 #include <iostream>
+#include <qt5/QtCore/qiodevice.h>
 SpFlacWaveview::SpFlacWaveview(QWidget *parent) :
 SPad(parent) {
 	
@@ -77,13 +78,19 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 	auto ru = unit<SuFlac>();
 
 	for(auto url : mimeData->urls()) {
+		
 		auto path = url.path();
-		QFileInfo info(path);
-		if(info.completeSuffix() != "flac") {
-			return;
-			update();
-		}
-
+		QFile f(path);
+		if(!f.exists()) return;
+		
+		f.open(QIODevice::ReadOnly);
+		char magic[4];
+		f.read(magic, 4);
+		f.close();
+		
+		if(strcmp(magic, "fLaC") != 0) return;
+		
+		
 		ru->action_load_file(path.toStdString());
 	}
 	update();
@@ -111,6 +118,7 @@ void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 		}
 		break;
 	case SuFlac::streaming:
+		mSampleStep = mWave.getSampleStep();
 		mPlaying = true;
 		emit guiUpdate();
 		break;
