@@ -32,6 +32,8 @@ target_order = [
 	'unit/SuMixer',
 	'unit/SuDelay',
 
+        'unit/SuResample',
+
 	'strangeui',
 	'pad/SpFlac',
 	'pad/SpMixer',
@@ -88,6 +90,12 @@ targets = {
 			'cd' : sw+"/src/units/",
 			'release' : ['unitbuild', '../../bin/units/SuEncoder', '-O', '-O3', 'SuEncoder.cpp'],
                         'debug' : ['unitbuild', '../../bin/units/SuEncoder', '-g', 'SuEncoder.cpp']
+			},
+
+	'unit/SuResample' :{
+			'cd' : sw+"/src/units/",
+			'release' : ['unitbuild', '../../bin/units/SuResample', '-O', '-O3', '-lsamplerate', 'strange/SuResample.cpp'],
+                        'debug' : ['unitbuild', '../../bin/units/SuResample', '-g', '-lsamplerate', 'strange/SuResample.cpp']
 			},
 
 	'unit/RuSine' :{

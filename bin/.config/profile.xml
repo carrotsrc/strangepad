@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rig>
+
+<rig>
+	<rack config=".config/rack_profile.cfg" />
+	<hud label="Overview">
+		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
+	</hud>q
+</rig>

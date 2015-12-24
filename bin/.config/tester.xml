@@ -2,7 +2,7 @@
 <!DOCTYPE rig>
 
 <rig>
-	<rack config=".config/basic.cfg" />
+	<rack config=".config/unit_tester.cfg" />
 	<hud label="Overview">
 		<pad collection="SpFlac" type="waveview" label="Alpha" unit="flac1" />
 	</hud>q

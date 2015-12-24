@@ -29,14 +29,19 @@ SPad(parent) {
 
 	mButtonBar.addWidget(&mPlay);
 	mButtonBar.addWidget(&mPause);
-
+	
 	mContainer.addWidget(&mWave);
+
+	mui_detail.setText("--- bpm");
+	mui_detail.setStyleSheet("font-size: 12px; color: #83C98B; font-family: mono;");
+	mui_detailbar.addWidget(&mui_detail);
 
 	mToolbar.addWidget(&mTitle, 0, Qt::AlignLeft|Qt::AlignHCenter);
 	mToolbar.addLayout(&mButtonBar);
+	
 
 	mContainer.addLayout(&mToolbar);
-
+	mContainer.addLayout(&mui_detailbar);
 	connect(&mProgressTrigger, SIGNAL(timeout()), this, SLOT(probeProgress()));
 	mProgressTrigger.start(250);
 
@@ -93,6 +98,7 @@ void SpFlacWaveview::dropEvent(QDropEvent *e) {
 		
 		mTrackPath = path;
 		ru->action_load_file(path.toStdString());
+		break;
 	}
 	update();
 }
@@ -106,14 +112,13 @@ void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 		emit update();
 		break;
 	case SuFlac::prestream:
+		
 		if(auto u = unit<SuFlac>()) {
 			mMut.lock();
 			mWave.setWaveData(u->probe_flac_data(), u->probe_total_spc());
 			organise_tags();
 			mSampleStep = mWave.getSampleStep();
-			auto info = QFileInfo(QString(u->probe_flac_path().c_str()));
-			mTitle.setText(QChar(0x25B4)+QString(" ")+info.baseName());
-			
+
 			mMut.unlock();
 			emit update();
 		}
@@ -131,9 +136,22 @@ void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 		
 	case SuFlac::bpm_update:
 		if(auto u = unit<SuFlac>()) {
-			m_bpm = u->probe_bpm();
-			this->m_tags.set("bpm", QString::number(m_bpm));
+			
+			mTrackBpm = u->probe_bpm();
+			this->m_tags.set("bpm", QString::number(mTrackBpm));
 			this->m_tags.save();
+			
+			if(mTrackBpm > 0) {
+				auto bpm = QString();
+				if(mTrackBpm < 100)
+					bpm = QString("%1").arg(mTrackBpm, 3, 10, QChar('0'));
+				else
+					bpm = QString::number(mTrackBpm);
+				bpm += " bpm";
+				mui_detail.setText(bpm);
+			} else {
+				mui_detail.setText("--- bpm");
+			}
 		}
 		break;
 
@@ -200,9 +218,13 @@ void SpFlacWaveview::organise_tags() {
 		auto sbpm = m_tags.get("bpm");
 		if(sbpm != "") {
 			u->set_bpm(sbpm.toInt());
+			mTrackBpm = sbpm.toInt();
+		} else {
+			mTrackBpm = 0;
 		}
 
 		TagLib::FileRef f(mTrackPath.toStdString().c_str());
+		if(f.isNull()) return;
 		auto ltag = f.tag();
 		
 		mTrackArtist = m_tags.get("artist");
@@ -227,5 +249,18 @@ void SpFlacWaveview::organise_tags() {
 		}
 		
 		if(modified) m_tags.save();
+		QString title = QChar(0x25B4)+QString(" ")+mTrackArtist+" - "+mTrackTitle;
+		if(mTrackBpm > 0) {
+			auto bpm = QString();
+			if(mTrackBpm < 100)
+				bpm = QString("%1").arg(mTrackBpm, 3, 10, QChar('0'));
+			else
+				bpm = QString::number(mTrackBpm);
+			bpm += " bpm";
+			mui_detail.setText(bpm);
+		} else {
+			mui_detail.setText("--- bpm");
+		}
+		mTitle.setText(title);
 	}
 }

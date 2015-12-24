@@ -31,6 +31,8 @@ SuFlac::SuFlac(std::string label)
 	, m_jump(false)
 	, m_final(false)
 	, m_flac_path("")
+	, m_bpm_sync(false)
+	, m_downstream_fill(false)
 
 {
 
@@ -136,7 +138,9 @@ void SuFlac::load_file() {
 
 	m_position = m_buffer;
 	m_num_cached = 0;
-
+	if(line_profile().fill > 0 && !m_downstream_fill) {
+		run_prefill();
+	}
 	add_task(std::bind(&SuFlac::cache_chunk, this));
 	log("Done");
 	event_onchange(SuFlac::prestream);
@@ -192,6 +196,23 @@ void SuFlac::cache_chunk() {
 
 }
 
+void SuFlac::run_prefill() {
+	
+	auto frames = line_profile().fill;
+	auto total = frames*2;
+	
+	auto samples = cache_alloc(1);
+	auto tmp = cache_alloc(1);
+	
+	tmp.copy_from(m_position, total);
+	siortn::sound::deinterleave2(tmp.get(), samples.get(), frames);
+	
+	m_position += total;
+	m_remain -= total;
+	this->fill_out(samples, 0);
+	this->m_downstream_fill = true;
+}
+
 cycle_state SuFlac::resync(siocom::sync_flag flags) {
 
 	if(flags & (sync_flag)sync_flags::glob_sync) {
@@ -238,6 +259,8 @@ void SuFlac::reset_buffer(unsigned int total_samples) {
 void SuFlac::set_configuration(std::string key, std::string value) {
 	if(key == "flac") {
 		m_flac_path = value;
+	} else if(key == "bpm_sync" && value == "true"){
+		m_bpm_sync = true;
 	}
 }
 
@@ -319,10 +342,13 @@ void SuFlac::action_jump_to_sample(int sample) {
 }
 
 void SuFlac::set_bpm(int bpm) {
-	log("Centre: " + std::to_string(bpm) +"bpm");
+	log("zero - " + std::to_string(bpm) +"bpm");
 	m_track_bpm = bpm;
 	register_metric(profile_metric::bpm, m_track_bpm);
-	trigger_sync((sync_flag)sync_flags::glob_sync);
+	if(m_bpm_sync) {
+		log("Syncing BPM");
+		trigger_sync((sync_flag)sync_flags::glob_sync);
+	}
 }
 
 void SuFlac::clear_buffer() {

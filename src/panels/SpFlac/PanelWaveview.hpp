@@ -42,10 +42,10 @@ signals:
 
 private:
 	QVBoxLayout mContainer;
-	QHBoxLayout mToolbar, mButtonBar;
+	QHBoxLayout mToolbar, mButtonBar, mui_detailbar;
 	SWaveform mWave;
 	QFrame mTools;
-	QLabel mTitle;
+	QLabel mTitle, mui_detail;
 	SButton mPlay, mPause;
 	QMutex mMut;
 	std::atomic<bool> mPlaying;
@@ -58,6 +58,7 @@ private:
 	suflac_onchange_sptr mOnChangePtr;
 	
 	QString mTrackPath, mTrackArtist, mTrackTitle, mTrackAlbum;
+	unsigned int mTrackBpm;
 
 	void onRegisterUnit();
 	void listenOnChange(SuFlac::working_state state);

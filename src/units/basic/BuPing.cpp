@@ -52,12 +52,13 @@ BuPing::BuPing(std::string label)
 			
 			log("pinging at " + std::to_string(m_bpm) + "bpm");
 			m_state.store(working_state::pinging);
+			this->toggle_led(1);
 			
 		} else {
 			
 			m_state.store(working_state::passing);
 			m_in_ping = false;
-			
+			this->toggle_led(0);
 		}
 	});
 	
@@ -78,8 +79,20 @@ BuPing::BuPing(std::string label)
 		trigger_sync((sync_flag)sync_flags::glob_sync);
 		log("locked BPM: " + std::to_string(m_bpm));
 	});
+
+	register_midi_handler("increment", [this](siomid::msg m) {
+		if(m.v == 0) return;
+		m_bpm++;
+	});
 	
-//	register_midi_led("ready", 0);	
+	register_midi_handler("decrement", [this](siomid::msg m) {
+		if(m.v == 0) return;
+		m_bpm--;
+	});
+
+	register_midi_led("idle", 0);
+	register_midi_led("pinging", 1);	
+		
 	
 	m_last = m_current = siortn::debug::zero_timepoint();
 	m_state = working_state::passing;
@@ -104,6 +117,7 @@ void BuPing::feed_line(siomem::cache_ptr samples, int line) {
 }
 
 siocom::cycle_state BuPing::init() {
+	this->toggle_led(0);
 	log("Initialised");
 	return siocom::cycle_state::complete;
 }
@@ -112,7 +126,6 @@ siocom::cycle_state BuPing::resync(siocom::sync_flag flags) {
 	if(flags & (sync_flag)sync_flags::glob_sync) {
 		if(global_profile().bpm != (signed int)m_bpm) {
 			m_bpm_centre = m_bpm = global_profile().bpm;
-			log("Recentred on " + std::to_string(m_bpm_centre) +"bpm");
 		}
 	}
 	return siocom::cycle_state::complete;

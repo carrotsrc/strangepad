@@ -73,10 +73,12 @@ private:
 	working_state m_ws;
 
 	std::string m_flac_path;
+	bool m_bpm_sync, m_downstream_fill;
 
 	std::vector<std::weak_ptr<std::function<void(SuFlac::working_state) > > > m_onchange_listeners;
 
 	void load_file();
+	void run_prefill();
 	void cache_chunk();
 	void reset_buffer(unsigned int num_samples);
 	void clear_buffer();
