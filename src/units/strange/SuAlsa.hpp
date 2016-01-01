@@ -14,6 +14,11 @@
 #include "framework/spec/dispatch.hpp" // Base class: strangeio::component::unit
 #include "framework/routine/debug.hpp"
 
+#define AIRQ_ASYNC 0
+#define AIRQ_POLL 1
+#define ALSA_IRQ AIRQ_ASYNC
+
+
 class SuAlsa : public strangeio::spec::dispatch
 {
 public:
@@ -67,8 +72,10 @@ private:
 	void flush_samples();
 	void init_swparams();
     siocom::cycle_state init_hwparams();
-
+#if ALSA_IRQ == AIRQ_POLL
 	void poll_loop(int num);
+#endif
+        
 };
 
 #endif // SUALSA_HPP

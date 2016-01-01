@@ -9,14 +9,25 @@
 #include "framework/thread/scheduled.hpp"
 #include "SuAlsa.hpp"
 
+
 #define SIO_SCHED SCHED_FIFO
+
 using namespace strangeio;
 using namespace strangeio::component;
 using mem_order = std::memory_order;
 using channel_area = snd_pcm_channel_area_t;
 
+#define PATH_NONE 0
+#define PATH_WAKEUP 1
+
+#define DEBUG_PATH PATH_NONE
+
 #define HW_MIN_PERIOD 128ul
 #define HW_MAX_PERIOD 1024ul
+
+#if ALSA_IRQ == AIRQ_ASYNC
+static void pcm_trigger_callback(snd_async_handler_t *);
+#endif
 
 SuAlsa::SuAlsa(std::string label)
 	: dispatch("SuAlsa", label)
@@ -38,6 +49,7 @@ SuAlsa::SuAlsa(std::string label)
 	
 	m_schpolicy.policy = SCHED_OTHER;
 	m_schpolicy.priority = 0;
+	m_schpolicy.cpu_affinity = -1;
 	m_fp = fopen("dump.raw", "wb");
 }
 
@@ -58,6 +70,7 @@ void SuAlsa::feed_line(memory::cache_ptr samples, int line) {
 		
 }
 
+#if ALSA_IRQ == AIRQ_POLL
 #include "framework/routine/debug.hpp"
 void SuAlsa::poll_loop(int num) {
 
@@ -68,6 +81,15 @@ void SuAlsa::poll_loop(int num) {
 
 		poll(m_pfd, num, -1);
 
+m_tpe = siortn::debug::clock_time();
+auto diff = siortn::debug::clock_delta_us(m_tps, m_tpe);
+if(diff > 7000) {
+	std::cout << "p-"
+	<< diff
+	<< std::endl;
+}
+m_tps = m_tpe;
+
 		snd_pcm_poll_descriptors_revents(m_handle, m_pfd, num, &rev);
 		if(unit_profile().state == (int)line_state::inactive) {
 				// if inactive, don't bother triggering a cycle
@@ -77,6 +99,9 @@ void SuAlsa::poll_loop(int num) {
 		if(!m_running) break; 
 		
 		if(rev & POLLOUT) {
+
+
+
 			if(m_state.load() == state::streaming) {
 				snd_pcm_avail_update(m_handle);
 				snd_pcm_delay(m_handle, &delay);
@@ -89,8 +114,11 @@ void SuAlsa::poll_loop(int num) {
 						// STICKING POINT
 						continue;
 					}
+//					log("Triggering cycle");
 					trigger_cycle();
 					if(delay <= m_trigger/2) trigger_cycle();
+					
+					sched_yield();
 				}
 			}
 		} else if(rev & POLLERR) {
@@ -101,17 +129,17 @@ void SuAlsa::poll_loop(int num) {
 		}
 	}
 }
+#endif
 
 void SuAlsa::flush_samples() {
 	m_tpe = siortn::debug::clock_time();
-	auto profile = global_profile();
+	auto profile = unit_profile();
 
 	int err;
 	std::stringstream ss;
 	const channel_area *areas;
 	snd_pcm_sframes_t delay = 0;
 	snd_pcm_uframes_t offset, frames = profile.period;
-	
 	// clear the held buffer
 	{
 		auto local_buffer = m_buffer;
@@ -128,7 +156,7 @@ void SuAlsa::flush_samples() {
 		m_delay_flush = delay;
 
 		// File write
-		fwrite(intw.get(), sizeof(PcmSample), intw.block_size(), m_fp);
+		fwrite(*intw, sizeof(PcmSample), 1024, m_fp);
 		intw.copy_to(((PcmSample*)areas[0].addr) + (offset*2));
 		
 	}
@@ -152,9 +180,10 @@ void SuAlsa::flush_samples() {
 		if(m_state.load() == state::priming) {
 
 			if(m_in_mmap >= m_trigger) {
+				/*
 				if(m_cycling.test_and_set()) {
 					return;
-				}
+				}*/
 
 				if( (err = snd_pcm_start(m_handle)) < 0) {
 					std::cerr << "Stream start error\t" 
@@ -164,7 +193,6 @@ void SuAlsa::flush_samples() {
 				m_state.store(state::streaming);
 
 				snd_pcm_delay(m_handle, &delay);
-
 				trigger_cycle();
 				
 				return;
@@ -196,7 +224,7 @@ cycle_state SuAlsa::init() {
 	if(!m_running) {
 		
 
-
+#if ALSA_IRQ == AIRQ_POLL
 		m_signal =	new siothr::scheduled(m_schpolicy, [this](){
 
 			/*--------------------------------*\
@@ -228,6 +256,70 @@ cycle_state SuAlsa::init() {
 			
 			/* ---- End of thread ---- */
 		}, ulabel());
+#elif ALSA_IRQ == AIRQ_ASYNC
+		m_signal =	new siothr::scheduled(m_schpolicy, [this](){
+
+			/*--------------------------------*\
+			 * SuAlsa cycle management thread *
+			 * Async							  *
+			\*--------------------------------*/
+
+			std::unique_lock<std::mutex> ul(m_signal_mutex);
+			snd_pcm_sframes_t delay;
+
+			while(1) {
+				m_signal_cv.wait(ul);
+				this->m_tpe = siortn::debug::clock_time();
+
+				auto diff = siortn::debug::clock_delta_us(m_tps, m_tpe);
+				if(diff > 150) {
+					std::cout << "p: "
+					<< diff
+					<< std::endl;
+				}
+
+				if(!m_running) {
+					ul.unlock();
+					break;
+				}
+
+				if(unit_profile().state == (int)line_state::inactive) {
+					// if inactive, don't bother triggering a cycle
+					continue;
+				}
+				
+
+				snd_pcm_avail_update(m_handle);
+				snd_pcm_delay(m_handle, &delay);
+
+
+				if(delay <= m_trigger) {
+
+					if(m_cycling.test_and_set() == true) {
+						// STICKING POINT
+						continue;
+					}
+//					log("Triggering cycle");
+					trigger_cycle();
+					if(delay <= m_trigger/2)
+						trigger_cycle();
+					
+					sched_yield();
+				}
+			}
+			m_active = false;			
+			/* ---- End of thread ---- */
+		}, ulabel());
+
+		//	Handle async signals safely
+		auto *func = new std::function<void(void)>([this](){
+			
+			this->m_tps = siortn::debug::clock_time();
+			m_signal_cv.notify_one();			
+		});
+		snd_async_add_pcm_handler(&m_cb, m_handle, &pcm_trigger_callback, (void*)func);
+#endif
+		
 		m_running = true;	
 	}
 	m_state.store(state::ready);
@@ -259,6 +351,8 @@ void SuAlsa::set_configuration(std::string key, std::string value) {
 		m_trigger = std::stoi(value);
 	} else if(key == "sched_priority") {
 		m_schpolicy.priority = std::stoi(value);
+	} else if(key == "cpu_affinity") {
+		m_schpolicy.cpu_affinity = std::stoi(value);	
 	} else if(key == "sched_policy") {
 		
 		if(value == "SCHED_FIFO") {
@@ -288,7 +382,7 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 	log(ss.str());
 	ss.str("");
 
-	if ((err = snd_pcm_open (&m_handle, m_alsa_dev.c_str(), SND_PCM_STREAM_PLAYBACK,0)) < 0) {
+	if ((err = snd_pcm_open (&m_handle, m_alsa_dev.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
 		log("# cannot open audio device - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
@@ -392,7 +486,7 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 			log(std::string(snd_strerror(err)));
 	}
 	register_metric(profile_metric::period, (signed int)period_size);
-	if(!m_trigger) m_trigger = period_size;
+	if(!m_trigger) m_trigger = period_size * 2;
 	
 	auto sample_rate = 0u;
 	if ((err = snd_pcm_hw_params_get_rate (hw_params, &sample_rate, &dir)) < 0) {
@@ -454,4 +548,29 @@ void SuAlsa::init_swparams() {
 	snd_output_stdio_attach(&out, stdout, 0);
 	snd_pcm_dump_sw_setup(m_handle, out);
 }
+
+/* This is a signal handler. ALSA uses SIGIO to tell the unit that the
+ * output buffer is running low and needs to be refilled. This function
+ * is executed when the signal is received. The signal is async and is
+ * sent to the main process thread. It is important that there are no heap
+ * allocations that occur in the callstack from this function because
+ * if a heap allocation in the main process is interrupted by the
+ * signal, and another heap allocation occurs somewhere from the signal
+ * handler there will be a deadlock on __lll_lock_wait_private.
+ *
+ * No:
+ * [m/c/re]alloc()
+ * free()
+ * new
+ * delete
+ */
+
+#if ALSA_IRQ == AIRQ_ASYNC
+static void pcm_trigger_callback(snd_async_handler_t *cb) {
+	auto callback = (std::function<void(void)>*)snd_async_handler_get_callback_private(cb);
+	(*callback)();
+}
+#endif
+
+
 UnitBuilder(SuAlsa);
