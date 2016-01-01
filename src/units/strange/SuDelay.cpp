@@ -185,7 +185,7 @@ void SuDelay::reset_delay() {
 	auto profile = global_profile();
 
 	m_spms = profile.fs / 1000u;
-	m_period_size = profile.period;
+	m_period_size = line_profile().period;
 
 	auto sz = (unsigned int) ((m_spms * m_delay_time)*2);
 	if(sz > m_delay_size) {
@@ -198,12 +198,6 @@ void SuDelay::reset_delay() {
 
 	}
 	m_delay_size = sz;
-
-/*	
-	std::stringstream ss;
-	ss << "Create delay buffer of " << m_delay_size << " samples";
-	log(ss.str());
-*/
 
 	auto chan_sw = (m_delay_size/2);
 	m_start_l = m_write_l = m_read_l = m_delay_buffer;
