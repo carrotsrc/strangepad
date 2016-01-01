@@ -75,10 +75,8 @@ cycle_state SuFlac::cycle() {
 		return cycle_state::complete;
 	}
 
-
 	feed_out(m_cptr[m_rindex++], LineAudio);
 
-	
 	m_num_cached--;
 
 	if(m_rindex == SuFlacCacheSize) m_rindex = 0;
@@ -214,10 +212,10 @@ void SuFlac::run_prefill() {
 }
 
 cycle_state SuFlac::resync(siocom::sync_flag flags) {
-
+	log("line period - " + std::to_string(line_profile().period));
 	if(flags & (sync_flag)sync_flags::glob_sync) {
 
-		m_period_size = global_profile().period;
+		m_period_size = line_profile().period;
 		m_num_channels = global_profile().channels;
 		auto bpm = global_profile().bpm;
 		if(m_track_bpm != bpm) {
