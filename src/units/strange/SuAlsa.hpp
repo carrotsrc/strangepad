@@ -16,7 +16,8 @@
 
 #define AIRQ_ASYNC 0
 #define AIRQ_POLL 1
-#define ALSA_IRQ AIRQ_ASYNC
+//#define ALSA_IRQ AIRQ_ASYNC
+#define ALSA_IRQ AIRQ_POLL
 
 
 class SuAlsa : public strangeio::spec::dispatch
@@ -40,7 +41,6 @@ protected:
 private:
 	// Buffer
 	strangeio::memory::cache_ptr m_buffer;
-	FILE *m_fp;
 
 	// state machine
 	std::atomic<state> m_state;

@@ -50,7 +50,6 @@ SuAlsa::SuAlsa(std::string label)
 	m_schpolicy.policy = SCHED_OTHER;
 	m_schpolicy.priority = 0;
 	m_schpolicy.cpu_affinity = -1;
-	m_fp = fopen("dump.raw", "wb");
 }
 
 SuAlsa::~SuAlsa() {
@@ -80,15 +79,6 @@ void SuAlsa::poll_loop(int num) {
 	while(1) {
 
 		poll(m_pfd, num, -1);
-
-m_tpe = siortn::debug::clock_time();
-auto diff = siortn::debug::clock_delta_us(m_tps, m_tpe);
-if(diff > 7000) {
-	std::cout << "p-"
-	<< diff
-	<< std::endl;
-}
-m_tps = m_tpe;
 
 		snd_pcm_poll_descriptors_revents(m_handle, m_pfd, num, &rev);
 		if(unit_profile().state == (int)line_state::inactive) {
@@ -156,8 +146,7 @@ void SuAlsa::flush_samples() {
 		m_delay_flush = delay;
 
 		// File write
-		fwrite(*intw, sizeof(PcmSample), 1024, m_fp);
-		intw.copy_to(((PcmSample*)areas[0].addr) + (offset*2));
+		intw.copy_to(((PcmSample*)areas[0].addr) + (offset*2), profile.period*2);
 		
 	}
 
@@ -269,14 +258,6 @@ cycle_state SuAlsa::init() {
 
 			while(1) {
 				m_signal_cv.wait(ul);
-				this->m_tpe = siortn::debug::clock_time();
-
-				auto diff = siortn::debug::clock_delta_us(m_tps, m_tpe);
-				if(diff > 150) {
-					std::cout << "p: "
-					<< diff
-					<< std::endl;
-				}
 
 				if(!m_running) {
 					ul.unlock();
@@ -313,10 +294,9 @@ cycle_state SuAlsa::init() {
 
 		//	Handle async signals safely
 		auto *func = new std::function<void(void)>([this](){
-			
-			this->m_tps = siortn::debug::clock_time();
 			m_signal_cv.notify_one();			
 		});
+
 		snd_async_add_pcm_handler(&m_cb, m_handle, &pcm_trigger_callback, (void*)func);
 #endif
 		
@@ -382,11 +362,22 @@ siocom::cycle_state SuAlsa::init_hwparams() {
 	log(ss.str());
 	ss.str("");
 
+#if ALSA_IRQ == AIRQ_ASYNC
 	if ((err = snd_pcm_open (&m_handle, m_alsa_dev.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
 		log("# cannot open audio device - ");
 		log(std::string(snd_strerror(err)));
 		return cycle_state::error;
 	}
+
+	
+#elif ALSA_IRQ == AIRQ_POLL
+	
+	if ((err = snd_pcm_open (&m_handle, m_alsa_dev.c_str(), SND_PCM_STREAM_PLAYBACK,0)) < 0) {
+		log("# cannot open audio device - ");
+		log(std::string(snd_strerror(err)));
+		return cycle_state::error;
+	}	
+#endif
 
 	if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
 		log("# cannot allocated hardware param struct - ");
