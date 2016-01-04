@@ -26,6 +26,7 @@ target_order = [
 
         'unit/BuLPF',
 	'unit/BuPing',
+	'unit/BuDump',
 
 	'unit/SuAlsa',
 	'unit/SuFlac',
@@ -116,6 +117,12 @@ targets = {
                         'debug' : ['unitbuild', '../../bin/units/BuPing', '-g', 'basic/BuPing.cpp']
 			},
 
+        'unit/BuDump' :{
+			'cd' : sw+"/src/units/",
+			'release' : ['unitbuild', '../../bin/units/BuDump', '-O', '-O3', 'basic/BuDump.cpp'],
+                        'debug' : ['unitbuild', '../../bin/units/BuDump', '-g', 'basic/BuDump.cpp']
+			},
+
         'pad/SpFlac' :{
 			'cd' : sw+"/src/panels/SpFlac/",
 			'release' : ['make'],
@@ -156,6 +163,7 @@ if "--release" in sys.argv:
 
 if "--debug" in sys.argv:
     build_profile = "debug"
+    os.putenv('DEBUG_BUILD', "{}".format(1))
     sys.argv.remove("--debug")
 
 print("Build profile: \033[1;35m"+build_profile+"\033[1;m")
