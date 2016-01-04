@@ -94,6 +94,7 @@ void SuFlac::feed_line(strangeio::memory::cache_ptr samples, int line) {
 
 cycle_state SuFlac::init() {
 	register_metric(profile_metric::channels, 2); // default
+
 	log("Initialised");
 	return cycle_state::complete;
 }
