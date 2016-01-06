@@ -9,7 +9,7 @@
 #include "framework/alias.hpp"
 #include "framework/spec/mainline.hpp" // Base class: strangeio::component::unit
 
-#define SuFlacCacheSize 3
+#define SuFlacCacheSize 2
 
 class SuFlac : public siospc::mainline
 {
@@ -59,16 +59,20 @@ protected:
 
 private:
 	std::array< siomem::cache_ptr, SuFlacCacheSize > m_cptr;
+        std::array< PcmSample*, SuFlacCacheSize > m_position_history; 
+        int m_ph_start, m_ph_end;
+        
 	std::mutex m_buffer_mutex;
 	std::atomic_int m_num_cached, m_rindex, m_windex;
 
 	PcmSample* m_buffer;
 	PcmSample* m_position, *m_jump_pos;
+        
 
 	unsigned int m_buf_size, m_remain;
-	unsigned int m_period_size, m_num_channels;
+	unsigned int m_period_size, m_old_period, m_num_channels;
 	int m_track_bpm;
-	signed int m_samples_played;
+	signed int m_samples_played, m_samples_cached;
 	std::atomic<bool> m_jump, m_final;
 	working_state m_ws;
 
@@ -81,7 +85,8 @@ private:
 	void run_prefill();
 	void cache_chunk();
 	void reset_buffer(unsigned int num_samples);
-	void clear_buffer();
+	void clear_cache();
+        void reset_cache();
 
 	void event_onchange(SuFlac::working_state state);
 
@@ -92,7 +97,7 @@ public:
 	unsigned int db_buf_size() { return m_buf_size; };
 	void db_reset_buffer(unsigned int total_samples) { reset_buffer(total_samples); };
 
-	strangeio::memory::cache_ptr db_cache() { return m_cptr[m_rindex++]; };
+	strangeio::memory::cache_ptr db_cache() { return std::move(m_cptr[m_rindex++]); };
 	int db_cache_size() { return m_num_cached; };
 	void db_cache_chunk() { cache_chunk(); };
 	

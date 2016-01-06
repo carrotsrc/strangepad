@@ -91,7 +91,7 @@ siocom::cycle_state SuDelay::cycle() {
 	}
 
 	if(m_ws == working_state::passing || m_ws == working_state::resetting) {
-		feed_out(m_cptr, SuDelayAudio);
+		feed_out(std::move(m_cptr), SuDelayAudio);
 		return siocom::cycle_state::complete;
 	}
 
@@ -116,7 +116,7 @@ siocom::cycle_state SuDelay::cycle() {
 
 			c1++; c2++;
 		}
-		feed_out(m_cptr, SuDelayAudio);
+		feed_out(std::move(m_cptr), SuDelayAudio);
 		return siocom::cycle_state::complete;
 	}
 
@@ -148,7 +148,7 @@ siocom::cycle_state SuDelay::cycle() {
 		m_write_l += rem;
 		m_write_r += rem;
 	}
-	feed_out(m_cptr, SuDelayAudio);
+	feed_out(std::move(m_cptr), SuDelayAudio);
 	return siocom::cycle_state::complete;
 }
 
@@ -161,7 +161,7 @@ void SuDelay::listen_onvalue(std::weak_ptr<std::function<void(SuDelay::value_cha
 }
 
 void SuDelay::feed_line(siomem::cache_ptr samples, int line) {
-	m_cptr = samples;
+	m_cptr = std::move(samples);
 }
 
 siocom::cycle_state SuDelay::resync(siocom::sync_flag flags) {

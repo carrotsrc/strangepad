@@ -61,12 +61,12 @@ siocom::cycle_state BuLPF::cycle() {
 	
 	m_zb1c1 = zb1c1;
 	m_zb1c2 = zb1c2;
-	this->feed_out(m_cache, 0);
+	this->feed_out(std::move(m_cache), 0);
 	return siocom::cycle_state::complete;
 }
 
 void BuLPF::feed_line(siomem::cache_ptr samples, int line) {
-	m_cache = samples;
+	m_cache = std::move(samples);
 	
 }
 

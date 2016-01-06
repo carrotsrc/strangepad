@@ -108,12 +108,12 @@ siocom::cycle_state BuPing::cycle() {
 	if(state == working_state::pinging)
 			write_ping();
 			
-	this->feed_out(m_ptr, 0);
+	this->feed_out(std::move(m_ptr), 0);
 	return siocom::cycle_state::complete;
 }
 
 void BuPing::feed_line(siomem::cache_ptr samples, int line) {
-	m_ptr = samples;
+	m_ptr = std::move(samples);
 }
 
 siocom::cycle_state BuPing::init() {

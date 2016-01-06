@@ -3,6 +3,7 @@
 #define ChannelA 0
 #define ChannelB 1
 #define AudioOut 0
+
 SuMixer::SuMixer(std::string label)
 	: siospc::combine("SuMixer", label)
 	, m_gain_master(0.5f)
@@ -37,8 +38,8 @@ SuMixer::~SuMixer() {
 
 void SuMixer::feed_line(siomem::cache_ptr samples, int line) {
 	switch(line) {
-	case ChannelA: m_chan_a = samples; break;
-	case ChannelB: m_chan_b = samples; break;
+		case ChannelA: m_chan_a = std::move(samples); break;
+		case ChannelB: m_chan_b = std::move(samples); break;
 	}
 }
 
@@ -74,7 +75,7 @@ void SuMixer::mix_channels() {
 		m_peak_chan_a = lpeaka;
 		m_peak_chan_b = lpeakb;
 		m_chan_b.free();
-		feed_out(m_chan_a, AudioOut);
+		feed_out(std::move(m_chan_a), AudioOut);
 }
 
 void SuMixer::single_channel() {
@@ -91,7 +92,7 @@ void SuMixer::single_channel() {
 
 		m_peak_chan_a = lpeak;
 
-		feed_out(m_chan_a, AudioOut);
+		feed_out(std::move(m_chan_a), AudioOut);
 
 	} else if(input_active(ChannelB) && m_chan_b) {
 
@@ -105,7 +106,7 @@ void SuMixer::single_channel() {
 		}
 
 		m_peak_chan_b = lpeak;
-		feed_out(m_chan_b, AudioOut);
+		feed_out(std::move(m_chan_b), AudioOut);
 	}
 }
 

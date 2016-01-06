@@ -20,7 +20,7 @@ BuDump::~BuDump() {
 siocom::cycle_state BuDump::cycle() {
 	if(!m_cptr) return siocom::cycle_state::complete;
 
-	log("Cycling");
+	
 	auto cptr = cache_alloc(1);
 	siortn::sound::interleave2(*m_cptr, *cptr, m_frames);
 	m_cptr.free();
@@ -31,18 +31,15 @@ siocom::cycle_state BuDump::cycle() {
 
 	
 	this->add_task([this]() {
-		log("Thread");
 		std::this_thread::sleep_for(siortn::debug::us(m_delay_us));
 		this->trigger_cycle();
-		log("Triggered");
 	});
 	
-	log("Finished");
 	return siocom::cycle_state::complete;
 }
 
 void BuDump::feed_line(siomem::cache_ptr samples, int line) {
-	m_cptr = samples;
+	m_cptr = std::move(samples);
 }
 
 siocom::cycle_state BuDump::init() {

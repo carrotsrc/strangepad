@@ -65,7 +65,7 @@ cycle_state SuAlsa::cycle() {
 
 void SuAlsa::feed_line(memory::cache_ptr samples, int line) {
 	
-	if(!m_buffer) m_buffer = samples;
+	if(!m_buffer) m_buffer = std::move(samples);
 		
 }
 
@@ -132,7 +132,7 @@ void SuAlsa::flush_samples() {
 	snd_pcm_uframes_t offset, frames = profile.period;
 	// clear the held buffer
 	{
-		auto local_buffer = m_buffer;
+		auto local_buffer = std::move(m_buffer);
 		auto intw = cache_alloc(1);
 		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
 		
