@@ -83,17 +83,14 @@ cycle_state SuFlac::cycle() {
 			return cycle_state::complete;
 		}
 
-		if(m_cptr[m_rindex].get() == nullptr) {
-			log("Error: cache block is null");
-		}
 		feed_out(std::move(m_cptr[m_rindex++]), LineAudio);
 		m_ph_start = (m_ph_start + 1) % SuFlacCacheSize;
 		m_num_cached--;
 		m_rindex = m_rindex % SuFlacCacheSize;
 	}
 
-
-	add_task(std::bind(&SuFlac::cache_chunk, this));
+	add_task(std::bind(&SuFlac::cache_task, this));
+	//cache_task();
 	if(m_remain) {
 		m_samples_played += (m_period_size*2);
 	}
@@ -116,6 +113,7 @@ void SuFlac::load_file() {
 	if(m_ws == working_state::streaming) return;
 
 	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+
 	clear_cache();
 
 	std::stringstream ss;
@@ -150,7 +148,8 @@ void SuFlac::load_file() {
 	m_position = m_buffer;
 	m_num_cached = 0;
 
-	add_task(std::bind(&SuFlac::cache_chunk, this));
+	cache_chunk();
+
 	log("Done");
 	event_onchange(SuFlac::prestream);
 	toggle_led((int)led_state::ready);
@@ -163,22 +162,24 @@ void SuFlac::load_file() {
 	
 }
 
+void SuFlac::cache_task() {
+	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+	cache_chunk();
+}
 void SuFlac::cache_chunk() {
 	
 	if(!m_buffer) return;
 
-	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
-	
 	auto tc = SuFlacCacheSize - m_num_cached;
 	auto csz = m_period_size * m_num_channels;
 	for(auto i = 0; i < tc; i++) {
 
 		if(m_remain == 0) {
 			m_cptr[m_windex] = std::move(cache_alloc(1));
-			m_windex++;
-			std::cout << "- Flac 1 cache_chunk" << std::endl;
+
 			for(auto  i = 0u; i < csz; i++)
 				m_cptr[m_windex][i] = 0.0000001f;
+
 			m_num_cached++;
 			m_windex++;
 			m_windex = m_windex % SuFlacCacheSize;
@@ -187,8 +188,8 @@ void SuFlac::cache_chunk() {
 		}
 
 		auto samples = cache_alloc(1);
-		auto deint = cache_alloc(1);
-		std::cout << "- Flac 2 cache_chunk" << std::endl;
+		m_cptr[m_windex] = std::move(cache_alloc(1));
+
 		
 		auto csz = m_period_size * m_num_channels;
 
@@ -200,35 +201,16 @@ void SuFlac::cache_chunk() {
 		m_position_history[m_ph_end++] = m_position;
 		m_ph_end = m_ph_end % SuFlacCacheSize;
 
-		routine::sound::deinterleave2(*samples, *m_cptr[m_windex++], m_period_size);
+		routine::sound::deinterleave2(std::move(samples), *(m_cptr[m_windex]), m_period_size);
 
 		m_remain -= csz;
 		m_position += csz;
 
 
 		m_num_cached++;
+		m_windex ++;
 		m_windex = m_windex % SuFlacCacheSize;
 	}
-
-
-}
-
-void SuFlac::run_prefill() {
-	
-	auto frames = line_profile().fill;
-	auto total = frames*2;
-	
-	auto samples = cache_alloc(1);
-	auto tmp = cache_alloc(1);
-	std::cout << "- Flac 2 run_prefill" << std::endl;
-	
-	tmp.copy_from(m_position, total);
-	siortn::sound::deinterleave2(tmp.get(), samples.get(), frames);
-	
-	m_position += total;
-	m_remain -= total;
-	this->fill_out(std::move(samples), 0);
-	this->m_downstream_fill = true;
 }
 
 cycle_state SuFlac::resync(siocom::sync_flag flags) {
@@ -257,10 +239,12 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 	} else {
 		m_period_size  = line_profile().period;
 		if( m_period_size != m_old_period  && m_num_cached) {
+			std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+			m_ws = working_state::resetting;
 			m_old_period = m_period_size;
-			this->reset_cache();
-			this->cache_chunk();
-			
+			reset_cache();
+			cache_chunk();
+			m_ws = working_state::streaming;
 		}	
 	}
 	return cycle_state::complete;
@@ -363,7 +347,8 @@ void SuFlac::action_jump_to_sample(int sample) {
 	m_remain = m_buf_size - offset;
 	m_samples_played = offset;
 
-	add_task(std::bind(&SuFlac::cache_chunk, this));
+	//add_task(std::bind(&SuFlac::cache_task, this));
+	cache_task();
 }
 
 void SuFlac::set_bpm(int bpm) {
@@ -377,16 +362,14 @@ void SuFlac::set_bpm(int bpm) {
 }
 
 void SuFlac::clear_cache() {
+
 	for(auto& cptr : m_cptr) {
-		cptr.free();
-		std::cout << "- Flac 1 clear_cache" << std::endl;
+		cptr.free();		
 	}
 	m_num_cached = 0;
 }
 
 void SuFlac::reset_cache() {
-	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
-	//log("Resetting cache");
 	m_position = m_position_history[m_ph_start];
 	m_ph_end = m_ph_start = 0;
 	clear_cache();

@@ -25,6 +25,7 @@ public:
 		streaming,
 		paused,
 		zero,
+		resetting,
 		bpm_update,
 
 		sync_streaming,
@@ -82,11 +83,11 @@ private:
 	std::vector<std::weak_ptr<std::function<void(SuFlac::working_state) > > > m_onchange_listeners;
 
 	void load_file();
-	void run_prefill();
-	void cache_chunk();
+	inline void cache_chunk();
+	void cache_task();
 	void reset_buffer(unsigned int num_samples);
 	void clear_cache();
-        void reset_cache();
+    void reset_cache();
 
 	void event_onchange(SuFlac::working_state state);
 

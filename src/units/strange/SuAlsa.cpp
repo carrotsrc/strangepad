@@ -132,9 +132,8 @@ void SuAlsa::flush_samples() {
 	snd_pcm_uframes_t offset, frames = profile.period;
 	// clear the held buffer
 	{
-		auto local_buffer = std::move(m_buffer);
 		auto intw = cache_alloc(1);
-		siortn::sound::interleave2(*local_buffer, *intw, profile.period);
+		siortn::sound::interleave2(std::move(m_buffer), *intw, profile.period);
 		
 		snd_pcm_avail_update(m_handle);
 		
