@@ -2,6 +2,7 @@
 #include <sndfile.hh>
 #include <thread>
 #include <iostream>
+#include <algorithm>
 #include "SuFlac.hpp"
 #include "framework/routine/sound.hpp"
 
@@ -20,10 +21,9 @@ enum class led_state {
 
 SuFlac::SuFlac(std::string label)
 	: siospc::mainline("SuFlac", label)
+	, m_cbuf(SuFlacCacheSize)
+	, m_position_history(SuFlacCacheSize)
 	, m_ph_start(0), m_ph_end(0)
-	, m_num_cached(0)
-	, m_rindex(0)
-	, m_windex(0)
 	, m_buffer(nullptr)
 	, m_position(nullptr)
 	, m_buf_size(0)
@@ -35,7 +35,6 @@ SuFlac::SuFlac(std::string label)
 	, m_final(false)
 	, m_flac_path("")
 	, m_bpm_sync(false)
-	, m_downstream_fill(false)
 
 {
 
@@ -61,16 +60,6 @@ SuFlac::~SuFlac() {
 }
 
 cycle_state SuFlac::cycle() {
-	/* potential problem could be that
-	 * the system is starved, so some
-	 * sort of way of triggering a 
-	 * recycle is necessary (low priority).
-	 * 
-	 * For now, the cached periods should
-	 * be OK.
-	 */
-
-	
 
 	if(m_ws != working_state::streaming && m_ws != working_state::sync_paused) {
 		return cycle_state::complete;
@@ -79,17 +68,13 @@ cycle_state SuFlac::cycle() {
 	{
 		std::lock_guard<std::mutex> lkg(m_buffer_mutex);
 		
-		if(!m_num_cached) {
+		if(!m_cbuf.size())
 			return cycle_state::complete;
-		}
-
-		feed_out(std::move(m_cptr[m_rindex++]), LineAudio);
-		m_ph_start = (m_ph_start + 1) % SuFlacCacheSize;
-		m_num_cached--;
-		m_rindex = m_rindex % SuFlacCacheSize;
+		
+		feed_out(std::move(m_cbuf.move_front()), LineAudio);
+		m_position_history.pop_front();
 	}
 
-	//add_task(std::bind(&SuFlac::cache_task, this));
 	cache_task();
 	if(m_remain) {
 		m_samples_played += (m_period_size*2);
@@ -146,8 +131,6 @@ void SuFlac::load_file() {
 	}
 
 	m_position = m_buffer;
-	m_num_cached = 0;
-
 	cache_chunk();
 
 	log("Done");
@@ -170,46 +153,32 @@ void SuFlac::cache_chunk() {
 	
 	if(!m_buffer) return;
 
-	auto tc = SuFlacCacheSize - m_num_cached;
-	auto csz = m_period_size * m_num_channels;
-	for(auto i = 0; i < tc; i++) {
-
+	auto p = m_period_size * m_num_channels;
+	auto spaces = m_cbuf.capacity() - m_cbuf.size();
+	
+	for(auto i = 0u; i < spaces; i++) {
 		if(m_remain == 0) {
-			m_cptr[m_windex] = std::move(cache_alloc(1));
-
-			for(auto  i = 0u; i < csz; i++)
-				m_cptr[m_windex][i] = 0.0000001f;
-
-			m_num_cached++;
-			m_windex++;
-			m_windex = m_windex % SuFlacCacheSize;
-			
+			auto cptr = cache_alloc(1);
+			std::fill_n(*cptr, *cptr+p, 0.0000001f);
+			m_cbuf.push_back(std::move(cptr));
 			continue;
 		}
 
 		auto samples = cache_alloc(1);
-		m_cptr[m_windex] = std::move(cache_alloc(1));
-
-		
-		auto csz = m_period_size * m_num_channels;
-
-		if(m_remain < csz) {
-			csz = m_remain;
+		auto out = cache_alloc(1);
+		auto t = p;
+		if(m_remain < t) {
+			t = m_remain;
 			m_final = true; // toggle final load
 		}
-		samples.copy_from(m_position, csz);
-		m_position_history[m_ph_end++] = m_position;
-		m_ph_end = m_ph_end % SuFlacCacheSize;
+		samples.copy_from(m_position, t);
+		m_position_history.push_back(m_position);
+		
+		routine::sound::deinterleave2(std::move(samples), *out, m_period_size);
+		m_cbuf.push_back(std::move(out));
 
-		routine::sound::deinterleave2(std::move(samples), *(m_cptr[m_windex]), m_period_size);
-
-		m_remain -= csz;
-		m_position += csz;
-
-
-		m_num_cached++;
-		m_windex ++;
-		m_windex = m_windex % SuFlacCacheSize;
+		m_remain -= t;
+		m_position += t;	
 	}
 }
 
@@ -238,13 +207,13 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 
 	} else {
 		m_period_size  = line_profile().period;
-		if( m_period_size != m_old_period  && m_num_cached) {
+
+		if( m_period_size != m_old_period  && m_cbuf.size()) {
 			std::lock_guard<std::mutex> lkg(m_buffer_mutex);
-			m_ws = working_state::resetting;
+
 			m_old_period = m_period_size;
 			reset_cache();
 			cache_chunk();
-			m_ws = working_state::streaming;
 		}	
 	}
 	return cycle_state::complete;
@@ -258,7 +227,8 @@ void SuFlac::reset_buffer(unsigned int total_samples) {
 
 		m_buffer = new PcmSample[total_samples];
 	}
-	m_num_cached = m_windex = m_rindex = 0;
+
+	clear_cache();
 
 	m_buf_size = total_samples;
 	m_remain = total_samples;
@@ -363,10 +333,12 @@ void SuFlac::set_bpm(int bpm) {
 
 void SuFlac::clear_cache() {
 
-	for(auto& cptr : m_cptr) {
-		cptr.free();		
+	for(auto i = 0u; i < m_cbuf.size(); i++) {
+		auto c = std::move(m_cbuf.move_front());
+		c.free();
 	}
-	m_num_cached = 0;
+	
+	m_cbuf.clear();
 }
 
 void SuFlac::reset_cache() {

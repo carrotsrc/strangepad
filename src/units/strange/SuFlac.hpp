@@ -8,6 +8,7 @@
 
 #include "framework/alias.hpp"
 #include "framework/spec/mainline.hpp" // Base class: strangeio::component::unit
+#include "framework/buffer/circular.hpp"
 
 #define SuFlacCacheSize 2
 
@@ -59,13 +60,12 @@ protected:
 	siocom::cycle_state resync(siocom::sync_flag flags);
 
 private:
+	siobuf::circular<siomem::cache_ptr> m_cbuf;
+	siobuf::circular<PcmSample*> m_position_history;
 	std::array< siomem::cache_ptr, SuFlacCacheSize > m_cptr;
-        std::array< PcmSample*, SuFlacCacheSize > m_position_history; 
-        int m_ph_start, m_ph_end;
+    int m_ph_start, m_ph_end;
         
 	std::mutex m_buffer_mutex;
-	std::atomic_int m_num_cached, m_rindex, m_windex;
-
 	PcmSample* m_buffer;
 	PcmSample* m_position, *m_jump_pos;
         
@@ -98,15 +98,15 @@ public:
 	unsigned int db_buf_size() { return m_buf_size; };
 	void db_reset_buffer(unsigned int total_samples) { reset_buffer(total_samples); };
 
-	strangeio::memory::cache_ptr db_cache() { return std::move(m_cptr[m_rindex++]); };
-	int db_cache_size() { return m_num_cached; };
+	strangeio::memory::cache_ptr db_cache() { return m_cbuf.move_front(); };
+	int db_cache_size() { return m_cbuf.capacity(); };
 	void db_cache_chunk() { cache_chunk(); };
 	
 	void db_kick_start() { trigger_cycle(); };
 	
 	std::string get_configuration(std::string key) {
 		if(key == "num_cached") {
-			return std::to_string(m_num_cached);
+			return std::to_string(m_cbuf.size());
 		}
 		return std::string();
 	}
