@@ -89,8 +89,8 @@ cycle_state SuFlac::cycle() {
 		m_rindex = m_rindex % SuFlacCacheSize;
 	}
 
-	add_task(std::bind(&SuFlac::cache_task, this));
-	//cache_task();
+	//add_task(std::bind(&SuFlac::cache_task, this));
+	cache_task();
 	if(m_remain) {
 		m_samples_played += (m_period_size*2);
 	}
