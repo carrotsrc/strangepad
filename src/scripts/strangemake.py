@@ -38,7 +38,7 @@ target_order = [
 	'strangeui',
 	'pad/SpFlac',
 	'pad/SpMixer',
-	'pad/SpSine',
+        'pad/SpDelay',
 	'pad/SpSine',
 
 	'strangepad',
@@ -131,6 +131,11 @@ targets = {
 
 	'pad/SpMixer' :{
 			'cd' : sw+"/src/panels/SpMixer/",
+			'release' : ['make'],
+                        'debug' : ['make'],
+			},
+	'pad/SpDelay' :{
+			'cd' : sw+"/src/panels/SpDelay/",
 			'release' : ['make'],
                         'debug' : ['make'],
 			},
