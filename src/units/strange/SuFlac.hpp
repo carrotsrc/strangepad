@@ -53,6 +53,7 @@ public:
 	unsigned int probe_total_spc() const;
 	int probe_progress() const;
 	int probe_bpm() const;
+	float probe_bpm_live() const;
 	
 	void set_bpm(int bpm);
 
@@ -73,6 +74,7 @@ private:
 	unsigned int m_buf_size, m_remain;
 	unsigned int m_period_size, m_old_period, m_num_channels;
 	int m_track_bpm;
+	float m_track_bpm_live, m_old_drift;
 	signed int m_samples_played, m_samples_cached;
 	std::atomic<bool> m_jump, m_final;
 	working_state m_ws;

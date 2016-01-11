@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "SuFlac.hpp"
 #include "framework/routine/sound.hpp"
+#include "framework/component/debug.hpp"
 
 using namespace strangeio;
 using namespace strangeio::component;
@@ -60,7 +61,6 @@ SuFlac::~SuFlac() {
 }
 
 cycle_state SuFlac::cycle() {
-
 	if(m_ws != working_state::streaming && m_ws != working_state::sync_paused) {
 		return cycle_state::complete;
 	}
@@ -206,14 +206,28 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 		}
 
 	} else {
-		m_period_size  = line_profile().period;
+		auto lp = line_profile();
+		m_period_size  = lp.period;
+		if(lp.drift != m_old_drift) {
+			
+			
+			{ // lock scope
+				std::lock_guard<std::mutex> lkg(m_buffer_mutex);	
+				
+				m_old_drift = lp.drift;
+				m_track_bpm_live = m_track_bpm + (m_track_bpm*lp.drift);
 
-		if( m_period_size != m_old_period  && m_cbuf.size()) {
-			std::lock_guard<std::mutex> lkg(m_buffer_mutex);
+				if( m_period_size != m_old_period  && m_cbuf.size()) {
+					m_old_period = m_period_size;
+					reset_cache();
+					cache_chunk();
+				}
+			} // ~lock scope
+			
+			add_task([this](){
+				event_onchange(working_state::bpm_update);
+			});
 
-			m_old_period = m_period_size;
-			reset_cache();
-			cache_chunk();
 		}	
 	}
 	return cycle_state::complete;
@@ -289,6 +303,10 @@ int SuFlac::probe_bpm() const {
 	return m_track_bpm;
 }
 
+float SuFlac::probe_bpm_live() const {
+	return m_track_bpm_live;
+}
+
 
 void SuFlac::listen_onchange(std::weak_ptr<std::function<void(SuFlac::working_state)> > cb) {
 	m_onchange_listeners.push_back(cb);
@@ -316,25 +334,22 @@ void SuFlac::action_jump_to_sample(int sample) {
 	m_position = m_buffer + offset;
 	m_remain = m_buf_size - offset;
 	m_samples_played = offset;
-
-	//add_task(std::bind(&SuFlac::cache_task, this));
 	cache_task();
 }
 
 void SuFlac::set_bpm(int bpm) {
 	log("zero - " + std::to_string(bpm) +"bpm");
-	m_track_bpm = bpm;
+	m_track_bpm_live = m_track_bpm = bpm;
 	register_metric(profile_metric::bpm, m_track_bpm);
 	if(m_bpm_sync) {
-		log("Syncing BPM");
 		trigger_sync((sync_flag)sync_flags::glob_sync);
 	}
 }
 
 void SuFlac::clear_cache() {
-
-	for(auto i = 0u; i < m_cbuf.size(); i++) {
-		auto c = std::move(m_cbuf.move_front());
+	auto m = m_cbuf.size();
+	for(auto i = 0u; i < m; i++) {
+		auto c = m_cbuf.move_front();
 		c.free();
 	}
 	
@@ -342,8 +357,11 @@ void SuFlac::clear_cache() {
 }
 
 void SuFlac::reset_cache() {
-	m_position = m_position_history[m_ph_start];
-	m_ph_end = m_ph_start = 0;
+	
+	
+	m_position = m_position_history.front();
+	m_remain = (m_buffer + m_buf_size) - m_position;
+	m_position_history.clear();
 	clear_cache();
 }
 
