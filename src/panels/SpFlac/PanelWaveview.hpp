@@ -59,6 +59,7 @@ private:
 	
 	QString mTrackPath, mTrackArtist, mTrackTitle, mTrackAlbum;
 	unsigned int mTrackBpm;
+	float mTrackBpmLive;
 
 	void onRegisterUnit();
 	void listenOnChange(SuFlac::working_state state);

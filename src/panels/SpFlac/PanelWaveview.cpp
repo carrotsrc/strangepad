@@ -138,16 +138,21 @@ void SpFlacWaveview::listenOnChange(SuFlac::working_state state) {
 		if(auto u = unit<SuFlac>()) {
 			
 			mTrackBpm = u->probe_bpm();
+			mTrackBpmLive = u->probe_bpm_live();
+			
 			this->m_tags.set("bpm", QString::number(mTrackBpm));
 			this->m_tags.save();
 			
 			if(mTrackBpm > 0) {
+				
 				auto bpm = QString();
 				if(mTrackBpm < 100)
 					bpm = QString("%1").arg(mTrackBpm, 3, 10, QChar('0'));
 				else
 					bpm = QString::number(mTrackBpm);
-				bpm += " bpm";
+				bpm += " bpm / ";
+				bpm += QString::number(mTrackBpmLive);
+
 				mui_detail.setText(bpm);
 			} else {
 				mui_detail.setText("--- bpm");
