@@ -7,7 +7,7 @@
 
 #include <alsa/asoundlib.h>
 
-#include <stdio.h>
+
 
 #include "framework/alias.hpp"
 #include "framework/component/unit.hpp" // Base class: strangeio::component::unit
@@ -16,8 +16,13 @@
 
 #define AIRQ_ASYNC 0
 #define AIRQ_POLL 1
-//#define ALSA_IRQ AIRQ_ASYNC
-#define ALSA_IRQ AIRQ_POLL
+#define ALSA_IRQ AIRQ_ASYNC
+
+#define ALSA_DUMP 1
+
+#if ALSA_DUMP
+#include <stdio.h>
+#endif
 
 
 class SuAlsa : public strangeio::spec::dispatch
@@ -67,6 +72,10 @@ private:
 	siortn::debug::tp m_tps, m_tpe;
     
 	snd_pcm_sframes_t m_delay_trigger, m_delay_flush;
+
+#if ALSA_DUMP
+	FILE* m_fp;
+#endif
 
 
 	void flush_samples();

@@ -50,6 +50,9 @@ SuAlsa::SuAlsa(std::string label)
 	m_schpolicy.policy = SCHED_OTHER;
 	m_schpolicy.priority = 0;
 	m_schpolicy.cpu_affinity = -1;
+#if ALSA_DUMP
+	m_fp = fopen("sample_dumps.raw", "wb");
+#endif
 }
 
 SuAlsa::~SuAlsa() {
@@ -145,6 +148,9 @@ void SuAlsa::flush_samples() {
 		m_delay_flush = delay;
 
 		// File write
+#if ALSA_DUMP
+		fwrite(*intw, sizeof(PcmSample), profile.period*2, m_fp);
+#endif
 		intw.copy_to(((PcmSample*)areas[0].addr) + (offset*2), profile.period*2);
 		
 	}
@@ -279,7 +285,6 @@ cycle_state SuAlsa::init() {
 						// STICKING POINT
 						continue;
 					}
-//					log("Triggering cycle");
 					trigger_cycle();
 					if(delay <= m_trigger/2)
 						trigger_cycle();
