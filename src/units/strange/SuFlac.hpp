@@ -10,7 +10,7 @@
 #include "framework/spec/mainline.hpp" // Base class: strangeio::component::unit
 #include "framework/buffer/circular.hpp"
 
-#define SuFlacCacheSize 2
+#define SuFlacCacheSize 1
 
 class SuFlac : public siospc::mainline
 {
@@ -86,6 +86,7 @@ private:
 
 	void load_file();
 	inline void cache_chunk();
+	inline void zero_fill(PcmSample* block, unsigned int num) { std::fill_n(block, num, 0.0000001f); };
 	void cache_task();
 	void reset_buffer(unsigned int num_samples);
 	void clear_cache();

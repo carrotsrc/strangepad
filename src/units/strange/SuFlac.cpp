@@ -36,7 +36,6 @@ SuFlac::SuFlac(std::string label)
 	, m_final(false)
 	, m_flac_path("")
 	, m_bpm_sync(false)
-
 {
 
 	add_output("audio");
@@ -71,11 +70,14 @@ cycle_state SuFlac::cycle() {
 		if(!m_cbuf.size())
 			return cycle_state::complete;
 		
+		//log("Outputting " + std::to_string(m_period_size));
+		
 		feed_out(std::move(m_cbuf.move_front()), LineAudio);
 		m_position_history.pop_front();
 	}
 
-	cache_task();
+	cache_chunk();
+	//add_task(std::bind(&SuFlac::cache_task, this));
 	if(m_remain) {
 		m_samples_played += (m_period_size*2);
 	}
@@ -149,6 +151,7 @@ void SuFlac::cache_task() {
 	std::lock_guard<std::mutex> lkg(m_buffer_mutex);
 	cache_chunk();
 }
+
 void SuFlac::cache_chunk() {
 	
 	if(!m_buffer) return;
@@ -159,7 +162,7 @@ void SuFlac::cache_chunk() {
 	for(auto i = 0u; i < spaces; i++) {
 		if(m_remain == 0) {
 			auto cptr = cache_alloc(1);
-			std::fill_n(*cptr, *cptr+p, 0.0000001f);
+			zero_fill(*cptr, p);
 			m_cbuf.push_back(std::move(cptr));
 			continue;
 		}
@@ -172,6 +175,9 @@ void SuFlac::cache_chunk() {
 			m_final = true; // toggle final load
 		}
 		samples.copy_from(m_position, t);
+		
+		if( t < p) zero_fill(*samples, (p-t));
+
 		m_position_history.push_back(m_position);
 		
 		routine::sound::deinterleave2(std::move(samples), *out, m_period_size);
@@ -185,6 +191,7 @@ void SuFlac::cache_chunk() {
 cycle_state SuFlac::resync(siocom::sync_flag flags) {
 	
 	if(flags & (sync_flag)sync_flags::glob_sync) {
+
 		m_num_channels = global_profile().channels;
 		m_old_period = global_profile().period;
 		auto bpm = global_profile().bpm;
@@ -206,6 +213,7 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 		}
 
 	} else {
+
 		auto lp = line_profile();
 		m_period_size  = lp.period;
 		if(lp.drift != m_old_drift) {
@@ -228,12 +236,14 @@ cycle_state SuFlac::resync(siocom::sync_flag flags) {
 				event_onchange(working_state::bpm_update);
 			});
 
-		}	
+		}
+
 	}
 	return cycle_state::complete;
 }
 
 void SuFlac::reset_buffer(unsigned int total_samples) {
+
 
 	if(m_buf_size < total_samples) {
 
@@ -280,7 +290,7 @@ void SuFlac::action_start_stream() {
 		register_metric(profile_metric::state, (int)line_state::active);
 		event_onchange(working_state::sync_streaming);
 		trigger_sync((sync_flag)sync_flags::upstream);
-
+		
 		if(global_profile().state == (int)line_state::inactive) {
 			trigger_cycle(); // need to kick start the process
 		}
@@ -306,7 +316,6 @@ int SuFlac::probe_bpm() const {
 float SuFlac::probe_bpm_live() const {
 	return m_track_bpm_live;
 }
-
 
 void SuFlac::listen_onchange(std::weak_ptr<std::function<void(SuFlac::working_state)> > cb) {
 	m_onchange_listeners.push_back(cb);
@@ -357,8 +366,6 @@ void SuFlac::clear_cache() {
 }
 
 void SuFlac::reset_cache() {
-	
-	
 	m_position = m_position_history.front();
 	m_remain = (m_buffer + m_buf_size) - m_position;
 	m_position_history.clear();
