@@ -5,3 +5,9 @@ build/*
 bin/*.so*
 bin/.store
 *.raw
+moc_*
+*.o
+*.layout
+Makefile
+src/nbproject/*
+*.cbp
